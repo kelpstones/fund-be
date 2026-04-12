@@ -4,6 +4,7 @@ const User = require("../models/users");
 const { AuthValidator } = require("../validation");
 const { hashPassword, comparePassword } = require("../utils/Bcrypt");
 const { generateToken } = require("../utils/jwt");
+
 class AuthController {
   async register(req, res) {
     try {
