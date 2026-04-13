@@ -5,10 +5,10 @@ class Role extends BaseModel {
     super("roles");
   }
 
-  async createRole(name, description) {
+  async createRole(nama, description) {
     try {
       const [id] = await this.knex(this.tableName).insert({
-        name,
+        nama,
         description,
       });
       return id;
@@ -17,10 +17,10 @@ class Role extends BaseModel {
     }
   }
 
-  async updateRole(id, name, description) {
+  async updateRole(id, nama, description) {
     try {
       const data = await this.knex(this.tableName).where({ id }).update({
-        name,
+        nama,
         description,
       });
       return data;

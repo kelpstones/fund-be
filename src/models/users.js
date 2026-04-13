@@ -5,18 +5,19 @@ class User extends BaseModel {
     super("users");
   }
 
-  async createUser(name, email, password, role_id) {
+  async createUser(nama, email, password, nik, role_id) {
     try {
       const [inserted] = await this.knex(this.tableName)
-        .insert({ name, email, password, role_id })
-        .returning(["id", "name", "email"]);
+        .insert({ nama, email, password, nik, role_id })
+        .returning(["id", "nama", "email"]);
 
       const user = await this.knex(this.tableName)
         .select(
           "users.id",
-          "users.name",
+          "users.nama",
           "users.email",
-          "roles.name as role_name",
+          "users.nik",
+          "roles.nama as role_name",
         )
         .leftJoin("roles", "users.role_id", "roles.id")
         .where("users.id", inserted.id)
@@ -27,10 +28,10 @@ class User extends BaseModel {
     }
   }
 
-  async updateUser(id, name, email, role_id) {
+  async updateUser(id, nama, email, role_id) {
     try {
       const data = await this.knex(this.tableName).where({ id }).update({
-        name,
+        nama,
         email,
         role_id,
       });
@@ -53,14 +54,14 @@ class User extends BaseModel {
       const users = await this.knex(this.tableName)
         .select(
           "users.id",
-          "users.name",
+          "users.nama",
           "users.email",
           "users.role_id",
           "users.created_at",
-          "roles.name as role_name",
+          "roles.nama as role_name",
         )
         .leftJoin("roles", "users.role_id", "roles.id")
-        .where("users.name", "like", `%${search}%`)
+        .where("users.nama", "like", `%${search}%`)
         .offset((page - 1) * limit)
         .limit(limit);
       return users;
@@ -74,11 +75,11 @@ class User extends BaseModel {
       const user = await this.knex(this.tableName)
         .select(
           "users.id",
-          "users.name",
+          "users.nama",
           "users.email",
           "users.role_id",
           "users.created_at",
-          "roles.name as role_name",
+          "roles.nama as role_name",
         )
         .leftJoin("roles", "users.role_id", "roles.id")
         .where({ "users.id": id })
@@ -94,12 +95,12 @@ class User extends BaseModel {
       const user = await this.knex(this.tableName)
         .select(
           "users.id",
-          "users.name",
+          "users.nama",
           "users.email",
           "users.password",
           "users.role_id",
           "users.created_at",
-          "roles.name as role_name",
+          "roles.nama as role_name",
         )
         .leftJoin("roles", "users.role_id", "roles.id")
         .where({ "users.email": email })

@@ -12,7 +12,7 @@ exports.seed = async function (knex) {
   await knex("admins").insert([
     {
       id: 1,
-      name: "John Doe",
+      nama: "John Doe",
       email: "john@example.com",
       password: hashedPassword,
       no_telp: "1234567890",
@@ -20,7 +20,7 @@ exports.seed = async function (knex) {
     },
     {
       id: 2,
-      name: "Jane Smith",
+      nama: "Jane Smith",
       email: "jane@example.com",
       password: hashedPassword,
       no_telp: "0987654321",

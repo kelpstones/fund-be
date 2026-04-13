@@ -1,4 +1,3 @@
-
 const express = require("express");
 const BisnisController = require("../controllers/bisnisController");
 const verifyToken = require("../middlewares/auth");
@@ -19,6 +18,19 @@ class BisnisRoutes {
     this.router.post("/", (req, res) => {
       const bisnisController = new BisnisController();
       bisnisController.createBisnis(req, res);
+    });
+
+    this.router.get("/:id", (req, res) => {
+      const bisnisController = new BisnisController();
+      bisnisController.getBisnisById(req, res);
+    });
+    this.router.put("/:id", (req, res) => {
+      const bisnisController = new BisnisController();
+      bisnisController.updateBisnis(req, res);
+    });
+    this.router.delete("/:id", (req, res) => {
+      const bisnisController = new BisnisController();
+      bisnisController.deleteBisnis(req, res);
     });
     return this.router;
   }

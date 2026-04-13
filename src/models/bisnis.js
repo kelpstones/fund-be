@@ -5,12 +5,21 @@ class Bisnis extends BaseModel {
     super("bisnis");
   }
 
-  async createBisnis(nama, user_id, alamat, no_telp, email, deskripsi) {
+  async createBisnis(
+    nama,
+    user_id,
+    kelas_id,
+    alamat,
+    no_telp,
+    email,
+    deskripsi,
+  ) {
     try {
       const bisnis = await this.knex(this.tableName)
         .insert({
           nama_bisnis: nama,
           user_id,
+          kelas_id,
           alamat,
           no_telp,
           email,
@@ -19,6 +28,7 @@ class Bisnis extends BaseModel {
         .returning([
           "id",
           "user_id",
+          "kelas_id",
           "nama_bisnis",
           "alamat",
           "no_telp",
@@ -35,15 +45,20 @@ class Bisnis extends BaseModel {
     try {
       const bisnisList = await this.knex(this.tableName)
         .select(
+          "bisnis.id",
           "bisnis.nama_bisnis",
+          "bisnis.email",
+          "kelas.nama_kelas as kelas",
+          "bisnis.kelas_id",
           "bisnis.alamat",
           "bisnis.no_telp",
           "bisnis.deskripsi",
-          "users.name as pemilik",
+          "users.nama as pemilik",
           "users.email as email_pemilik",
           "users.id as user_id",
         )
         .leftJoin("users", "bisnis.user_id", "users.id")
+        .leftJoin("kelas", "bisnis.kelas_id", "kelas.id")
         .offset((page - 1) * limit)
         .limit(limit)
         .where("bisnis.nama_bisnis", "ilike", `%${search}%`);
@@ -57,14 +72,19 @@ class Bisnis extends BaseModel {
     try {
       const bisnis = await this.knex(this.tableName)
         .select(
+          "bisnis.id",
           "bisnis.nama_bisnis",
+          "bisnis.email",
+          "kelas.nama_kelas as kelas",
+          "bisnis.kelas_id",
           "bisnis.alamat",
           "bisnis.no_telp",
           "bisnis.deskripsi",
-          "users.name as pemilik",
+          "users.nama as pemilik",
           "users.email as email_pemilik",
           "users.id as user_id",
         )
+        .leftJoin("kelas", "bisnis.kelas_id", "kelas.id")
         .leftJoin("users", "bisnis.user_id", "users.id")
         .where("bisnis.id", id)
         .first();
@@ -78,11 +98,11 @@ class Bisnis extends BaseModel {
     try {
       const bisnis = this.knex(this.tableName).where({ id }).update({
         nama_bisnis: nama,
-        alamat,
-        no_telp,
-        email,
-        deskripsi,
-        kelas_id,
+        kelas_id: kelas_id,
+        alamat: alamat,
+        no_telp: no_telp,
+        email: email,
+        deskripsi: deskripsi,
       });
       return bisnis;
     } catch (error) {

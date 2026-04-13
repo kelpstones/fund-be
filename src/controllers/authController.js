@@ -7,14 +7,15 @@ const { generateToken } = require("../utils/jwt");
 class AuthController {
   async register(req, res) {
     try {
-      const { name, email, password, password_confirmation, role_id } =
+      const { nama, email, password, password_confirmation, nik, role_id } =
         req.body;
 
       const validate = AuthValidator.registerValidation({
-        name,
+        nama,
         email,
         password,
         password_confirmation,
+        nik,
         role_id,
       });
 
@@ -29,7 +30,13 @@ class AuthController {
       }
 
       const passwordHash = await hashPassword(password);
-      const user = await User.createUser(name, email, passwordHash, role_id);
+      const user = await User.createUser(
+        nama,
+        email,
+        passwordHash,
+        nik,
+        role_id,
+      );
       return responseHelper.created(res, "User registered successfully", user);
     } catch (error) {
       responseHelper.serverError(res, error);
@@ -55,7 +62,7 @@ class AuthController {
 
       const data = {
         id: user.id,
-        name: user.name,
+        nama: user.nama,
         email: user.email,
         role: user.role_name,
       };
