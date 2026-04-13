@@ -2,7 +2,7 @@ const responseHelper = require("../utils/response");
 const User = require("../models/users");
 const { AuthValidator } = require("../validation");
 const { hashPassword, comparePassword } = require("../utils/Bcrypt");
-const { generateToken } = require("../utils/jwt");
+const { generateToken, refreshToken } = require("../utils/jwt");
 
 class AuthController {
   async register(req, res) {
@@ -65,11 +65,36 @@ class AuthController {
         nama: user.nama,
         email: user.email,
         role: user.role_name,
+        role_id: user.role_id,
+        created_at: user.created_at,
       };
 
       return responseHelper.successLogin(res, "Login successful", data, token);
     } catch (error) {
+      console.error(error);
       responseHelper.serverError(res, error);
+    }
+  }
+
+  async authMe(req, res) {
+    try {
+      const id = req.user.id;
+      const user = await User.getUserById(id);
+      if (!user) {
+        return responseHelper.error(res, "User not found", 404);
+      }
+      const userData = await User.getUserById(user.id);
+      const refreshed = refreshToken(user);
+      // console.log("Refreshed token:", refreshed);
+      return responseHelper.successLogin(
+        res,
+        "Token refreshed",
+        userData,
+        refreshed,
+      );
+    } catch (error) {
+      console.error(error);
+      return responseHelper.serverError(res, "Failed to retrieve user data");
     }
   }
 }

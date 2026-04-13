@@ -11,16 +11,13 @@ exports.generateToken = (user) => {
   });
 };
 
-exports.refreshToken = (token) => {
+exports.refreshToken = (data) => {
   try {
-    const tokenData = jwt.verify(token, process.env.JWT_SECRET, {
-      ignoreExpiration: true,
-    });
     const newToken = jwt.sign(
       {
-        id: tokenData.id,
-        email: tokenData.email,
-        role_id: tokenData.role_id,
+        id: data.id,
+        email: data.email,
+        role_id: data.role_id,
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },
@@ -28,14 +25,6 @@ exports.refreshToken = (token) => {
     return newToken;
   } catch (error) {
     throw error;
-  }
-};
-
-exports.verifyToken = (token) => {
-  try {
-    return jwt.verify(token, process.env.JWT_SECRET);
-  } catch (error) {
-    return null;
   }
 };
 
