@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const AuthController = require("../controllers/authController");
-
+const BisnisRoutes = require("./bisnisRoutes");
 class UserRoutes {
   constructor() {
     this.router = router;
@@ -16,6 +16,8 @@ class UserRoutes {
       authController.login(req, res);
     });
 
+    // bisnis
+    this.router.use("/bisnis", new BisnisRoutes().routes());
     return this.router;
   }
 }

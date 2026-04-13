@@ -1,5 +1,4 @@
 const responseHelper = require("../utils/response");
-const bcrypt = require("bcryptjs");
 const User = require("../models/users");
 const { AuthValidator } = require("../validation");
 const { hashPassword, comparePassword } = require("../utils/Bcrypt");
@@ -58,7 +57,7 @@ class AuthController {
         id: user.id,
         name: user.name,
         email: user.email,
-        role_id: user.role_id,
+        role: user.role_name,
       };
 
       return responseHelper.successLogin(res, "Login successful", data, token);

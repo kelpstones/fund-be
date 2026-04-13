@@ -109,8 +109,6 @@ class User extends BaseModel {
       throw error;
     }
   }
-
-  
 }
 
 module.exports = new User();
