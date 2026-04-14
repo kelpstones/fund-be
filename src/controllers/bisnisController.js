@@ -26,6 +26,15 @@ class BisnisController {
       const user_id = req.user.id;
       //   console.log(user_id);
       const payload = { ...data, user_id };
+
+      const existingBisnis = await Bisnis.getBisnisByUserId(user_id);
+      if (existingBisnis) {
+        return responseHelper.error(
+          res,
+          "User already has a bisnis. Each user can only create one bisnis.",
+          400,
+        );
+      }
       const validate = BisnisValidator.bisnisValidation(payload);
 
       if (validate.error) {

@@ -94,6 +94,33 @@ class Bisnis extends BaseModel {
     }
   }
 
+  async getBisnisByUserId(user_id) {
+    try {
+      const bisnisList = await this.knex(this.tableName)
+        .select(
+          "bisnis.id",
+          "bisnis.nama_bisnis",
+          "bisnis.email",
+          "kelas.nama_kelas as kelas",
+          "bisnis.kelas_id",
+          "bisnis.alamat",
+          "bisnis.no_telp",
+          "bisnis.deskripsi",
+          "users.nama as pemilik",
+          "users.email as email_pemilik",
+          "users.id as user_id",
+        )
+        .leftJoin("kelas", "bisnis.kelas_id", "kelas.id")
+        .leftJoin("users", "bisnis.user_id", "users.id")
+        .where("bisnis.user_id", user_id)
+        .first();
+      return bisnisList;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   updateBisnis(id, nama, alamat, no_telp, email, deskripsi, kelas_id) {
     try {
       const bisnis = this.knex(this.tableName).where({ id }).update({
