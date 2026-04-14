@@ -1,4 +1,12 @@
 const responseHelper = {
+  created: (res, message = "Resource created successfully", data = null) => {
+    return res.status(201).json({
+      status: "success",
+      message,
+      data,
+    });
+  },
+
   success: (
     res,
     message = "Operation successful",
@@ -9,6 +17,15 @@ const responseHelper = {
       status: "success",
       message,
       data,
+    });
+  },
+
+  successLogin: (res, message = "Login successful", data = null, token) => {
+    return res.status(200).json({
+      status: "success",
+      message,
+      data,
+      token,
     });
   },
 
