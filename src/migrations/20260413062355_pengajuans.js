@@ -3,7 +3,7 @@
  * @returns { Promise<void> }
  */
 exports.up = function (knex) {
-  return knex.schema.createTable("pengajuan", (table) => {
+  return knex.schema.createTable("pengajuans", (table) => {
     table.increments("id").primary();
     table.integer("bisnis_id").unsigned().notNullable();
     table.foreign("bisnis_id").references("bisnis.id").onDelete("CASCADE");

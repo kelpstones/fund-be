@@ -5,10 +5,10 @@
 exports.up = function (knex) {
   return knex.schema.createTable("approvals", (table) => {
     table.increments("id").primary();
-    table.integer("pengajuan_id").unsigned().notNullable();
+    table.integer("pengajuans_id").unsigned().notNullable();
     table
-      .foreign("pengajuan_id")
-      .references("pengajuan.id")
+      .foreign("pengajuans_id")
+      .references("pengajuans.id")
       .onDelete("CASCADE");
     table.integer("approver_id").unsigned().notNullable();
     table.foreign("approver_id").references("users.id").onDelete("CASCADE");
