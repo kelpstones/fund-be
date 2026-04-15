@@ -2,6 +2,7 @@ const express = require("express");
 const AuthController = require("../controllers/authController");
 const router = express.Router();
 const { Auth } = require("../middlewares");
+const { Role } = require("../middlewares");
 const PengajuanController = require("../controllers/pengajuanController");
 const BisnisController = require("../controllers/bisnisController");
 
@@ -18,22 +19,14 @@ class AdminRoutes {
       this.authController.loginAdmin(req, res);
     });
 
-    this.router.use(Auth.verifyAdminToken);
-    this.router.post("/me", (req, res) => {
-      this.authController.authMeAdmin(req, res);
-    });
-
-    this.router.get("/bisnis", (req, res) => {
-        this.bisnisController.getBisnis(req, res);
-    })
-
-    this.router.get("/pengajuan", (req, res) => {
-      this.pengajuanController.getAllPengajuan(req, res);
-    });
-
-    this.router.delete("/pengajuan/:id", (req, res) => {
-      this.pengajuanController.deletePengajuan(req, res);
-    });
+    this.router.use(Auth.verifyAnyToken);
+    this.router.post(
+      "/me",
+      Role.authorize("admin", "superadmin"),
+      (req, res) => {
+        this.authController.authMeAdmin(req, res);
+      },
+    );
 
     return this.router;
   }

@@ -2,8 +2,7 @@ const express = require("express");
 const router = express.Router();
 const AuthController = require("../controllers/authController");
 const BisnisRoutes = require("./bisnisRoutes");
-const { Auth } = require("../middlewares");
-
+const { Auth, Role } = require("../middlewares");
 class UserRoutes {
   constructor() {
     this.router = router;
@@ -18,8 +17,8 @@ class UserRoutes {
       this.authController.login(req, res);
     });
 
-    this.router.use(Auth.verifyToken);
-    this.router.post("/me", (req, res) => {
+    this.router.use(Auth.verifyAnyToken);
+    this.router.post("/me", Role.authorize("umkm", "investor"), (req, res) => {
       this.authController.authMe(req, res);
     });
 

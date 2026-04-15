@@ -1,46 +1,25 @@
 const jwt = require("jsonwebtoken");
 const responseHelper = require("../utils/response");
 
-exports.verifyToken = (req, res, next) => {
+exports.verifyAnyToken = (req, res, next) => {
   const token = req.headers["authorization"]?.split(" ")[1];
+  if (!token) return responseHelper.unauthorized(res, "No token provided");
 
-  if (!token)
-    return responseHelper.unauthorized(
-      res,
-      "No token provided, please login first",
-    );
+  jwt.verify(token, process.env.JWT_SECRET, (err, decodedUser) => {
+    if (!err) {
+      req.user = decodedUser;
+      return next();
+    }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    return responseHelper.unauthorized(
-      res,
-      "Token's invalid or expired, please login again",
+    jwt.verify(
+      token,
+      process.env.JWT_SECRET_ADMIN,
+      (errAdmin, decodedAdmin) => {
+        if (errAdmin)
+          return responseHelper.unauthorized(res, "Invalid or expired token");
+        req.admin = decodedAdmin;
+        next();
+      },
     );
-  }
+  });
 };
-
-// admin
-exports.verifyAdminToken = (req, res, next) => {
-  const token = req.headers["authorization"]?.split(" ")[1];
-
-  if (!token)
-    return responseHelper.unauthorized(
-      res,
-      "No token provided, please login first",
-    );
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_ADMIN);
-    req.admin = decoded;
-    next();
-  } catch (error) {
-    return responseHelper.unauthorized(
-      res,
-      "Token's invalid or expired, please login again",
-    );
-  }
-};
-

@@ -4,7 +4,7 @@ exports.generateToken = (user) => {
   const payload = {
     id: user.id,
     email: user.email,
-   
+    role_name: user.role_name,
   };
   return jwt.sign(payload, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || "1h",
@@ -17,7 +17,7 @@ exports.refreshToken = (data) => {
       {
         id: data.id,
         email: data.email,
-      
+        role_name: data.role_name,
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },
@@ -43,7 +43,7 @@ exports.generateAdminToken = (admin) => {
     const payload = {
       id: admin.id,
       email: admin.email,
-      role_id: admin.level, // Assuming 'level' represents the admin's role
+      level: admin.level, // Assuming 'level' represents the admin's role
     };
     return jwt.sign(payload, process.env.JWT_SECRET_ADMIN, {
       expiresIn: process.env.JWT_EXPIRES_IN || "1h",
@@ -60,7 +60,7 @@ exports.refreshAdminToken = (data) => {
       {
         id: data.id,
         email: data.email,
-        role_id: data.role_id,
+        level: data.level,
       },
       process.env.JWT_SECRET_ADMIN,
       { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },

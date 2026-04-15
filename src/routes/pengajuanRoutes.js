@@ -1,7 +1,6 @@
 const express = require("express");
 const PengajuanController = require("../controllers/pengajuanController");
-const verifyToken = require("../middlewares/auth");
-const { PengajuanValidator } = require("../validation");
+const { Auth, Role } = require("../middlewares");
 
 class PengajuanRoutes {
   constructor() {
@@ -10,23 +9,24 @@ class PengajuanRoutes {
   }
 
   routes() {
-    this.router.get("/", (req, res) => {
+    this.router.use(Auth.verifyAnyToken);
+    this.router.get("/", Role.authorize("umkm", "investor"), (req, res) => {
       this.pengajuanController.getAllPengajuan(req, res);
     });
 
-    this.router.post("/:bisnis_id", (req, res) => {
+    this.router.post("/:bisnis_id", Role.authorize("umkm"), (req, res) => {
       this.pengajuanController.createPengajuan(req, res);
     });
 
-    this.router.get("/:bisnis_id", (req, res) => {
+    this.router.get("/:bisnis_id", Role.authorize("umkm", "investor"), (req, res) => {
       this.pengajuanController.getPengajuanByBisnisId(req, res);
     });
 
-    this.router.put("/:id", (req, res) => {
+    this.router.put("/:id", Role.authorize("umkm"), (req, res) => {
       this.pengajuanController.updatePengajuan(req, res);
     });
 
-    this.router.delete("/:id", (req, res) => {
+    this.router.delete("/:id", Role.authorize("umkm", "superadmin"), (req, res) => {
       this.pengajuanController.deletePengajuan(req, res);
     });
 
