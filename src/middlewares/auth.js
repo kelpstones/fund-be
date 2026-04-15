@@ -1,17 +1,25 @@
 const jwt = require("jsonwebtoken");
+const responseHelper = require("../utils/response");
 
-const verifyToken = (req, res, next) => {
+exports.verifyAnyToken = (req, res, next) => {
   const token = req.headers["authorization"]?.split(" ")[1];
+  if (!token) return responseHelper.unauthorized(res, "No token provided");
 
-  if (!token) return res.status(403).json({ message: "Token diperlukan" });
+  jwt.verify(token, process.env.JWT_SECRET, (err, decodedUser) => {
+    if (!err) {
+      req.user = decodedUser;
+      return next();
+    }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    return res.status(401).json({ message: "Token tidak valid" });
-  }
+    jwt.verify(
+      token,
+      process.env.JWT_SECRET_ADMIN,
+      (errAdmin, decodedAdmin) => {
+        if (errAdmin)
+          return responseHelper.unauthorized(res, "Invalid or expired token");
+        req.admin = decodedAdmin;
+        next();
+      },
+    );
+  });
 };
-
-module.exports = verifyToken;

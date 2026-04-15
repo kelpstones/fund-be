@@ -3,20 +3,19 @@
  * @returns { Promise<void> }
  */
 exports.up = function (knex) {
-  return knex.schema.createTable("approvals", (table) => {
+  return knex.schema.createTable("negosiasis", (table) => {
     table.increments("id").primary();
     table.integer("pengajuans_id").unsigned().notNullable();
     table
       .foreign("pengajuans_id")
       .references("pengajuans.id")
       .onDelete("CASCADE");
-    table.integer("approver_id").unsigned().nullable();
-    table.foreign("approver_id").references("users.id").onDelete("CASCADE");
+    table.integer("investor_id").unsigned().notNullable();
+    table.foreign("investor_id").references("users.id").onDelete("CASCADE");
     table
-      .enum("status", ["approved", "rejected", "pending"])
-      .defaultTo("pending")
+      .enum("status", ["active", "deal", "rejected", "canceled"])
       .notNullable();
-    table.text("catatan").nullable();
+    table.bigint("id_terakhir_oleh").unsigned().notNullable();
     table.timestamps(true, true);
   });
 };

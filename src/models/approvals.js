@@ -1,4 +1,4 @@
-const BaseModel = require("./index");
+const BaseModel = require("./base");
 
 class Approvals extends BaseModel {
   constructor() {
@@ -53,9 +53,12 @@ class Approvals extends BaseModel {
     }
   }
 
-  async getAllApprovals() {
+  async getAllApprovals(page = 1, limit = 10) {
     try {
-      const approvals = await this.knex(this.tableName).select("*");
+      const approvals = await this.knex(this.tableName)
+        .select("*")
+        .offset((page - 1) * limit)
+        .limit(limit);
       return approvals;
     } catch (error) {
       throw error;

@@ -4,7 +4,7 @@ exports.generateToken = (user) => {
   const payload = {
     id: user.id,
     email: user.email,
-    role_id: user.role_id,
+    role_name: user.role_name,
   };
   return jwt.sign(payload, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || "1h",
@@ -17,7 +17,7 @@ exports.refreshToken = (data) => {
       {
         id: data.id,
         email: data.email,
-        role_id: data.role_id,
+        role_name: data.role_name,
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },
@@ -34,5 +34,40 @@ exports.decodeToken = (token) => {
   } catch (error) {
     console.error("Error decoding token:", error);
     return null;
+  }
+};
+
+// admin
+exports.generateAdminToken = (admin) => {
+  try {
+    const payload = {
+      id: admin.id,
+      email: admin.email,
+      level: admin.level, // Assuming 'level' represents the admin's role
+    };
+    return jwt.sign(payload, process.env.JWT_SECRET_ADMIN, {
+      expiresIn: process.env.JWT_EXPIRES_IN || "1h",
+    });
+  } catch (error) {
+    console.error("Error generating admin token:", error);
+    throw error;
+  }
+};
+
+exports.refreshAdminToken = (data) => {
+  try {
+    const newToken = jwt.sign(
+      {
+        id: data.id,
+        email: data.email,
+        level: data.level,
+      },
+      process.env.JWT_SECRET_ADMIN,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },
+    );
+    return newToken;
+  } catch (error) {
+    console.error("Error refreshing admin token:", error);
+    throw error;
   }
 };

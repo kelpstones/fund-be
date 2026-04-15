@@ -10,6 +10,10 @@ exports.up = function (knex) {
     table.bigint("target_pendanaan").notNullable();
     table.bigint("total_pendanaan").defaultTo(0);
     table.bigint("per_anual_return").notNullable();
+    table
+      .enum("status", ["draft", "published", "negotiating", "funded"])
+      .defaultTo("draft")
+      .notNullable();
     table.timestamps(true, true);
   });
 };

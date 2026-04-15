@@ -1,15 +1,17 @@
 const responseHelper = require("../utils/response");
 const Bisnis = require("../models/bisnis");
-const { BisnisValidator } = require("../validation");
+const { BisnisValidator, PengajuanValidator } = require("../validation");
+const pengajuans = require("../models/pengajuans");
 class BisnisController {
   async getBisnis(req, res) {
     try {
       const { page, limit, search } = req.query;
       const bisnisList = await Bisnis.getAllBisnis(page, limit, search);
-      return responseHelper.success(
+      return responseHelper.withPagination(
         res,
         "Bisnis data fetched successfully",
         bisnisList,
+        { page, limit, totalItems: bisnisList.length },
       );
     } catch (error) {
       console.error(error);
@@ -70,6 +72,24 @@ class BisnisController {
       if (!bisnisList) {
         return responseHelper.error(res, "Bisnis not found", 404);
       }
+      return responseHelper.success(
+        res,
+        "Bisnis data fetched successfully",
+        bisnisList,
+      );
+    } catch (error) {
+      console.error(error);
+      return responseHelper.serverError(
+        res,
+        "An error occurred while fetching bisnis data",
+      );
+    }
+  }
+
+  async getBisnisByUserId(req, res) {
+    try {
+      const { id } = req.user;
+      const bisnisList = await Bisnis.getBisnisByUserId(id);
       return responseHelper.success(
         res,
         "Bisnis data fetched successfully",

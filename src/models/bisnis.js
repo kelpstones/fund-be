@@ -1,4 +1,4 @@
-const BaseModel = require("./index");
+const BaseModel = require("./base");
 
 class Bisnis extends BaseModel {
   constructor() {
