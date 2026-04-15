@@ -1,4 +1,4 @@
-const BaseModel = require("./index");
+const BaseModel = require("./base");
 
 class Pengajuan extends BaseModel {
   constructor() {
@@ -73,9 +73,12 @@ class Pengajuan extends BaseModel {
     }
   }
 
-  async getAllPengajuans() {
+  async getAllPengajuans(page = 1, limit = 10) {
     try {
-      const pengajuans = await this.knex(this.tableName).select("*");
+      const pengajuans = await this.knex(this.tableName)
+        .select("*")
+        .offset((page - 1) * limit)
+        .limit(limit);
       return pengajuans;
     } catch (error) {
       throw error;

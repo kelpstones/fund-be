@@ -1,6 +1,7 @@
 const responseHelper = require("../utils/response");
 const Bisnis = require("../models/bisnis");
-const { BisnisValidator } = require("../validation");
+const { BisnisValidator, PengajuanValidator } = require("../validation");
+const pengajuans = require("../models/pengajuans");
 class BisnisController {
   async getBisnis(req, res) {
     try {
@@ -70,6 +71,24 @@ class BisnisController {
       if (!bisnisList) {
         return responseHelper.error(res, "Bisnis not found", 404);
       }
+      return responseHelper.success(
+        res,
+        "Bisnis data fetched successfully",
+        bisnisList,
+      );
+    } catch (error) {
+      console.error(error);
+      return responseHelper.serverError(
+        res,
+        "An error occurred while fetching bisnis data",
+      );
+    }
+  }
+
+  async getBisnisByUserId(req, res) {
+    try {
+      const { user_id } = req.params;
+      const bisnisList = await Bisnis.getBisnisByUserId(user_id);
       return responseHelper.success(
         res,
         "Bisnis data fetched successfully",
@@ -156,6 +175,41 @@ class BisnisController {
       return responseHelper.serverError(
         res,
         "An error occurred while deleting bisnis data",
+      );
+    }
+  }
+
+  // pengajuan
+  async createPengajuan(req, res) {
+    try {
+      const { bisnis_id } = req.params;
+      const data = req.body;
+      const payload = { ...data, bisnis_id };
+      const validate = PengajuanValidator.pengajuanValidation(payload);
+      if (validate.error) {
+        return responseHelper.error(
+          res,
+          validate.error.details[0].message,
+          400,
+        );
+      }
+      const pengajuan = await pengajuans.createPengajuan(
+        payload.bisnis_id,
+        payload.target_pendanaan,
+        "pending",
+        0,
+        payload.per_anual_return,
+      );
+      return responseHelper.success(
+        res,
+        "Pengajuan created successfully",
+        pengajuan,
+      );
+    } catch (error) {
+      console.error(error);
+      return responseHelper.serverError(
+        res,
+        "An error occurred while creating pengajuan data",
       );
     }
   }

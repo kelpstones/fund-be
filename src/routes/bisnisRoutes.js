@@ -24,6 +24,10 @@ class BisnisRoutes {
       const bisnisController = new BisnisController();
       bisnisController.getBisnisById(req, res);
     });
+    this.router.get("/user", (req, res) => {
+      const bisnisController = new BisnisController();
+      bisnisController.getBisnisByUserId(req, res);
+    });
     this.router.put("/:id", (req, res) => {
       const bisnisController = new BisnisController();
       bisnisController.updateBisnis(req, res);
