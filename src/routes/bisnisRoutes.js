@@ -14,9 +14,13 @@ class BisnisRoutes {
   routes() {
     this.router.use(Auth.verifyAnyToken);
 
-    this.router.get("/", (req, res) => {
-      this.bisnisController.getBisnis(req, res);
-    });
+    this.router.get(
+      "/",
+      Role.authorize("umkm", "investor", "superadmin", "admin"),
+      (req, res) => {
+        this.bisnisController.getBisnis(req, res);
+      },
+    );
 
     // pengajuan routes
     this.router.use("/pengajuan", this.pengajuanRoutes.routes());
