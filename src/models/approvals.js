@@ -24,19 +24,20 @@ class Approvals extends BaseModel {
   async getApprovalByPengajuanId(pengajuans_id) {
     try {
       const approvals = await this.knex(this.tableName)
+        .select(["id", "pengajuans_id", "approver_id", "status", "catatan"])
         .where({ pengajuans_id })
-        .select(["id", "pengajuans_id", "approver_id", "status", "catatan"]);
+        .first();
       return approvals;
     } catch (error) {
       throw error;
     }
   }
 
-  async updateApproval(id, status, catatan) {
+  async updateApproval(id, approver_id, status, catatan) {
     try {
       const approval = await this.knex(this.tableName)
         .where({ id })
-        .update({ status, catatan })
+        .update({ approver_id, status, catatan })
         .returning(["id", "pengajuans_id", "approver_id", "status", "catatan"]);
       return approval;
     } catch (error) {

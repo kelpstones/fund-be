@@ -157,6 +157,9 @@ class PengajuanController {
     try {
       const { id } = req.params;
       const { status, catatan } = req.body;
+      const approver_id = req.admin.id;
+    //   console.log(approver_id, status, catatan);
+    //   return console.log(approver_id);
       const existingApproval = await approvals.getApprovalByPengajuanId(id);
       if (!existingApproval) {
         return responseHelper.error(res, "Approval not found", 404);
@@ -179,9 +182,11 @@ class PengajuanController {
 
       const updatedApproval = await approvals.updateApproval(
         id,
+        approver_id,
         status,
         catatan,
       );
+    //   console.log(existingApproval);
       await Pengajuan.updatePengajuanStatus(
         existingApproval.pengajuans_id,
         "published",
