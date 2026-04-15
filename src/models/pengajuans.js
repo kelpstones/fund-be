@@ -58,13 +58,32 @@ class Pengajuan extends BaseModel {
     }
   }
 
-  async updatePengajuan(id, status) {
+  async updatePengajuan(
+    id,
+    target_pendanaan,
+    total_pendanaan,
+    per_anual_return,
+  ) {
+    try {
+      const data = await this.knex(this.tableName).where({ id }).update({
+        target_pendanaan: target_pendanaan,
+        total_pendanaan: total_pendanaan,
+        per_anual_return: per_anual_return,
+      });
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updatePengajuanStatus(id, status) {
     try {
       const data = await this.knex(this.tableName).where({ id }).update({
         status,
       });
       return data;
     } catch (error) {
+      console.error(error);
       throw error;
     }
   }
@@ -78,7 +97,7 @@ class Pengajuan extends BaseModel {
     }
   }
 
-  async getAllPengajuans(page = 1, limit = 10) {
+  async getAllPengajuans(page = 1, limit = 10, status) {
     try {
       const pengajuans = await this.knex(this.tableName)
         .select(
@@ -95,7 +114,8 @@ class Pengajuan extends BaseModel {
         )
         .leftJoin("approvals", "pengajuans.id", "approvals.pengajuans_id")
         .offset((page - 1) * limit)
-        .limit(limit);
+        .limit(limit)
+        .where("pengajuans.status", "like", `%${status || ""}%`);
       return pengajuans;
     } catch (error) {
       throw error;

@@ -13,7 +13,7 @@ exports.up = function (knex) {
     table.integer("approver_id").unsigned().nullable();
     table.foreign("approver_id").references("users.id").onDelete("CASCADE");
     table
-      .enum("status", ["approved", "rejected", "pending", "ongoing"])
+      .enum("status", ["approved", "rejected", "pending"])
       .defaultTo("pending")
       .notNullable();
     table.text("catatan").nullable();

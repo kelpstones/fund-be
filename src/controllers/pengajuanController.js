@@ -68,8 +68,12 @@ class PengajuanController {
 
   async getAllPengajuan(req, res) {
     try {
-      const { page = 1, limit = 10 } = req.query;
-      const pengajuanList = await Pengajuan.getAllPengajuans(page, limit);
+      const { page = 1, limit = 10, status } = req.query;
+      const pengajuanList = await Pengajuan.getAllPengajuans(
+        page,
+        limit,
+        status,
+      );
       return responseHelper.withPagination(
         res,
         "Pengajuan data fetched successfully",
@@ -115,14 +119,26 @@ class PengajuanController {
   async updatePengajuan(req, res) {
     try {
       const { id } = req.params;
-      const { status } = req.body;
+      const { target_pendanaan, per_anual_return, total_pendanaan } = req.body;
 
       const existingPengajuan = await Pengajuan.getPengajuanById(id);
       if (!existingPengajuan) {
         return responseHelper.error(res, "Pengajuan not found", 404);
       }
-
-      const updatedPengajuan = await Pengajuan.updatePengajuan(id, { status });
+      const validate = PengajuanValidator.updatePengajuanValidation(req.body);
+      if (validate.error) {
+        return responseHelper.error(
+          res,
+          validate.error.details[0].message,
+          400,
+        );
+      }
+      const updatedPengajuan = await Pengajuan.updatePengajuan(
+        id,
+        target_pendanaan,
+        total_pendanaan,
+        per_anual_return,
+      );
       return responseHelper.success(
         res,
         "Pengajuan updated successfully",
@@ -133,6 +149,53 @@ class PengajuanController {
       return responseHelper.serverError(
         res,
         "An error occurred while updating pengajuan data",
+      );
+    }
+  }
+
+  async updateApprovalStatus(req, res) {
+    try {
+      const { id } = req.params;
+      const { status, catatan } = req.body;
+      const existingApproval = await approvals.getApprovalByPengajuanId(id);
+      if (!existingApproval) {
+        return responseHelper.error(res, "Approval not found", 404);
+      }
+
+      if (!["approved", "rejected", "pending"].includes(status)) {
+        return responseHelper.error(
+          res,
+          "Invalid status value. Allowed values are: approved, rejected, pending",
+          400,
+        );
+      }
+
+      if (status == "rejected") {
+        await Pengajuan.updatePengajuanStatus(
+          existingApproval.pengajuans_id,
+          "rejected",
+        );
+      }
+
+      const updatedApproval = await approvals.updateApproval(
+        id,
+        status,
+        catatan,
+      );
+      await Pengajuan.updatePengajuanStatus(
+        existingApproval.pengajuans_id,
+        "published",
+      );
+      return responseHelper.success(
+        res,
+        "Approval status updated successfully",
+        updatedApproval,
+      );
+    } catch (error) {
+      console.error(error);
+      return responseHelper.serverError(
+        res,
+        "An error occurred while updating approval status",
       );
     }
   }

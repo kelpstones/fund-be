@@ -33,3 +33,17 @@ exports.checkBisnisIdExist = async (bisnis_id) => {
     throw error;
   }
 };
+
+exports.updatePengajuanValidation = (data) => {
+  try {
+    const schema = Joi.object({
+      target_pendanaan: Joi.number().integer().optional(),
+      per_anual_return: Joi.number().integer().optional(),
+      total_pendanaan: Joi.number().integer().optional(),
+    });
+    return schema.validate(data);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};

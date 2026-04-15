@@ -30,13 +30,25 @@ class PengajuanRoutes {
       },
     );
 
-    this.router.put("/:id", Role.authorize("umkm", "superadmin", "admin"), (req, res) => {
-      this.pengajuanController.updatePengajuan(req, res);
-    });
+    this.router.put(
+      "/:id",
+      Role.authorize("umkm", "superadmin", "admin"),
+      (req, res) => {
+        this.pengajuanController.updatePengajuan(req, res);
+      },
+    );
+
+    this.router.put(
+      "/:id/status",
+      Role.authorize("superadmin", "admin"),
+      (req, res) => {
+        this.pengajuanController.updateApprovalStatus(req, res);
+      },
+    );
 
     this.router.delete(
       "/:id",
-      Role.authorize("umkm", "superadmin", "admin"),
+      Role.authorize("superadmin", "admin"),
       (req, res) => {
         this.pengajuanController.deletePengajuan(req, res);
       },
