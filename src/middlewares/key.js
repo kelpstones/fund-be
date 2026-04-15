@@ -1,6 +1,6 @@
 const responseHelper = require("../utils/response");
 
-const validateApiKey = (req, res, next) => {
+exports.validateApiKey = (req, res, next) => {
   const ourKey = process.env.API_KEY;
   const apiKey = req.headers["x-api-key"];
 
@@ -15,4 +15,4 @@ const validateApiKey = (req, res, next) => {
   next();
 };
 
-module.exports = validateApiKey;
+

@@ -5,11 +5,11 @@ class Admin extends BaseModel {
     super("admins");
   }
 
-  async createAdmin(name, email, password, no_telp, level) {
+  async createAdmin(nama, email, password, no_telp, level) {
     try {
       const admin = await this.knex(this.tableName)
-        .insert({ name, email, password, no_telp, level })
-        .returning(["id", "name", "email", "no_telp", "level"]);
+        .insert({ nama, email, password, no_telp, level })
+        .returning(["id", "nama", "email", "no_telp", "level"]);
       return admin;
     } catch (error) {
       throw error;
@@ -21,7 +21,7 @@ class Admin extends BaseModel {
       const admins = await this.knex(this.tableName)
         .select(
           "admins.id",
-          "admins.name",
+          "admins.nama",
           "admins.email",
           "admins.no_telp",
           "admins.level",
@@ -29,7 +29,7 @@ class Admin extends BaseModel {
         )
         .offset((page - 1) * limit)
         .limit(limit)
-        .where("admins.name", "ilike", `%${search}%`);
+        .where("admins.nama", "ilike", `%${search}%`);
       return admins;
     } catch (error) {
       throw error;
@@ -41,7 +41,7 @@ class Admin extends BaseModel {
       const admin = await this.knex(this.tableName)
         .select(
           "admins.id",
-          "admins.name",
+          "admins.nama",
           "admins.email",
           "admins.password",
           "admins.no_telp",
@@ -60,7 +60,7 @@ class Admin extends BaseModel {
       const admin = await this.knex(this.tableName)
         .select(
           "admins.id",
-          "admins.name",
+          "admins.nama",
           "admins.email",
           "admins.no_telp",
           "admins.level",
@@ -73,10 +73,10 @@ class Admin extends BaseModel {
     }
   }
 
-  async updateAdmin(id, name, email, no_telp, level) {
+  async updateAdmin(id, nama, email, no_telp, level) {
     try {
       const data = await this.knex(this.tableName).where({ id }).update({
-        name,
+        nama,
         email,
         no_telp,
         level,

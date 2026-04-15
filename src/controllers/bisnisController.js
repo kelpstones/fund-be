@@ -179,40 +179,7 @@ class BisnisController {
     }
   }
 
-  // pengajuan
-  async createPengajuan(req, res) {
-    try {
-      const { bisnis_id } = req.params;
-      const data = req.body;
-      const payload = { ...data, bisnis_id };
-      const validate = PengajuanValidator.pengajuanValidation(payload);
-      if (validate.error) {
-        return responseHelper.error(
-          res,
-          validate.error.details[0].message,
-          400,
-        );
-      }
-      const pengajuan = await pengajuans.createPengajuan(
-        payload.bisnis_id,
-        payload.target_pendanaan,
-        "pending",
-        0,
-        payload.per_anual_return,
-      );
-      return responseHelper.success(
-        res,
-        "Pengajuan created successfully",
-        pengajuan,
-      );
-    } catch (error) {
-      console.error(error);
-      return responseHelper.serverError(
-        res,
-        "An error occurred while creating pengajuan data",
-      );
-    }
-  }
+ 
 }
 
 module.exports = BisnisController;

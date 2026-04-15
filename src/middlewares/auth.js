@@ -1,17 +1,46 @@
 const jwt = require("jsonwebtoken");
+const responseHelper = require("../utils/response");
 
-const verifyToken = (req, res, next) => {
+exports.verifyToken = (req, res, next) => {
   const token = req.headers["authorization"]?.split(" ")[1];
 
-  if (!token) return res.status(403).json({ message: "Token diperlukan" });
+  if (!token)
+    return responseHelper.unauthorized(
+      res,
+      "No token provided, please login first",
+    );
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Token tidak valid" });
+    return responseHelper.unauthorized(
+      res,
+      "Token's invalid or expired, please login again",
+    );
   }
 };
 
-module.exports = verifyToken;
+// admin
+exports.verifyAdminToken = (req, res, next) => {
+  const token = req.headers["authorization"]?.split(" ")[1];
+
+  if (!token)
+    return responseHelper.unauthorized(
+      res,
+      "No token provided, please login first",
+    );
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.admin = decoded;
+    next();
+  } catch (error) {
+    return responseHelper.unauthorized(
+      res,
+      "Token's invalid or expired, please login again",
+    );
+  }
+};
+

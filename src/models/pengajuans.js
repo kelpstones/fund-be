@@ -46,7 +46,7 @@ class Pengajuan extends BaseModel {
           "status",
           "total_pendanaan",
           "per_anual_return",
-        ]);
+        ]).first();
       return pengajuan;
     } catch (error) {
       throw error;

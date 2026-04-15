@@ -13,3 +13,22 @@ exports.pengajuanValidation = (data) => {
     throw error;
   }
 };
+
+exports.checkBisnisIdExist = async (bisnis_id) => {
+  try {
+    const pengajuanExist = await Pengajuan.getPengajuanByBisnisId(bisnis_id);
+    if (pengajuanExist.length > 0) {
+      return {
+        status: false,
+        message:
+          "Pengajuan for this bisnis already exists. Each bisnis can only have one pengajuan.",
+        code: 400,
+        data: null,
+      };
+    }
+    return { status: true };
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
