@@ -24,19 +24,28 @@ class BisnisRoutes {
     this.router.post("/", Role.authorize("umkm"), (req, res) => {
       this.bisnisController.createBisnis(req, res);
     });
-
-    this.router.get("/:id", Role.authorize("umkm", "superadmin", "admin"), (req, res) => {
-      this.bisnisController.getBisnisById(req, res);
-    });
     this.router.get("/user", Role.authorize("umkm"), (req, res) => {
       this.bisnisController.getBisnisByUserId(req, res);
     });
+
+    this.router.get(
+      "/:id",
+      Role.authorize("umkm", "superadmin", "admin"),
+      (req, res) => {
+        this.bisnisController.getBisnisById(req, res);
+      },
+    );
+
     this.router.put("/:id", Role.authorize("umkm"), (req, res) => {
       this.bisnisController.updateBisnis(req, res);
     });
-    this.router.delete("/:id", Role.authorize("umkm", "superadmin"), (req, res) => {
-      this.bisnisController.deleteBisnis(req, res);
-    });
+    this.router.delete(
+      "/:id",
+      Role.authorize("umkm", "superadmin"),
+      (req, res) => {
+        this.bisnisController.deleteBisnis(req, res);
+      },
+    );
 
     return this.router;
   }

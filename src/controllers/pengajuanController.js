@@ -2,6 +2,7 @@ const responseHelper = require("../utils/response");
 const Pengajuan = require("../models/pengajuans");
 const { PengajuanValidator } = require("../validation");
 const bisnis = require("../models/bisnis");
+const approvals = require("../models/approvals");
 
 class PengajuanController {
   // pengajuan
@@ -41,10 +42,20 @@ class PengajuanController {
         0,
         payload.per_anual_return,
       );
+      const approval = await approvals.createApproval(
+        pengajuan[0].id,
+        null,
+        "pending",
+        null,
+      );
+      const final = {
+        ...pengajuan[0],
+        approvals: approval[0],
+      };
       return responseHelper.success(
         res,
         "Pengajuan created successfully",
-        pengajuan,
+        final,
       );
     } catch (error) {
       console.error(error);
@@ -57,11 +68,13 @@ class PengajuanController {
 
   async getAllPengajuan(req, res) {
     try {
-      const pengajuanList = await Pengajuan.getAllPengajuans();
-      return responseHelper.success(
+      const { page = 1, limit = 10 } = req.query;
+      const pengajuanList = await Pengajuan.getAllPengajuans(page, limit);
+      return responseHelper.withPagination(
         res,
         "Pengajuan data fetched successfully",
         pengajuanList,
+        { page, limit, totalItems: pengajuanList.length },
       );
     } catch (error) {
       console.error(error, "pengajuanController getAllPengajuan");
@@ -77,7 +90,7 @@ class PengajuanController {
       const { bisnis_id } = req.params;
       const pengajuanList = await Pengajuan.getPengajuanByBisnisId(bisnis_id);
       console.log(pengajuanList);
-      
+
       if (!pengajuanList) {
         return responseHelper.error(
           res,

@@ -11,7 +11,6 @@ exports.authorize = (...allowedRoles) => {
 
   
     const userRole = account.role_name || account.level;
-
     if (!allowedRoles.includes(userRole)) {
       return responseHelper.forbidden(
         res,

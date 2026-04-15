@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const pengajuans = require("../models/pengajuans");
 
 exports.pengajuanValidation = (data) => {
   try {
@@ -16,8 +17,8 @@ exports.pengajuanValidation = (data) => {
 
 exports.checkBisnisIdExist = async (bisnis_id) => {
   try {
-    const pengajuanExist = await Pengajuan.getPengajuanByBisnisId(bisnis_id);
-    if (pengajuanExist.length > 0) {
+    const pengajuanExist = await pengajuans.getPengajuanByBisnisId(bisnis_id);
+    if (pengajuanExist) {
       return {
         status: false,
         message:

@@ -40,13 +40,18 @@ class Pengajuan extends BaseModel {
       const pengajuan = await this.knex(this.tableName)
         .where("bisnis_id", bisnis_id)
         .select([
-          "id",
-          "bisnis_id",
-          "target_pendanaan",
-          "status",
-          "total_pendanaan",
-          "per_anual_return",
-        ]).first();
+          "pengajuans.id",
+          "pengajuans.bisnis_id",
+          "pengajuans.target_pendanaan",
+          "pengajuans.status",
+          "pengajuans.total_pendanaan",
+          "pengajuans.per_anual_return",
+          "approvals.id as approval_id",
+          "approvals.approver_id",
+          "approvals.status as approval_status",
+        ])
+        .leftJoin("approvals", "pengajuans.id", "approvals.pengajuans_id")
+        .first();
       return pengajuan;
     } catch (error) {
       throw error;
@@ -76,7 +81,19 @@ class Pengajuan extends BaseModel {
   async getAllPengajuans(page = 1, limit = 10) {
     try {
       const pengajuans = await this.knex(this.tableName)
-        .select("*")
+        .select(
+          "pengajuans.id",
+          "pengajuans.bisnis_id",
+          "pengajuans.target_pendanaan",
+          "pengajuans.status",
+          "pengajuans.total_pendanaan",
+          "pengajuans.per_anual_return",
+          "approvals.id as approval_id",
+          "approvals.approver_id",
+          "approvals.status as approval_status",
+          "approvals.catatan as approval_catatan",
+        )
+        .leftJoin("approvals", "pengajuans.id", "approvals.pengajuans_id")
         .offset((page - 1) * limit)
         .limit(limit);
       return pengajuans;

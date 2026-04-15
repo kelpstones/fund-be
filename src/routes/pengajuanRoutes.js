@@ -10,25 +10,37 @@ class PengajuanRoutes {
 
   routes() {
     this.router.use(Auth.verifyAnyToken);
-    this.router.get("/", Role.authorize("umkm", "investor"), (req, res) => {
-      this.pengajuanController.getAllPengajuan(req, res);
-    });
+    this.router.get(
+      "/",
+      Role.authorize("umkm", "investor", "superadmin", "admin"),
+      (req, res) => {
+        this.pengajuanController.getAllPengajuan(req, res);
+      },
+    );
 
     this.router.post("/:bisnis_id", Role.authorize("umkm"), (req, res) => {
       this.pengajuanController.createPengajuan(req, res);
     });
 
-    this.router.get("/:bisnis_id", Role.authorize("umkm", "investor"), (req, res) => {
-      this.pengajuanController.getPengajuanByBisnisId(req, res);
-    });
+    this.router.get(
+      "/:bisnis_id",
+      Role.authorize("umkm", "investor", "superadmin", "admin"),
+      (req, res) => {
+        this.pengajuanController.getPengajuanByBisnisId(req, res);
+      },
+    );
 
-    this.router.put("/:id", Role.authorize("umkm"), (req, res) => {
+    this.router.put("/:id", Role.authorize("umkm", "superadmin", "admin"), (req, res) => {
       this.pengajuanController.updatePengajuan(req, res);
     });
 
-    this.router.delete("/:id", Role.authorize("umkm", "superadmin"), (req, res) => {
-      this.pengajuanController.deletePengajuan(req, res);
-    });
+    this.router.delete(
+      "/:id",
+      Role.authorize("umkm", "superadmin", "admin"),
+      (req, res) => {
+        this.pengajuanController.deletePengajuan(req, res);
+      },
+    );
 
     return this.router;
   }

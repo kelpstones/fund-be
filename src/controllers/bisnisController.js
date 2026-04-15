@@ -7,10 +7,11 @@ class BisnisController {
     try {
       const { page, limit, search } = req.query;
       const bisnisList = await Bisnis.getAllBisnis(page, limit, search);
-      return responseHelper.success(
+      return responseHelper.withPagination(
         res,
         "Bisnis data fetched successfully",
         bisnisList,
+        { page, limit, totalItems: bisnisList.length },
       );
     } catch (error) {
       console.error(error);
@@ -87,8 +88,8 @@ class BisnisController {
 
   async getBisnisByUserId(req, res) {
     try {
-      const { user_id } = req.params;
-      const bisnisList = await Bisnis.getBisnisByUserId(user_id);
+      const { id } = req.user;
+      const bisnisList = await Bisnis.getBisnisByUserId(id);
       return responseHelper.success(
         res,
         "Bisnis data fetched successfully",
@@ -178,8 +179,6 @@ class BisnisController {
       );
     }
   }
-
- 
 }
 
 module.exports = BisnisController;
