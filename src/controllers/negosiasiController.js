@@ -22,7 +22,10 @@ class NegotiationController {
       //   cek negosiasi aktif
       const activeNegosiasi =
         await Negosiasis.getNegosiasiByPengajuanId(pengajuans_id);
-      if (!activeNegosiasi || activeNegosiasi.status === "active") {
+      if (
+        activeNegosiasi.length === 0 ||
+        activeNegosiasi.some((n) => n.status !== "active")
+      ) {
         return responseHelper.error(
           res,
           "An active negotiation already exists for this pengajuan",
@@ -149,14 +152,14 @@ class NegotiationController {
         );
       }
 
-        //   validation
-        const { error } = NegotiationValidator.replyNegotiationValidation({
-          penawaran_return,
-          catatan,
-        });
-        if (error) {
-          return responseHelper.error(res, error.details[0].message, 400);
-        }
+      //   validation
+      const { error } = NegotiationValidator.replyNegotiationValidation({
+        penawaran_return,
+        catatan,
+      });
+      if (error) {
+        return responseHelper.error(res, error.details[0].message, 400);
+      }
 
       const log_negosiasi = await LogNegosiasis.createLogNegosiasi(
         negosiasi_id,

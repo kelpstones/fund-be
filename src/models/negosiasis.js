@@ -149,7 +149,7 @@ class Negosiasis extends BaseModel {
               "(SELECT MAX(created_at) FROM log_negosiasis WHERE negosiasi_id = negosiasis.id)",
             ),
           );
-        }).first();
+        });
       return negosiasi;
     } catch (error) {
       throw error;
