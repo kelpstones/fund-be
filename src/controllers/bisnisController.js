@@ -11,7 +11,7 @@ class BisnisController {
         res,
         "Bisnis data fetched successfully",
         bisnisList,
-        { page, limit, totalItems: bisnisList.length },
+        { page, limit, totalItems: bisnisList.length, search },
       );
     } catch (error) {
       console.error(error);

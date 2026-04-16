@@ -10,7 +10,7 @@ class KelasController {
         res,
         "Kelas data fetched successfully",
         kelasList,
-        { page, limit, totalItems: kelasList.length },
+        { page, limit, totalItems: kelasList.length, search },
       );
     } catch (error) {
       console.error(error);
