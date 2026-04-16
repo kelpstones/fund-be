@@ -13,7 +13,7 @@ class NegotiationRoutes {
   routes() {
     this.router.use(Auth.verifyAnyToken);
 
-     this.router.get("/user", Role.authorize("umkm", "investor"), (req, res) => {
+    this.router.get("/user", Role.authorize("umkm", "investor"), (req, res) => {
       this.negotiationController.getNegotiationByUserId(req, res);
     });
 
@@ -22,6 +22,14 @@ class NegotiationRoutes {
       Role.authorize("umkm", "investor", "superadmin", "admin"),
       (req, res) => {
         this.negotiationController.getNegotiationByPengajuanId(req, res);
+      },
+    );
+
+    this.router.post(
+      "/accept/:id",
+      Role.authorize("umkm", "investor"),
+      (req, res) => {
+        this.negotiationController.acceptNegotiation(req, res);
       },
     );
 
@@ -36,8 +44,6 @@ class NegotiationRoutes {
         this.negotiationController.replyNegotiation(req, res);
       },
     );
-
-   
 
     return this.router;
   }

@@ -180,6 +180,38 @@ class NegotiationController {
       );
     }
   }
+
+  async acceptNegotiation(req, res) {
+    try {
+      const { id: negosiasi_id } = req.params;
+      const { catatan } = req.body;
+      const { id: user_id } = req.user;
+      const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id);
+      if (!negosiasi || negosiasi.status !== "active") {
+        return responseHelper.error(
+          res,
+          "Negosiasi not found or not active",
+          404,
+        );
+      }
+      //   validation
+      const { error } = NegotiationValidator.acceptNegotiationValidation({
+        catatan,
+      });
+      if (error) {
+        return responseHelper.error(res, error.details[0].message, 400);
+      }
+      await Negosiasis.updateNegosiasi(negosiasi_id, "deal", user_id);
+      await pengajuans.updatePengajuanStatus(negosiasi.pengajuans_id, "funded");
+      return responseHelper.success(res, "Negotiation accepted successfully");
+    } catch (error) {
+      console.error(error);
+      return responseHelper.serverError(
+        res,
+        "An error occurred while accepting negosiasi",
+      );
+    }
+  }
 }
 
 module.exports = NegotiationController;

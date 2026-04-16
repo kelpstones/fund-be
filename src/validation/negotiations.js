@@ -26,3 +26,15 @@ exports.replyNegotiationValidation = (data) => {
     throw error;
   }
 };
+
+exports.acceptNegotiationValidation = (data) => {
+  try {
+    const schema = Joi.object({
+      catatan: Joi.string().optional(),
+    });
+    return schema.validate(data);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
