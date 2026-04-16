@@ -19,9 +19,13 @@ class Kelas extends BaseModel {
     }
   }
 
-  async getAllKelas() {
+  async getAllKelas(page = 1, limit = 10, search = "") {
     try {
-      const kelasList = await this.knex(this.tableName).select("*");
+      const kelasList = await this.knex(this.tableName)
+        .select("*")
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .where("nama_kelas", "ilike", `%${search}%`);
       return kelasList;
     } catch (error) {
       throw error;
@@ -39,10 +43,9 @@ class Kelas extends BaseModel {
 
   async updateKelas(id, nama_kelas, deskripsi) {
     try {
-      const data = await this.knex(this.tableName).where({ id }).update({
-        nama_kelas,
-        deskripsi,
-      });
+      const data = await this.knex(this.tableName)
+        .where({ id })
+        .update(nama_kelas, deskripsi);
       return data;
     } catch (error) {
       throw error;
