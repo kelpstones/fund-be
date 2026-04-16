@@ -23,8 +23,8 @@ class NegotiationController {
       const activeNegosiasi =
         await Negosiasis.getNegosiasiByPengajuanId(pengajuans_id);
       if (
-        activeNegosiasi.length === 0 ||
-        activeNegosiasi.some((n) => n.status !== "active")
+        activeNegosiasi.length !== 0 &&
+        activeNegosiasi.some((n) => n.status === "active")
       ) {
         return responseHelper.error(
           res,
