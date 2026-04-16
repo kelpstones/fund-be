@@ -100,10 +100,10 @@ class KelasController {
   async deleteKelas(req, res) {
     try {
       const { id } = req.params;
+      const kelas = await Kelas.deleteKelas(id);
       if (!kelas) {
         return responseHelper.notFound(res, "Kelas not found");
       }
-      const kelas = await Kelas.deleteKelas(id);
       return responseHelper.success(
         res,
         "Kelas data deleted successfully",
