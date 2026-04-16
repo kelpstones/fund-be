@@ -27,8 +27,7 @@ class UserRoutes {
     // bisnis
     this.router.use("/bisnis", this.bisnisRoutes.routes());
 
-    // kelas
-    this.router.use("/kelas", this.kelasRoutes.routes());
+   
     return this.router;
   }
 }

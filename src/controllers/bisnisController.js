@@ -37,6 +37,16 @@ class BisnisController {
           400,
         );
       }
+
+      const emailExists = await Bisnis.getBisnisByEmail(data.email);
+      if (emailExists) {
+        return responseHelper.error(
+          res,
+          "Email already in use. Please use a different email.",
+          400,
+        );
+      }
+
       const validate = BisnisValidator.bisnisValidation(payload);
 
       if (validate.error) {
