@@ -149,6 +149,15 @@ class NegotiationController {
         );
       }
 
+        //   validation
+        const { error } = NegotiationValidator.replyNegotiationValidation({
+          penawaran_return,
+          catatan,
+        });
+        if (error) {
+          return responseHelper.error(res, error.details[0].message, 400);
+        }
+
       const log_negosiasi = await LogNegosiasis.createLogNegosiasi(
         negosiasi_id,
         user_id,
