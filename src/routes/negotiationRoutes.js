@@ -13,6 +13,14 @@ class NegotiationRoutes {
   routes() {
     this.router.use(Auth.verifyAnyToken);
 
+    this.router.get(
+      "/",
+      Role.authorize("umkm", "investor", "superadmin", "admin"),
+      (req, res) => {
+        this.negotiationController.getAllNegotiations(req, res);
+      },
+    );
+
     this.router.get("/user", Role.authorize("umkm", "investor"), (req, res) => {
       this.negotiationController.getNegotiationByUserId(req, res);
     });

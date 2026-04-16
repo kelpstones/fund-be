@@ -58,10 +58,9 @@ class Negosiasis extends BaseModel {
     }
   }
 
-
   async getNegosiasiById(id) {
     try {
-      const knex = this.knex
+      const knex = this.knex;
       const negosiasi = await this.knex(this.tableName)
         .select(
           "negosiasis.id",
@@ -79,7 +78,7 @@ class Negosiasis extends BaseModel {
         .first();
       return negosiasi;
     } catch (error) {
-      console.error(error)
+      console.error(error);
       throw error;
     }
   }
@@ -113,7 +112,8 @@ class Negosiasis extends BaseModel {
               "(SELECT MAX(created_at) FROM log_negosiasis WHERE negosiasi_id = negosiasis.id)",
             ),
           );
-        }).where(column, user_id);
+        })
+        .where(column, user_id);
       return negosiasi;
     } catch (error) {
       console.error(error);
@@ -180,7 +180,7 @@ class Negosiasis extends BaseModel {
     }
   }
 
-  async getAllNegosiasi(page = 1, limit = 10) {
+  async getAllNegosiasis(page = 1, limit = 10, status = "") {
     try {
       const negosiasis = await this.knex(this.tableName)
         .select(
@@ -196,7 +196,8 @@ class Negosiasis extends BaseModel {
         .join("pengajuans", "negosiasis.pengajuans_id", "pengajuans.id")
         .join("users", "negosiasis.investor_id", "users.id")
         .offset((page - 1) * limit)
-        .limit(limit);
+        .limit(limit)
+        .where("negosiasis.status", "ilike", `%${status}%`);
       return negosiasis;
     } catch (error) {
       throw error;

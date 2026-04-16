@@ -4,6 +4,29 @@ const LogNegosiasis = require("../models/log_negosiasis");
 const pengajuans = require("../models/pengajuans");
 const { NegotiationValidator } = require("../validation");
 class NegotiationController {
+  async getAllNegotiations(req, res) {
+    try {
+      const { page, limit, status } = req.query;
+      const negosiasiList = await Negosiasis.getAllNegosiasis(
+        page,
+        limit,
+        status,
+      );
+      return responseHelper.withPagination(
+        res,
+        "Negosiasi data fetched successfully",
+        negosiasiList,
+        { page, limit, totalItems: negosiasiList.length, status },
+      );
+    } catch (error) {
+      console.error(error);
+      return responseHelper.serverError(
+        res,
+        "An error occurred while fetching negosiasi data",
+      );
+    }
+  }
+
   async startNegotiation(req, res) {
     try {
       const { pengajuans_id, penawaran_return, catatan } = req.body;
