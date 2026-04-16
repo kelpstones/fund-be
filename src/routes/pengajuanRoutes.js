@@ -1,11 +1,13 @@
 const express = require("express");
 const PengajuanController = require("../controllers/pengajuanController");
+const NegotiationRoutes = require("./negotiationRoutes");
 const { Auth, Role } = require("../middlewares");
 
 class PengajuanRoutes {
   constructor() {
     this.router = express.Router();
     this.pengajuanController = new PengajuanController();
+    this.negotiationRoutes = new NegotiationRoutes();
   }
 
   routes() {
@@ -17,6 +19,9 @@ class PengajuanRoutes {
         this.pengajuanController.getAllPengajuan(req, res);
       },
     );
+
+    // negotiation routes
+    this.router.use("/negosiasi", this.negotiationRoutes.routes());
 
     this.router.post("/:bisnis_id", Role.authorize("umkm"), (req, res) => {
       this.pengajuanController.createPengajuan(req, res);
