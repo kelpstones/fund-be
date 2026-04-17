@@ -87,7 +87,7 @@ class Negosiasis extends BaseModel {
     try {
       const knex = this.knex;
       const column =
-        role === "investor" ? "negosiasis.investor_id" : "pengajuans.user_id";
+        role === "investor" ? "negosiasis.investor_id" : "bisnis.user_id";
       const negosiasi = await knex(this.tableName)
         .select(
           "negosiasis.id",
@@ -98,11 +98,15 @@ class Negosiasis extends BaseModel {
           "negosiasis.id_terakhir_oleh",
           "pengajuans.target_pendanaan",
           "pengajuans.per_anual_return",
+          "bisnis.nama_bisnis as bisnis_nama",
+          "bisnis.id as bisnis_id",
+          "bisnis.user_id as bisnis_user_id",
           knex.raw(
             "l.penawaran_return as last_penawaran_return, l.catatan as last_catatan",
           ),
         )
         .join("pengajuans", "negosiasis.pengajuans_id", "pengajuans.id")
+        .join("bisnis", "pengajuans.bisnis_id", "bisnis.id")
         .join("users", "negosiasis.investor_id", "users.id")
         .leftJoin("log_negosiasis as l", function () {
           this.on("negosiasis.id", "l.negosiasi_id").andOn(
