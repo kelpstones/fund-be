@@ -1,6 +1,6 @@
 const Kelas = require("../models/kelas");
 const { KelasValidator } = require("../validation");
-const responseHelper = require("../utils/response");
+const responseHelper = require("../utils/index").ResponseHelper;
 class KelasController {
   async getAllKelas(req, res) {
     try {

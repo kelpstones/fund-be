@@ -1,4 +1,4 @@
-const responseHelper = require("../utils/response");
+const responseHelper = require("../utils/index").ResponseHelper;
 
 exports.validateApiKey = (req, res, next) => {
   const ourKey = process.env.API_KEY;

@@ -3,6 +3,7 @@ const Negosiasis = require("../models/negosiasis");
 const LogNegosiasis = require("../models/log_negosiasis");
 const pengajuans = require("../models/pengajuans");
 const { NegotiationValidator } = require("../validation");
+const notificationHelper = require("../utils/index").NotificationHelper;
 class NegotiationController {
   async getAllNegotiations(req, res) {
     try {
@@ -79,6 +80,12 @@ class NegotiationController {
         investor_id,
         penawaran_return,
         catatan,
+      );
+
+      await notificationHelper.notifyStartNegotiation(
+        pengajuans_id,
+        negosiasi.id,
+        penawaran_return,
       );
       return responseHelper.success(res, "Negotiation started successfully", {
         negosiasi,
@@ -166,6 +173,7 @@ class NegotiationController {
       const { id: negosiasi_id } = req.params;
       const { penawaran_return, catatan } = req.body;
       const { id: user_id } = req.user;
+      const { role_name } = req.user;
       const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id);
       if (!negosiasi || negosiasi.status !== "active") {
         return responseHelper.error(
@@ -192,6 +200,14 @@ class NegotiationController {
       );
 
       await Negosiasis.updateNegosiasi(negosiasi_id, "active", user_id);
+      await notificationHelper.notifyReplyNegotiation(
+        role_name === "investor"
+          ? negosiasi.investor.id
+          : negosiasi.bisnis_owner.id,
+        negosiasi_id,
+        "reply",
+        catatan,
+      );
       return responseHelper.success(res, "Reply to negotiation successfully", {
         log_negosiasi,
       });
@@ -209,6 +225,8 @@ class NegotiationController {
       const { id: negosiasi_id } = req.params;
       const { catatan } = req.body;
       const { id: user_id } = req.user;
+      const { role_name } = req.user;
+
       const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id);
       if (!negosiasi || negosiasi.status !== "active") {
         return responseHelper.error(
@@ -225,7 +243,15 @@ class NegotiationController {
         return responseHelper.error(res, error.details[0].message, 400);
       }
       await Negosiasis.updateNegosiasi(negosiasi_id, "deal", user_id);
-      await pengajuans.updatePengajuanStatus(negosiasi.pengajuans_id, "funded");
+      await pengajuans.updatePengajuanStatus(negosiasi.pengajuan.id, "funded");
+      await notificationHelper.notifyReplyNegotiation(
+        role_name === "investor"
+          ? negosiasi.investor.id
+          : negosiasi.bisnis_owner.id,
+        negosiasi_id,
+        "deal",
+        catatan,
+      );
       return responseHelper.success(res, "Negotiation accepted successfully");
     } catch (error) {
       console.error(error);
@@ -241,6 +267,7 @@ class NegotiationController {
       const { id: negosiasi_id } = req.params;
       const { catatan } = req.body;
       const { id: user_id } = req.user;
+      const { role_name } = req.user;
       const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id);
       if (!negosiasi || negosiasi.status !== "active") {
         return responseHelper.error(
@@ -258,6 +285,14 @@ class NegotiationController {
       }
 
       await Negosiasis.updateNegosiasi(negosiasi_id, "rejected", user_id);
+      await notificationHelper.notifyReplyNegotiation(
+        role_name === "investor"
+          ? negosiasi.investor.id
+          : negosiasi.bisnis_owner.id,
+        negosiasi_id,
+        "rejected",
+        catatan,
+      );
       return responseHelper.success(res, "Negotiation rejected successfully");
     } catch (error) {
       console.error(error);

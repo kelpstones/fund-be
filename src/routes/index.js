@@ -1,5 +1,5 @@
 const express = require("express");
-const response = require("../utils/response");
+const response = require("../utils/index").ResponseHelper;
 const router = express.Router();
 const UserRoutes = require("./userRoutes");
 const AdminRoutes = require("./adminRoutes");

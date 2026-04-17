@@ -2,7 +2,7 @@ const responseHelper = require("../utils/response");
 const User = require("../models/users");
 const { AuthValidator } = require("../validation");
 const { hashPassword, comparePassword } = require("../utils/Bcrypt");
-const { generateToken, refreshToken, generateAdminToken, refreshAdminToken } = require("../utils/jwt");
+const { generateToken, refreshToken, generateAdminToken, refreshAdminToken } = require("../utils/index").JwtUtils;
 const admins = require("../models/admins");
 
 class AuthController {

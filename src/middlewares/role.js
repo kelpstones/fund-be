@@ -1,4 +1,4 @@
-const responseHelper = require("../utils/response");
+const responseHelper = require("../utils/index").ResponseHelper;
 
 exports.authorize = (...allowedRoles) => {
   return (req, res, next) => {

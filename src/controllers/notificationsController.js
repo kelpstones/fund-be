@@ -1,4 +1,4 @@
-const responseHelper = require("../utils/response");
+const responseHelper = require("../utils/index").ResponseHelper;
 const Notifications = require("../models/notifications");
 
 class NotificationsController {

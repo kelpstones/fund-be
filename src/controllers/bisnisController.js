@@ -1,4 +1,4 @@
-const responseHelper = require("../utils/response");
+const responseHelper = require("../utils/index").ResponseHelper;
 const Bisnis = require("../models/bisnis");
 const { BisnisValidator, PengajuanValidator } = require("../validation");
 const pengajuans = require("../models/pengajuans");
