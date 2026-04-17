@@ -24,9 +24,7 @@ class UserRoutes {
       this.authController.authMe(req, res);
     });
 
-    // bisnis
-    this.router.use("/bisnis", this.bisnisRoutes.routes());
-
+    
    
     return this.router;
   }

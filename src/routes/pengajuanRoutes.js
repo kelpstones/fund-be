@@ -12,6 +12,10 @@ class PengajuanRoutes {
 
   routes() {
     this.router.use(Auth.verifyAnyToken);
+
+    // negotiation routes
+    this.router.use("/negosiasi", this.negotiationRoutes.routes());
+
     this.router.get(
       "/",
       Role.authorize("umkm", "investor", "superadmin", "admin"),
@@ -19,9 +23,6 @@ class PengajuanRoutes {
         this.pengajuanController.getAllPengajuan(req, res);
       },
     );
-
-    // negotiation routes
-    this.router.use("/negosiasi", this.negotiationRoutes.routes());
 
     this.router.post("/:bisnis_id", Role.authorize("umkm"), (req, res) => {
       this.pengajuanController.createPengajuan(req, res);
