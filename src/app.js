@@ -1,8 +1,8 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { Key } = require("./middlewares");
 const morgan = require('morgan');
-require("dotenv").config();
 const Routes = require('./routes/index');
 const app = express();
 
