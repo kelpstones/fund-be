@@ -6,11 +6,11 @@ const bisnis = require("../models/bisnis");
 exports.notifyAdminNewPengajuan = async (bisnis_id, pengajuans_id) => {
   try {
     const allAdmins = await admins.getAllAdmins(1, 100);
-    const admin_id = admin_id;
+    // const admin_id = allAdmins.map((admin) => admin.id);
     const notificationPromises = allAdmins.map((admin) =>
       Notifications.createNotification(
-        admin.id,
         null,
+        admin.id,
         "New Pengajuan Created",
         `A new pengajuan has been created for bisnis ID ${bisnis_id} with pengajuan ID ${pengajuans_id}.`,
         "pengajuan",

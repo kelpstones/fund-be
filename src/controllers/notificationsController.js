@@ -6,13 +6,15 @@ class NotificationsController {
     try {
       const { page = 1, limit = 10 } = req.query;
       let notifications = [];
-
+      // console.log("User:", req.user);
+      // console.log("Admin:", req.admin);
       if (req.admin) {
         notifications = await Notifications.getNotificationsByAdminId(
           req.admin.id,
           limit,
           page,
         );
+        // console.log("Admin Notifications:", req.admin.id);
       } else {
         notifications = await Notifications.getNotificationsByUserId(
           req.user.id,
