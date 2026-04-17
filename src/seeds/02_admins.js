@@ -11,7 +11,6 @@ exports.seed = async function (knex) {
   await knex("admins").del();
   await knex("admins").insert([
     {
-      id: 1,
       nama: "John Doe",
       email: "john@example.com",
       password: hashedPassword,
@@ -19,7 +18,6 @@ exports.seed = async function (knex) {
       level: "superadmin",
     },
     {
-      id: 2,
       nama: "Jane Smith",
       email: "jane@example.com",
       password: hashedPassword,

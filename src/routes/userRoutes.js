@@ -3,11 +3,13 @@ const router = express.Router();
 const AuthController = require("../controllers/authController");
 const BisnisRoutes = require("./bisnisRoutes");
 const { Auth, Role } = require("../middlewares");
+const KelasRoutes = require("./kelasRoute");
 class UserRoutes {
   constructor() {
     this.router = router;
     this.authController = new AuthController();
     this.bisnisRoutes = new BisnisRoutes();
+    this.kelasRoutes = new KelasRoutes();
   }
   routes() {
     this.router.post("/register", (req, res) => {
@@ -22,8 +24,8 @@ class UserRoutes {
       this.authController.authMe(req, res);
     });
 
-    // bisnis
-    this.router.use("/bisnis", this.bisnisRoutes.routes());
+    
+   
     return this.router;
   }
 }

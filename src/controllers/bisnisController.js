@@ -1,4 +1,4 @@
-const responseHelper = require("../utils/response");
+const responseHelper = require("../utils/index").ResponseHelper;
 const Bisnis = require("../models/bisnis");
 const { BisnisValidator, PengajuanValidator } = require("../validation");
 const pengajuans = require("../models/pengajuans");
@@ -11,7 +11,7 @@ class BisnisController {
         res,
         "Bisnis data fetched successfully",
         bisnisList,
-        { page, limit, totalItems: bisnisList.length },
+        { page, limit, totalItems: bisnisList.length, search },
       );
     } catch (error) {
       console.error(error);
@@ -37,6 +37,16 @@ class BisnisController {
           400,
         );
       }
+
+      const emailExists = await Bisnis.getBisnisByEmail(data.email);
+      if (emailExists) {
+        return responseHelper.error(
+          res,
+          "Email already in use. Please use a different email.",
+          400,
+        );
+      }
+
       const validate = BisnisValidator.bisnisValidation(payload);
 
       if (validate.error) {

@@ -1,15 +1,21 @@
 const express = require("express");
 const PengajuanController = require("../controllers/pengajuanController");
+const NegotiationRoutes = require("./negotiationRoutes");
 const { Auth, Role } = require("../middlewares");
 
 class PengajuanRoutes {
   constructor() {
     this.router = express.Router();
     this.pengajuanController = new PengajuanController();
+    this.negotiationRoutes = new NegotiationRoutes();
   }
 
   routes() {
     this.router.use(Auth.verifyAnyToken);
+
+    // negotiation routes
+    this.router.use("/negosiasi", this.negotiationRoutes.routes());
+
     this.router.get(
       "/",
       Role.authorize("umkm", "investor", "superadmin", "admin"),

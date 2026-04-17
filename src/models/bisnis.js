@@ -62,7 +62,25 @@ class Bisnis extends BaseModel {
         .offset((page - 1) * limit)
         .limit(limit)
         .where("bisnis.nama_bisnis", "ilike", `%${search}%`);
-      return bisnisList;
+
+      // Mapping response
+      return bisnisList.map((row) => ({
+        id: row.id,
+        nama_bisnis: row.nama_bisnis,
+        email: row.email,
+        alamat: row.alamat,
+        no_telp: row.no_telp,
+        deskripsi: row.deskripsi,
+        kelas: {
+          id: row.kelas_id,
+          nama_kelas: row.kelas,
+        },
+        pemilik: {
+          id: row.user_id,
+          nama: row.pemilik,
+          email: row.email_pemilik,
+        },
+      }));
     } catch (error) {
       throw error;
     }
@@ -70,16 +88,16 @@ class Bisnis extends BaseModel {
 
   async getBisnisById(id) {
     try {
-      const bisnis = await this.knex(this.tableName)
+      const row = await this.knex(this.tableName)
         .select(
           "bisnis.id",
           "bisnis.nama_bisnis",
           "bisnis.email",
-          "kelas.nama_kelas as kelas",
           "bisnis.kelas_id",
           "bisnis.alamat",
           "bisnis.no_telp",
           "bisnis.deskripsi",
+          "kelas.nama_kelas as kelas",
           "users.nama as pemilik",
           "users.email as email_pemilik",
           "users.id as user_id",
@@ -88,7 +106,22 @@ class Bisnis extends BaseModel {
         .leftJoin("users", "bisnis.user_id", "users.id")
         .where("bisnis.id", id)
         .first();
-      return bisnis;
+
+      if (!row) return null;
+      return {
+        id: row.id,
+        nama_bisnis: row.nama_bisnis,
+        email: row.email,
+        alamat: row.alamat,
+        no_telp: row.no_telp,
+        deskripsi: row.deskripsi,
+        kelas: { id: row.kelas_id, nama_kelas: row.kelas },
+        pemilik: {
+          id: row.user_id,
+          nama: row.pemilik,
+          email: row.email_pemilik,
+        },
+      };
     } catch (error) {
       throw error;
     }
@@ -96,16 +129,16 @@ class Bisnis extends BaseModel {
 
   async getBisnisByUserId(user_id) {
     try {
-      const bisnisList = await this.knex(this.tableName)
+      const row = await this.knex(this.tableName)
         .select(
           "bisnis.id",
           "bisnis.nama_bisnis",
           "bisnis.email",
-          "kelas.nama_kelas as kelas",
           "bisnis.kelas_id",
           "bisnis.alamat",
           "bisnis.no_telp",
           "bisnis.deskripsi",
+          "kelas.nama_kelas as kelas",
           "users.nama as pemilik",
           "users.email as email_pemilik",
           "users.id as user_id",
@@ -114,7 +147,64 @@ class Bisnis extends BaseModel {
         .leftJoin("users", "bisnis.user_id", "users.id")
         .where("bisnis.user_id", user_id)
         .first();
-      return bisnisList;
+
+      if (!row) return null;
+      return {
+        id: row.id,
+        nama_bisnis: row.nama_bisnis,
+        email: row.email,
+        alamat: row.alamat,
+        no_telp: row.no_telp,
+        deskripsi: row.deskripsi,
+        kelas: { id: row.kelas_id, nama_kelas: row.kelas },
+        pemilik: {
+          id: row.user_id,
+          nama: row.pemilik,
+          email: row.email_pemilik,
+        },
+      };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async getBisnisByEmail(email) {
+    try {
+      const row = await this.knex(this.tableName)
+        .select(
+          "bisnis.id",
+          "bisnis.nama_bisnis",
+          "bisnis.email",
+          "bisnis.kelas_id",
+          "bisnis.alamat",
+          "bisnis.no_telp",
+          "bisnis.deskripsi",
+          "kelas.nama_kelas as kelas",
+          "users.nama as pemilik",
+          "users.email as email_pemilik",
+          "users.id as user_id",
+        )
+        .leftJoin("kelas", "bisnis.kelas_id", "kelas.id")
+        .leftJoin("users", "bisnis.user_id", "users.id")
+        .where("bisnis.email", email)
+        .first();
+
+      if (!row) return null;
+      return {
+        id: row.id,
+        nama_bisnis: row.nama_bisnis,
+        email: row.email,
+        alamat: row.alamat,
+        no_telp: row.no_telp,
+        deskripsi: row.deskripsi,
+        kelas: { id: row.kelas_id, nama_kelas: row.kelas },
+        pemilik: {
+          id: row.user_id,
+          nama: row.pemilik,
+          email: row.email_pemilik,
+        },
+      };
     } catch (error) {
       console.error(error);
       throw error;

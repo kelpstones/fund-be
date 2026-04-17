@@ -1,9 +1,9 @@
-const responseHelper = require("../utils/response");
+const responseHelper = require("../utils/index").ResponseHelper;
 const Pengajuan = require("../models/pengajuans");
 const { PengajuanValidator } = require("../validation");
 const bisnis = require("../models/bisnis");
 const approvals = require("../models/approvals");
-
+const notificationHelper = require("../utils/index").NotificationHelper;
 class PengajuanController {
   // pengajuan
   async createPengajuan(req, res) {
@@ -35,6 +35,7 @@ class PengajuanController {
           400,
         );
       }
+
       const pengajuan = await Pengajuan.createPengajuan(
         payload.bisnis_id,
         payload.target_pendanaan,
@@ -52,6 +53,10 @@ class PengajuanController {
         ...pengajuan[0],
         approvals: approval[0],
       };
+      await notificationHelper.notifyAdminNewPengajuan(
+        payload.bisnis_id,
+        pengajuan[0].id,
+      );
       return responseHelper.success(
         res,
         "Pengajuan created successfully",
@@ -158,8 +163,8 @@ class PengajuanController {
       const { id } = req.params;
       const { status, catatan } = req.body;
       const approver_id = req.admin.id;
-    //   console.log(approver_id, status, catatan);
-    //   return console.log(approver_id);
+      //   console.log(approver_id, status, catatan);
+      //   return console.log(approver_id);
       const existingApproval = await approvals.getApprovalByPengajuanId(id);
       if (!existingApproval) {
         return responseHelper.error(res, "Approval not found", 404);
@@ -186,10 +191,14 @@ class PengajuanController {
         status,
         catatan,
       );
-    //   console.log(existingApproval);
+      //   console.log(existingApproval);
       await Pengajuan.updatePengajuanStatus(
         existingApproval.pengajuans_id,
         "published",
+      );
+      await notificationHelper.notifyUserPengajuanStatus(
+        existingApproval.pengajuans_id,
+        status,
       );
       return responseHelper.success(
         res,
