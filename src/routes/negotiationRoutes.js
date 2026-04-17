@@ -41,6 +41,14 @@ class NegotiationRoutes {
       },
     );
 
+    this.router.post(
+      "/reject/:id",
+      Role.authorize("umkm", "investor"),
+      (req, res) => {
+        this.negotiationController.rejectNegotiation(req, res);
+      },
+    );
+
     this.router.post("/start", Role.authorize("investor"), (req, res) => {
       this.negotiationController.startNegotiation(req, res);
     });

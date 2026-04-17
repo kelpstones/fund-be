@@ -27,7 +27,7 @@ exports.replyNegotiationValidation = (data) => {
   }
 };
 
-exports.acceptNegotiationValidation = (data) => {
+exports.acceptRejectNegotiationValidation = (data) => {
   try {
     const schema = Joi.object({
       catatan: Joi.string().optional(),

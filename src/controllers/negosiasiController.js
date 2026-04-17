@@ -218,7 +218,7 @@ class NegotiationController {
         );
       }
       //   validation
-      const { error } = NegotiationValidator.acceptNegotiationValidation({
+      const { error } = NegotiationValidator.acceptRejectNegotiationValidation({
         catatan,
       });
       if (error) {
@@ -232,6 +232,38 @@ class NegotiationController {
       return responseHelper.serverError(
         res,
         "An error occurred while accepting negosiasi",
+      );
+    }
+  }
+
+  async rejectNegotiation(req, res) {
+    try {
+      const { id: negosiasi_id } = req.params;
+      const { catatan } = req.body;
+      const { id: user_id } = req.user;
+      const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id);
+      if (!negosiasi || negosiasi.status !== "active") {
+        return responseHelper.error(
+          res,
+          "Negosiasi not found or not active",
+          404,
+        );
+      }
+      //   validation
+      const { error } = NegotiationValidator.acceptRejectNegotiationValidation({
+        catatan,
+      });
+      if (error) {
+        return responseHelper.error(res, error.details[0].message, 400);
+      }
+
+      await Negosiasis.updateNegosiasi(negosiasi_id, "rejected", user_id);
+      return responseHelper.success(res, "Negotiation rejected successfully");
+    } catch (error) {
+      console.error(error);
+      return responseHelper.serverError(
+        res,
+        "An error occurred while rejecting negosiasi",
       );
     }
   }
