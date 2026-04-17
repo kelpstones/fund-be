@@ -37,7 +37,7 @@ class Pengajuan extends BaseModel {
 
   async getPengajuanByBisnisId(bisnis_id) {
     try {
-      const pengajuan = await this.knex(this.tableName)
+      const row = await this.knex(this.tableName)
         .where("bisnis_id", bisnis_id)
         .select([
           "pengajuans.id",
@@ -52,7 +52,23 @@ class Pengajuan extends BaseModel {
         ])
         .leftJoin("approvals", "pengajuans.id", "approvals.pengajuans_id")
         .first();
-      return pengajuan;
+
+      if (!row) return null;
+      return {
+        id: row.id,
+        bisnis_id: row.bisnis_id,
+        target_pendanaan: row.target_pendanaan,
+        total_pendanaan: row.total_pendanaan,
+        per_anual_return: row.per_anual_return,
+        status: row.status,
+        approval: row.approval_id
+          ? {
+              id: row.approval_id,
+              approver_id: row.approver_id,
+              status: row.approval_status,
+            }
+          : null,
+      };
     } catch (error) {
       throw error;
     }
@@ -111,17 +127,43 @@ class Pengajuan extends BaseModel {
           "approvals.approver_id",
           "approvals.status as approval_status",
           "approvals.catatan as approval_catatan",
+          "admins.nama as approver_nama",
+          "admins.email as approver_email",
         )
         .leftJoin("approvals", "pengajuans.id", "approvals.pengajuans_id")
+        .leftJoin("admins", "approvals.approver_id", "admins.id")
         .offset((page - 1) * limit)
         .limit(limit)
         .where("pengajuans.status", "like", `%${status || ""}%`);
-      return pengajuans;
+
+      // Mapping response
+      return pengajuans.map((row) => ({
+        id: row.id,
+        bisnis_id: row.bisnis_id,
+        target_pendanaan: row.target_pendanaan,
+        total_pendanaan: row.total_pendanaan,
+        per_anual_return: row.per_anual_return,
+        status: row.status,
+        approval: row.approval_id
+          ? {
+              id: row.approval_id,
+              approver_id: row.approver_id,
+              status: row.approval_status,
+              catatan: row.approval_catatan,
+            }
+          : null,
+        approver: row.approver_id
+          ? {
+              id: row.approver_id,
+              nama: row.approver_nama,
+              email: row.approver_email,
+            }
+          : null,
+      }));
     } catch (error) {
       throw error;
     }
   }
-
   async getPengajuanById(id) {
     try {
       const pengajuan = await this.knex(this.tableName).where({ id }).first();

@@ -24,19 +24,19 @@ class Negosiasis extends BaseModel {
   async getNegosiasiById(id) {
     try {
       const knex = this.knex;
-      const negosiasi = await this.knex(this.tableName)
+      const row = await this.knex(this.tableName)
         .select(
           "negosiasis.id",
-          "negosiasis.pengajuans_id",
-          "negosiasis.investor_id",
           "negosiasis.status",
-          "users.nama as investor_nama",
           "negosiasis.id_terakhir_oleh",
+          "negosiasis.created_at",
+          "users.nama as investor_nama",
+          "users.id as investor_id",
+          "pengajuans.id as pengajuan_id",
           "pengajuans.target_pendanaan",
           "pengajuans.per_anual_return",
-          knex.raw(
-            "l.penawaran_return as last_penawaran_return, l.catatan as last_catatan",
-          ),
+          knex.raw("l.penawaran_return as last_penawaran_return"),
+          knex.raw("l.catatan as last_catatan"),
         )
         .join("pengajuans", "negosiasis.pengajuans_id", "pengajuans.id")
         .join("users", "negosiasis.investor_id", "users.id")
@@ -51,59 +51,167 @@ class Negosiasis extends BaseModel {
         })
         .where("negosiasis.id", id)
         .first();
-      return negosiasi;
+
+      if (!row) return null;
+      return {
+        id: row.id,
+        status: row.status,
+        id_terakhir_oleh: row.id_terakhir_oleh,
+        created_at: row.created_at,
+        pengajuan: {
+          id: row.pengajuan_id,
+          target_pendanaan: row.target_pendanaan,
+          per_anual_return: row.per_anual_return,
+        },
+        investor: { id: row.investor_id, nama: row.investor_nama },
+        negosiasi_terakhir: row.last_penawaran_return
+          ? {
+              penawaran_return: row.last_penawaran_return,
+              catatan: row.last_catatan,
+            }
+          : null,
+      };
     } catch (error) {
       console.error(error);
       throw error;
     }
   }
 
-  async getNegosiasiById(id) {
+  async getNegosiasiByPengajuanId(pengajuans_id) {
     try {
       const knex = this.knex;
-      const negosiasi = await this.knex(this.tableName)
+      const results = await knex(this.tableName)
         .select(
           "negosiasis.id",
-          "negosiasis.pengajuans_id",
-          "negosiasis.investor_id",
           "negosiasis.status",
-          "users.nama as investor_nama",
           "negosiasis.id_terakhir_oleh",
+          "negosiasis.created_at",
+          "users.nama as investor_nama",
+          "users.id as investor_id",
+          "pengajuans.id as pengajuan_id",
           "pengajuans.target_pendanaan",
           "pengajuans.per_anual_return",
+          knex.raw("l.penawaran_return as last_penawaran_return"),
+          knex.raw("l.catatan as last_catatan"),
         )
         .join("pengajuans", "negosiasis.pengajuans_id", "pengajuans.id")
         .join("users", "negosiasis.investor_id", "users.id")
-        .where("negosiasis.id", id)
-        .first();
-      return negosiasi;
+        .leftJoin("log_negosiasis as l", function () {
+          this.on("negosiasis.id", "l.negosiasi_id").andOn(
+            "l.created_at",
+            "=",
+            knex.raw(
+              "(SELECT MAX(created_at) FROM log_negosiasis WHERE negosiasi_id = negosiasis.id)",
+            ),
+          );
+        })
+        .where("pengajuans_id", pengajuans_id);
+
+      return results.map((row) => ({
+        id: row.id,
+        status: row.status,
+        id_terakhir_oleh: row.id_terakhir_oleh,
+        created_at: row.created_at,
+        pengajuan: {
+          id: row.pengajuan_id,
+          target_pendanaan: row.target_pendanaan,
+          per_anual_return: row.per_anual_return,
+        },
+        investor: { id: row.investor_id, nama: row.investor_nama },
+        negosiasi_terakhir: row.last_penawaran_return
+          ? {
+              penawaran_return: row.last_penawaran_return,
+              catatan: row.last_catatan,
+            }
+          : null,
+      }));
     } catch (error) {
-      console.error(error);
       throw error;
     }
   }
+
+  async getAllNegosiasis(page = 1, limit = 10, status = "") {
+    try {
+      const knex = this.knex;
+      const results = await knex(this.tableName)
+        .select(
+          "negosiasis.id",
+          "negosiasis.status",
+          "negosiasis.id_terakhir_oleh",
+          "negosiasis.created_at",
+          "users.nama as investor_nama",
+          "users.id as investor_id",
+          "pengajuans.id as pengajuan_id",
+          "pengajuans.target_pendanaan",
+          "pengajuans.per_anual_return",
+          knex.raw("l.penawaran_return as last_penawaran_return"),
+          knex.raw("l.catatan as last_catatan"),
+        )
+        .join("pengajuans", "negosiasis.pengajuans_id", "pengajuans.id")
+        .join("users", "negosiasis.investor_id", "users.id")
+        .leftJoin("log_negosiasis as l", function () {
+          this.on("negosiasis.id", "l.negosiasi_id").andOn(
+            "l.created_at",
+            "=",
+            knex.raw(
+              "(SELECT MAX(created_at) FROM log_negosiasis WHERE negosiasi_id = negosiasis.id)",
+            ),
+          );
+        })
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .where("negosiasis.status", "ilike", `%${status}%`);
+
+      return results.map((row) => ({
+        id: row.id,
+        status: row.status,
+        id_terakhir_oleh: row.id_terakhir_oleh,
+        created_at: row.created_at,
+        pengajuan: {
+          id: row.pengajuans_id,
+          target_pendanaan: row.target_pendanaan,
+          per_anual_return: row.per_anual_return,
+        },
+        investor: {
+          id: row.investor_id,
+          nama: row.investor_nama,
+        },
+        negosiasi_terakhir: row.last_penawaran_return
+          ? {
+              penawaran_return: row.last_penawaran_return,
+              catatan: row.last_catatan,
+            }
+          : null,
+      }));
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // src/models/negosiasis.js
 
   async getNegosiasiByUserId(user_id, role) {
     try {
       const knex = this.knex;
       const column =
         role === "investor" ? "negosiasis.investor_id" : "bisnis.user_id";
-      const negosiasi = await knex(this.tableName)
+
+      const results = await knex(this.tableName)
         .select(
           "negosiasis.id",
-          "negosiasis.pengajuans_id",
-          "negosiasis.investor_id",
           "negosiasis.status",
-          "users.nama as investor_nama",
           "negosiasis.id_terakhir_oleh",
+          "negosiasis.created_at",
+          "users.nama as investor_nama",
+          "users.id as investor_id",
+          "pengajuans.id as pengajuan_id",
           "pengajuans.target_pendanaan",
           "pengajuans.per_anual_return",
-          "bisnis.nama_bisnis as bisnis_nama",
           "bisnis.id as bisnis_id",
+          "bisnis.nama_bisnis",
           "bisnis.user_id as bisnis_user_id",
-          knex.raw(
-            "l.penawaran_return as last_penawaran_return, l.catatan as last_catatan",
-          ),
+          knex.raw("l.penawaran_return as last_penawaran_return"),
+          knex.raw("l.catatan as last_catatan"),
         )
         .join("pengajuans", "negosiasis.pengajuans_id", "pengajuans.id")
         .join("bisnis", "pengajuans.bisnis_id", "bisnis.id")
@@ -118,44 +226,33 @@ class Negosiasis extends BaseModel {
           );
         })
         .where(column, user_id);
-      return negosiasi;
+
+      return results.map((row) => ({
+        id: row.id,
+        status: row.status,
+        id_terakhir_oleh: row.id_terakhir_oleh,
+        created_at: row.created_at,
+        pengajuan: {
+          id: row.pengajuan_id,
+          target_pendanaan: row.target_pendanaan,
+          per_anual_return: row.per_anual_return,
+        },
+        bisnis: {
+          id: row.bisnis_id,
+          nama: row.nama_bisnis,
+          user_id: row.bisnis_user_id,
+        },
+        investor: {
+          id: row.investor_id,
+          nama: row.investor_nama,
+        },
+        negosiasi_terakhir: {
+          penawaran_return: row.last_penawaran_return,
+          catatan: row.last_catatan,
+        },
+      }));
     } catch (error) {
       console.error(error);
-      throw error;
-    }
-  }
-
-  async getNegosiasiByPengajuanId(pengajuans_id) {
-    try {
-      const knex = this.knex;
-      const negosiasi = await knex(this.tableName)
-        .where("pengajuans_id", pengajuans_id)
-        .select(
-          "negosiasis.id",
-          "negosiasis.pengajuans_id",
-          "negosiasis.investor_id",
-          "negosiasis.status",
-          "users.nama as investor_nama",
-          "negosiasis.id_terakhir_oleh",
-          "pengajuans.target_pendanaan",
-          "pengajuans.per_anual_return",
-          knex.raw(
-            "l.penawaran_return as last_penawaran_return, l.catatan as last_catatan",
-          ),
-        )
-        .join("pengajuans", "negosiasis.pengajuans_id", "pengajuans.id")
-        .join("users", "negosiasis.investor_id", "users.id")
-        .leftJoin("log_negosiasis as l", function () {
-          this.on("negosiasis.id", "l.negosiasi_id").andOn(
-            "l.created_at",
-            "=",
-            knex.raw(
-              "(SELECT MAX(created_at) FROM log_negosiasis WHERE negosiasi_id = negosiasis.id)",
-            ),
-          );
-        });
-      return negosiasi;
-    } catch (error) {
       throw error;
     }
   }
@@ -179,30 +276,6 @@ class Negosiasis extends BaseModel {
     try {
       const data = await this.knex(this.tableName).where({ id }).del();
       return data;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async getAllNegosiasis(page = 1, limit = 10, status = "") {
-    try {
-      const negosiasis = await this.knex(this.tableName)
-        .select(
-          "negosiasis.id",
-          "negosiasis.pengajuans_id",
-          "negosiasis.investor_id",
-          "negosiasis.status",
-          "users.nama as investor_nama",
-          "negosiasis.id_terakhir_oleh",
-          "pengajuans.target_pendanaan",
-          "pengajuans.per_anual_return",
-        )
-        .join("pengajuans", "negosiasis.pengajuans_id", "pengajuans.id")
-        .join("users", "negosiasis.investor_id", "users.id")
-        .offset((page - 1) * limit)
-        .limit(limit)
-        .where("negosiasis.status", "ilike", `%${status}%`);
-      return negosiasis;
     } catch (error) {
       throw error;
     }
