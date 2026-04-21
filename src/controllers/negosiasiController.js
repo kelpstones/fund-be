@@ -3,6 +3,8 @@ const Negosiasis = require("../models/negosiasis");
 const LogNegosiasis = require("../models/log_negosiasis");
 const pengajuans = require("../models/pengajuans");
 const { NegotiationValidator } = require("../validation");
+const invoices = require("../models/invoices");
+const log_negosiasis = require("../models/log_negosiasis");
 const notificationHelper = require("../utils/index").NotificationHelper;
 class NegotiationController {
   async getAllNegotiations(req, res) {
@@ -251,6 +253,21 @@ class NegotiationController {
         negosiasi_id,
         "deal",
         catatan,
+      );
+
+      // TODO: create invoice
+      const kodePembayaran = `PAY-${Date.now()}`;
+      const deadline = new Date();
+      const expiryHours = process.env.INVOICE_EXPIRY_HOURS || 24;
+      deadline.setHours(deadline.getHours() + parseInt(expiryHours));
+      const lastLog = await log_negosiasis.getLastLogByNegosiasiId(negosiasi_id);
+      await invoices.createInvoice(
+        negosiasi_id,
+        negosiasi.pengajuan.id,
+        negosiasi.investor.id,
+        lastLog ? lastLog.penawaran_return : null,
+        kodePembayaran,
+        deadline,
       );
       return responseHelper.success(res, "Negotiation accepted successfully");
     } catch (error) {

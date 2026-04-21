@@ -7,17 +7,21 @@ class Invoices extends BaseModel {
 
   async createInvoice(
     id_negosiasi,
-    id_pengajuan,
-    id_investor,
+    pengajuan_id,
+    investor_id,
     nominal_tagihan,
+    kode_pembayaran,
+    tenggat_waktu,
   ) {
     try {
       const [invoice] = await this.knex(this.tableName)
         .insert({
           id_negosiasi,
-          id_pengajuan,
-          id_investor,
+          pengajuan_id,
+          investor_id,
           nominal_tagihan,
+          kode_pembayaran,
+          tenggat_waktu,
           status: "pending",
         })
         .returning("*");
@@ -28,34 +32,134 @@ class Invoices extends BaseModel {
     }
   }
 
-  async getInvoiceById(id) {
+  async getAllInvoices(page = 1, limit = 10, startDate, endDate, status) {
     try {
-      return await this.knex(this.tableName)
+      let query = this.knex(this.tableName)
         .select(
           "invoices.*",
-          "pengajuans.target_dana",
-          "pengajuans.per_annual",
-          "bisnis.nama_usaha as nama_bisnis",
+          "bisnis.nama_bisnis",
           "users.nama as nama_investor",
+          "pengajuans.target_pendanaan as target_dana",
+          "pengajuans.per_anual_return as per_annual",
+          "pengajuans.id as pengajuan_id",
         )
-        .leftJoin("pengajuans", "invoices.id_pengajuan", "pengajuans.id")
-        .leftJoin("bisnis", "pengajuans.id_bisnis", "bisnis.id")
-        .leftJoin("users", "invoices.id_investor", "users.id")
-        .where("invoices.id", id)
-        .first();
+        .join("pengajuans", "invoices.pengajuan_id", "pengajuans.id")
+        .join("bisnis", "pengajuans.bisnis_id", "bisnis.id")
+        .join("users", "invoices.investor_id", "users.id")
+        .orderBy("created_at", "desc")
+        .offset((page - 1) * limit)
+        .limit(limit);
+
+      if (startDate && endDate) {
+        query = query.whereBetween("created_at", [startDate, endDate]);
+      }
+
+      if (status) {
+        query = query.where("status", status);
+      }
+      const invoices = await query
+        .orderBy("invoices.created_at", "desc")
+        .offset((page - 1) * limit)
+        .limit(limit);
+
+      return invoices.map((invoice) => ({
+        id: invoice.id,
+        kode_pembayaran: invoice.kode_pembayaran,
+        nominal_tagihan: invoice.nominal_tagihan,
+        status: invoice.status,
+        tenggat_waktu: invoice.tenggat_waktu,
+        created_at: invoice.created_at,
+        detail_pengajuan: {
+          id: invoice.pengajuan_id,
+          id_negosiasi: invoice.id_negosiasi,
+          nama_bisnis: invoice.nama_bisnis,
+          per_annual: invoice.per_annual,
+          target_dana: invoice.target_dana,
+        },
+
+        investor: {
+          id: invoice.investor_id,
+          nama: invoice.nama_investor,
+        },
+      }));
     } catch (error) {
       throw error;
     }
   }
 
-  async getInvoicesByInvestor(investor_id) {
+  async getInvoiceById(id) {
     try {
-      return await this.knex(this.tableName)
-        .select("invoices.*", "bisnis.nama_usaha")
-        .join("pengajuans", "invoices.id_pengajuan", "pengajuans.id")
-        .join("bisnis", "pengajuans.id_bisnis", "bisnis.id")
-        .where("id_investor", investor_id)
-        .orderBy("created_at", "desc");
+      const invoice = await this.knex(this.tableName)
+        .select(
+          "invoices.*",
+          "pengajuans.target_pendanaan as target_dana",
+          "pengajuans.per_anual_return as per_annual",
+          "bisnis.nama_bisnis as nama_bisnis",
+          "users.nama as nama_investor",
+          "pengajuans.id as pengajuan_id",
+         
+        )
+        .leftJoin("pengajuans", "invoices.pengajuan_id", "pengajuans.id")
+        .leftJoin("bisnis", "pengajuans.bisnis_id", "bisnis.id")
+        .leftJoin("users", "invoices.investor_id", "users.id")
+        .where("invoices.id", id)
+        .first();
+
+      if (!invoice) {
+        return null;
+      }
+      return {
+        id: invoice.id,
+        kode_pembayaran: invoice.kode_pembayaran,
+        nominal_tagihan: invoice.nominal_tagihan,
+        status: invoice.status,
+        tenggat_waktu: invoice.tenggat_waktu,
+        created_at: invoice.created_at,
+        detail_pengajuan: {
+          id: invoice.pengajuan_id,
+          id_negosiasi: invoice.id_negosiasi,
+          target_dana: invoice.target_dana,
+          per_annual: invoice.per_annual,
+          nama_bisnis: invoice.nama_bisnis,
+        },
+
+        investor: {
+          id: invoice.investor_id,
+          nama: invoice.nama_investor,
+        },
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getInvoicesByInvestor(
+    investor_id,
+    page = 1,
+    limit = 10,
+    status,
+    startDate,
+    endDate,
+  ) {
+    try {
+      let query = this.knex(this.tableName)
+        .select("invoices.*", "bisnis.nama_bisnis")
+        .join("pengajuans", "invoices.pengajuan_id", "pengajuans.id")
+        .join("bisnis", "pengajuans.bisnis_id", "bisnis.id")
+        .where("investor_id", investor_id)
+        .orderBy("created_at", "desc")
+        .offset((page - 1) * limit)
+        .limit(limit);
+
+      if (startDate && endDate) {
+        query = query.whereBetween("created_at", [startDate, endDate]);
+      }
+
+      if (status) {
+        query = query.where("status", status);
+      }
+
+      return await query;
     } catch (error) {
       throw error;
     }

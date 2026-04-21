@@ -5,6 +5,7 @@ const UserRoutes = require("./userRoutes");
 const AdminRoutes = require("./adminRoutes");
 const BisnisRoutes = require("./bisnisRoutes");
 const NotificationsRoutes = require("./notificationsRoutes");
+const InvoicesRoutes = require("./invoicesRoutes");
 class Routes {
   constructor() {
     this.router = router;
@@ -12,13 +13,17 @@ class Routes {
     this.adminRoutes = new AdminRoutes();
     this.bisnisRoutes = new BisnisRoutes();
     this.notificationRoutes = new NotificationsRoutes();
+    this.invoicesRoutes = new InvoicesRoutes();
   }
 
   routes() {
     this.router.use("/bisnis", this.bisnisRoutes.routes());
     this.router.use("/user", this.userRoutes.routes());
     this.router.use("/notifications", this.notificationRoutes.routes());
+    this.router.use("/invoices", this.invoicesRoutes.routes());
     this.router.use("/admin", this.adminRoutes.routes());
+
+    
     this.router.get("/", (req, res) => {
       response.success(res, "Welcome to Fund API");
     });
