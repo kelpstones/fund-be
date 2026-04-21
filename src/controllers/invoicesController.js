@@ -1,4 +1,7 @@
+const knex = require("../config/db");
+const investasi = require("../models/investasi");
 const Invoice = require("../models/invoices");
+const pengajuans = require("../models/pengajuans");
 const { ResponseHelper } = require("../utils/index");
 const { invoiceValidation } = require("../validation/invoices");
 
@@ -78,9 +81,11 @@ class InvoicesController {
 
   async payInvoice(req, res) {
     try {
+      const trx = await knex.transaction();
       const { id } = req.params;
       const invoice = await Invoice.getInvoiceById(id);
       if (!invoice) {
+        await trx.rollback();
         return ResponseHelper.error(res, "Invoice not found", 404);
       }
       if (invoice.status !== "pending") {
@@ -90,10 +95,41 @@ class InvoicesController {
           400,
         );
       }
+
       // await new Promise((resolve) => setTimeout(resolve, 2000));
-    
-      const updatedInvoice = await Invoice.updateStatus(id, "paid");
-      console.log("Updated Invoice:", updatedInvoice);
+
+      const updatedInvoice = await Invoice.updateStatus(id, "paid", trx);
+      await investasi.createInvestasi({
+        investor_id: invoice.investor.id,
+        pengajuans_id: invoice.detail_pengajuan.id,
+        negosiasi_id: invoice.detail_pengajuan.id_negosiasi,
+        nominal_investasi: invoice.nominal_tagihan,
+        trx,
+      });
+      // console.log("Updated Invoice:", updatedInvoice);
+
+      const pengajuan = await pengajuans.getPengajuanById(
+        invoice.detail_pengajuan.id,
+      );
+      console.log("Current Pengajuan:", pengajuan.total_pendanaan);
+      
+      const totalDanaBaru =
+        Number(pengajuan.total_pendanaan) + Number(invoice.nominal_tagihan);
+      console.log("Total Dana Baru:", totalDanaBaru);
+      let statusBaru = pengajuan.status;
+      if (totalDanaBaru >= pengajuan.target_pendanaan) {
+        statusBaru = "funded";
+      }
+
+      await pengajuans.updatePengajuan(
+        invoice.detail_pengajuan.id,
+        pengajuan.target_pendanaan,
+        totalDanaBaru,
+        pengajuan.per_anual_return,
+        statusBaru,
+        trx,
+      );
+      await trx.commit();
       return ResponseHelper.success(
         res,
         "Invoice paid successfully",

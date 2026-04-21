@@ -44,11 +44,14 @@ class Invoices extends BaseModel {
           "pengajuans.per_anual_return as per_annual",
           "pengajuans.id as pengajuan_id",
           "invoices.updated_at as payment_updated_at",
+          "negosiasis.id as negosiasi_id",
+
         )
         .join("pengajuans", "invoices.pengajuan_id", "pengajuans.id")
         .join("bisnis", "pengajuans.bisnis_id", "bisnis.id")
         .leftJoin("users as investor", "invoices.investor_id", "investor.id")
         .leftJoin("users as pemilik", "bisnis.user_id", "pemilik.id")
+        .leftJoin("negosiasis", "invoices.negosiasi_id", "negosiasis.id") // Tambahan: Wajib di-join agar bisa ambil status
         .orderBy("created_at", "desc")
         .offset((page - 1) * limit)
         .limit(limit);
@@ -75,7 +78,7 @@ class Invoices extends BaseModel {
         payment_updated_at: invoice.payment_updated_at,
         detail_pengajuan: {
           id: invoice.pengajuan_id,
-          id_negosiasi: invoice.id_negosiasi,
+          id_negosiasi: invoice.negosiasi_id,
           nama_bisnis: invoice.nama_bisnis,
           nama_pemilik: invoice.nama_pemilik,
           per_annual: invoice.per_annual,
@@ -104,11 +107,13 @@ class Invoices extends BaseModel {
           "pemilik.nama as nama_pemilik",
           "pengajuans.id as pengajuan_id",
           "invoices.updated_at as payment_updated_at",
+          "negosiasis.id as negosiasi_id",
         )
         .leftJoin("pengajuans", "invoices.pengajuan_id", "pengajuans.id")
         .leftJoin("bisnis", "pengajuans.bisnis_id", "bisnis.id")
         .leftJoin("users as investor", "invoices.investor_id", "investor.id")
         .leftJoin("users as pemilik", "bisnis.user_id", "pemilik.id")
+        .leftJoin("negosiasis", "invoices.negosiasi_id", "negosiasis.id")
         .where("invoices.id", id)
         .first();
 
@@ -125,7 +130,7 @@ class Invoices extends BaseModel {
         payment_updated_at: invoice.payment_updated_at,
         detail_pengajuan: {
           id: invoice.pengajuan_id,
-          id_negosiasi: invoice.id_negosiasi,
+          id_negosiasi: invoice.negosiasi_id,
           target_dana: invoice.target_dana,
           per_annual: invoice.per_annual,
           nama_bisnis: invoice.nama_bisnis,
@@ -161,10 +166,11 @@ class Invoices extends BaseModel {
           "pengajuans.target_pendanaan as target_dana",
           "pengajuans.per_anual_return as per_annual",
           "invoices.updated_at as payment_updated_at",
+          "negosiasis.id as negosiasi_id",
         )
         .join("pengajuans", "invoices.pengajuan_id", "pengajuans.id")
         .join("bisnis", "pengajuans.bisnis_id", "bisnis.id")
-
+        .leftJoin("negosiasis", "invoices.negosiasi_id", "negosiasis.id")
         .leftJoin("users as pemilik", "bisnis.user_id", "pemilik.id")
         .leftJoin("users as investor", "invoices.investor_id", "investor.id")
         .where("invoices.investor_id", investor_id);
@@ -192,7 +198,7 @@ class Invoices extends BaseModel {
         payment_updated_at: invoice.payment_updated_at,
         detail_pengajuan: {
           id: invoice.pengajuan_id,
-          negosiasi_id: invoice.negosiasi_id,
+          id_negosiasi: invoice.negosiasi_id,
           target_dana: invoice.target_dana,
           per_annual: invoice.per_annual,
           nama_bisnis: invoice.nama_bisnis,
@@ -209,11 +215,11 @@ class Invoices extends BaseModel {
       throw error;
     }
   }
-  async updateStatus(id, status) {
+  async updateStatus(id, status, trx = this.knex) {
     try {
-      await this.knex(this.tableName).where({ id }).update({
+      await trx(this.tableName).where({ id }).update({
         status,
-        updated_at: this.knex.fn.now(),
+        updated_at: trx.fn.now(),
       });
       const invoice = await this.knex(this.tableName)
         .select(

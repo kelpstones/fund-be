@@ -2,23 +2,21 @@ const BaseModel = require("./base");
 
 class Investasi extends BaseModel {
   constructor() {
-    super("investasi");
-    F;
+    super("investasis");
   }
 
   async createInvestasi(
-    investor_id,
-    pengajuans_id,
-    negosiasi_id,
-    nominal_investasi,
+   data,
+    trx = this.knex,
   ) {
     try {
-      const investasi = await this.knex(this.tableName)
+      // console.log("Creating investasi with data:", data);
+      const investasi = await trx(this.tableName)
         .insert({
-          investor_id,
-          pengajuans_id,
-          negosiasi_id,
-          nominal_investasi,
+          investor_id: data.investor_id,
+          pengajuans_id: data.pengajuans_id,
+          negosiasis_id: data.negosiasi_id,
+          nominal_investasi: data.nominal_investasi,
         })
         .returning("*");
       return investasi;
