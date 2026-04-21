@@ -93,6 +93,7 @@ class InvoicesController {
       // await new Promise((resolve) => setTimeout(resolve, 2000));
     
       const updatedInvoice = await Invoice.updateStatus(id, "paid");
+      console.log("Updated Invoice:", updatedInvoice);
       return ResponseHelper.success(
         res,
         "Invoice paid successfully",
