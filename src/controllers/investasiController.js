@@ -49,5 +49,7 @@ class InvestasiController {
         "An error occurred while creating investasi data",
       );
     }
-  }
+  } 
 }
+
+module.exports = InvestasiController;
