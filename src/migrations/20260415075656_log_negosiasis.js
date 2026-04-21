@@ -13,6 +13,7 @@ exports.up = function (knex) {
     table.integer("pengirim_id").unsigned().notNullable();
     table.foreign("pengirim_id").references("users.id").onDelete("CASCADE");
     table.integer("penawaran_return").notNullable();
+    table.integer("penawaran_nominal").notNullable();
     table.text("catatan").nullable();
     table.timestamps(true, true);
   });

@@ -16,12 +16,12 @@ class Invoices extends BaseModel {
     try {
       const [invoice] = await this.knex(this.tableName)
         .insert({
-          id_negosiasi,
-          pengajuan_id,
-          investor_id,
-          nominal_tagihan,
-          kode_pembayaran,
-          tenggat_waktu,
+          negosiasi_id: id_negosiasi,
+          pengajuan_id: pengajuan_id,
+          investor_id: investor_id,
+          nominal_tagihan: nominal_tagihan,
+          kode_pembayaran: kode_pembayaran,
+          tenggat_waktu: tenggat_waktu,
           status: "pending",
         })
         .returning("*");
@@ -245,7 +245,7 @@ class Invoices extends BaseModel {
         id: invoice.id,
         kode_pembayaran: invoice.kode_pembayaran,
         nominal_tagihan: invoice.nominal_tagihan,
-        status: invoice.status,
+        status: status,
         tenggat_waktu: invoice.tenggat_waktu,
         created_at: invoice.created_at,
         payment_updated_at: invoice.payment_updated_at,

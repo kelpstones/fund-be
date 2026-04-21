@@ -59,6 +59,7 @@ exports.notifyStartNegotiation = async (
   pengajuan_id,
   negosiasi_id,
   penawaran_return,
+  penawaran_nominal,
 ) => {
   try {
     const pengajuan = await pengajuans.getPengajuanById(pengajuan_id);

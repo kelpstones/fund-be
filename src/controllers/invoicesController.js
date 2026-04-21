@@ -104,6 +104,7 @@ class InvoicesController {
         pengajuans_id: invoice.detail_pengajuan.id,
         negosiasi_id: invoice.detail_pengajuan.id_negosiasi,
         nominal_investasi: invoice.nominal_tagihan,
+        return_investasi: invoice.detail_pengajuan.per_annual,
         trx,
       });
       // console.log("Updated Invoice:", updatedInvoice);

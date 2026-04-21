@@ -8,6 +8,7 @@ class LogNegosiasis extends BaseModel {
     negosiasi_id,
     pengirim_id,
     penawaran_return,
+    penawaran_nominal,
     catatan,
   ) {
     try {
@@ -16,6 +17,7 @@ class LogNegosiasis extends BaseModel {
           negosiasi_id,
           pengirim_id,
           penawaran_return,
+          penawaran_nominal,
           catatan,
         })
         .returning("*");

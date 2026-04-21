@@ -39,6 +39,7 @@ class Negosiasis extends BaseModel {
           "pengajuans.per_anual_return",
           knex.raw("l.penawaran_return as last_penawaran_return"),
           knex.raw("l.catatan as last_catatan"),
+          knex.raw("l.penawaran_nominal as last_penawaran_nominal"),
         )
         .join("pengajuans", "negosiasis.pengajuans_id", "pengajuans.id")
         .join("users", "negosiasis.investor_id", "users.id")
@@ -73,6 +74,7 @@ class Negosiasis extends BaseModel {
           ? {
               penawaran_return: row.last_penawaran_return,
               catatan: row.last_catatan,
+              penawaran_nominal: row.last_penawaran_nominal,
             }
           : null,
       };
@@ -100,6 +102,7 @@ class Negosiasis extends BaseModel {
           "pengajuans.per_anual_return",
           knex.raw("l.penawaran_return as last_penawaran_return"),
           knex.raw("l.catatan as last_catatan"),
+          knex.raw("l.penawaran_nominal as last_penawaran_nominal"),
         )
         .join("pengajuans", "negosiasis.pengajuans_id", "pengajuans.id")
         .join("users", "negosiasis.investor_id", "users.id")
@@ -133,6 +136,7 @@ class Negosiasis extends BaseModel {
           ? {
               penawaran_return: row.last_penawaran_return,
               catatan: row.last_catatan,
+              penawaran_nominal: row.last_penawaran_nominal,
             }
           : null,
       }));
@@ -159,6 +163,7 @@ class Negosiasis extends BaseModel {
           "pengajuans.per_anual_return",
           knex.raw("l.penawaran_return as last_penawaran_return"),
           knex.raw("l.catatan as last_catatan"),
+          knex.raw("l.penawaran_nominal as last_penawaran_nominal"),
         )
         .join("pengajuans", "negosiasis.pengajuans_id", "pengajuans.id")
         .join("users", "negosiasis.investor_id", "users.id")
@@ -199,6 +204,7 @@ class Negosiasis extends BaseModel {
           ? {
               penawaran_return: row.last_penawaran_return,
               catatan: row.last_catatan,
+              penawaran_nominal: row.last_penawaran_nominal,
             }
           : null,
       }));
@@ -233,7 +239,9 @@ class Negosiasis extends BaseModel {
           "bisnis.user_id as bisnis_user_id",
           knex.raw("l.penawaran_return as last_penawaran_return"),
           knex.raw("l.catatan as last_catatan"),
+          knex.raw("l.penawaran_nominal as last_penawaran_nominal"),
         )
+
         .join("pengajuans", "negosiasis.pengajuans_id", "pengajuans.id")
         .join("bisnis", "pengajuans.bisnis_id", "bisnis.id")
         .join("users as bisnis_owner", "bisnis.user_id", "bisnis_owner.id")
@@ -275,6 +283,7 @@ class Negosiasis extends BaseModel {
         negosiasi_terakhir: {
           penawaran_return: row.last_penawaran_return,
           catatan: row.last_catatan,
+          penawaran_nominal: row.last_penawaran_nominal,
         },
       }));
     } catch (error) {
