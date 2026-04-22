@@ -5,7 +5,7 @@ const { ResponseHelper } = require("../utils/index");
 class InvestasiController {
   async getAllInvestasi(req, res) {
     try {
-      const { page, limit, startDate, endDate } = req.query;
+      const { page = 1, limit = 10, startDate, endDate } = req.query;
       const investasiList = await investasi.getAllInvestasi(
         page,
         limit,
@@ -16,7 +16,7 @@ class InvestasiController {
         res,
         "Investasi data fetched successfully",
         investasiList,
-        { page, limit, startDate, endDate },
+        { page, limit, totalItems: investasiList.length, startDate, endDate },
       );
     } catch (error) {
       console.error(error);

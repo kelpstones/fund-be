@@ -8,7 +8,7 @@ const { invoiceValidation } = require("../validation/invoices");
 class InvoicesController {
   async getAllInvoices(req, res) {
     try {
-      const { page, limit, startDate, endDate, status } = req.query;
+      const { page = 1, limit = 10, startDate, endDate, status } = req.query;
       const invoices = await Invoice.getAllInvoices(
         page,
         limit,
@@ -20,7 +20,7 @@ class InvoicesController {
         res,
         "Invoices fetched successfully",
         invoices,
-        { page, limit, startDate, endDate, status },
+        { page, limit, totalItems: invoices.length, startDate, endDate, status },
       );
     } catch (error) {
       console.error(error);
@@ -55,7 +55,7 @@ class InvoicesController {
   async getInvoicesByInvestors(req, res) {
     try {
       const { id: investor_id } = req.user;
-      const { page, limit, startDate, endDate, status } = req.query;
+      const { page = 1, limit = 10, startDate, endDate, status } = req.query;
       const invoices = await Invoice.getInvoicesByInvestor(
         investor_id,
         page,
@@ -68,7 +68,7 @@ class InvoicesController {
         res,
         "Invoices fetched successfully",
         invoices,
-        { page, limit, status, startDate, endDate },
+        { page, limit, totalItems: invoices.length, status, startDate, endDate },
       );
     } catch (error) {
       console.error(error);
