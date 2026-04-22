@@ -28,12 +28,11 @@ class User extends BaseModel {
     }
   }
 
-  async updateUser(id, nama, email, role_id) {
+  async updateUser(id, nama, email) {
     try {
       const data = await this.knex(this.tableName).where({ id }).update({
         nama,
         email,
-        role_id,
       });
       return data;
     } catch (error) {
