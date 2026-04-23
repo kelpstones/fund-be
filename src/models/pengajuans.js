@@ -185,7 +185,7 @@ class Pengajuan extends BaseModel {
     } catch (error) {
       throw error;
     }
-  }
+  } 
 }
 
 module.exports = new Pengajuan();

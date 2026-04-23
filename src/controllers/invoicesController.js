@@ -20,7 +20,14 @@ class InvoicesController {
         res,
         "Invoices fetched successfully",
         invoices,
-        { page, limit, totalItems: invoices.length, startDate, endDate, status },
+        {
+          page,
+          limit,
+          totalItems: invoices.length,
+          startDate,
+          endDate,
+          status,
+        },
       );
     } catch (error) {
       console.error(error);
@@ -38,11 +45,7 @@ class InvoicesController {
       if (!invoice) {
         return ResponseHelper.error(res, "Invoice not found", 404);
       }
-      return ResponseHelper.success(
-        res,
-        "Invoice fetched successfully",
-        invoice,
-      );
+      return ResponseHelper.success(res, "Invoice fetched successfully");
     } catch (error) {
       console.error(error);
       return ResponseHelper.serverError(
@@ -68,7 +71,14 @@ class InvoicesController {
         res,
         "Invoices fetched successfully",
         invoices,
-        { page, limit, totalItems: invoices.length, status, startDate, endDate },
+        {
+          page,
+          limit,
+          totalItems: invoices.length,
+          status,
+          startDate,
+          endDate,
+        },
       );
     } catch (error) {
       console.error(error);
@@ -113,7 +123,7 @@ class InvoicesController {
         invoice.detail_pengajuan.id,
       );
       console.log("Current Pengajuan:", pengajuan.total_pendanaan);
-      
+
       const totalDanaBaru =
         Number(pengajuan.total_pendanaan) + Number(invoice.nominal_tagihan);
       console.log("Total Dana Baru:", totalDanaBaru);

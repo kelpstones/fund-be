@@ -21,7 +21,7 @@ exports.up = function (knex) {
       .onDelete("SET NULL");
 
     table.bigint("nominal_investasi", 20, 2).unsigned().notNullable();
-    table.bigint("return_investasi", 20, 2).unsigned().notNullable();
+    table.decimal("return_investasi", 20, 2).unsigned().notNullable();
     table.timestamps(true, true);
   });
 };
