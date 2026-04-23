@@ -79,12 +79,26 @@ class Pengajuan extends BaseModel {
     target_pendanaan,
     total_pendanaan,
     per_anual_return,
+    status,
+    trx = this.knex,
   ) {
     try {
-      const data = await this.knex(this.tableName).where({ id }).update({
+      const data = await trx(this.tableName).where({ id }).update({
         target_pendanaan: target_pendanaan,
         total_pendanaan: total_pendanaan,
         per_anual_return: per_anual_return,
+        status: status,
+      });
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updatePengajuanTotalPendanaan(id, total_pendanaan, trx = this.knex) {
+    try {
+      const data = await trx(this.tableName).where({ id }).update({
+        total_pendanaan: total_pendanaan,
       });
       return data;
     } catch (error) {

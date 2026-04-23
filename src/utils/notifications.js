@@ -59,6 +59,7 @@ exports.notifyStartNegotiation = async (
   pengajuan_id,
   negosiasi_id,
   penawaran_return,
+  penawaran_nominal,
 ) => {
   try {
     const pengajuan = await pengajuans.getPengajuanById(pengajuan_id);
@@ -92,7 +93,7 @@ exports.notifyReplyNegotiation = async (
 
     if (action === "deal") {
       title = "Negosiasi Deal";
-      message = `Congratulations! Your negosiasi has been marked as a deal. ${catatan ? `Note: ${catatan}` : ""}`;
+      message = `Congratulations! Your negosiasi has been marked as a deal. ${catatan ? `Note: ${catatan}` : ""} Please proceed with the next steps.`;
     } else if (action === "rejected") {
       title = "Negosiasi Rejected";
       message = `Unfortunately, your negosiasi has been rejected. ${catatan ? `Note: ${catatan}` : ""}`;
@@ -113,4 +114,3 @@ exports.notifyReplyNegotiation = async (
     console.error("Error notifying investor about negosiasi update:", error);
   }
 };
-

@@ -8,7 +8,13 @@ class Admin extends BaseModel {
   async createAdmin(nama, email, password, no_telp, level) {
     try {
       const admin = await this.knex(this.tableName)
-        .insert({ nama, email, password, no_telp, level })
+        .insert({
+          nama: nama,
+          email: email,
+          password: password,
+          no_telp: no_telp,
+          level: level,
+        })
         .returning(["id", "nama", "email", "no_telp", "level"]);
       return admin;
     } catch (error) {

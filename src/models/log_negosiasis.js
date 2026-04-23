@@ -8,6 +8,7 @@ class LogNegosiasis extends BaseModel {
     negosiasi_id,
     pengirim_id,
     penawaran_return,
+    penawaran_nominal,
     catatan,
   ) {
     try {
@@ -16,6 +17,7 @@ class LogNegosiasis extends BaseModel {
           negosiasi_id,
           pengirim_id,
           penawaran_return,
+          penawaran_nominal,
           catatan,
         })
         .returning("*");
@@ -23,6 +25,18 @@ class LogNegosiasis extends BaseModel {
     } catch (error) {
       throw error;
     }
+  }
+
+  async getLastLogByNegosiasiId(negosiasi_id) {
+    try {
+      const log = await this.knex(this.tableName)
+        .where("negosiasi_id", negosiasi_id)
+        .orderBy("created_at", "desc")
+        .first();
+      return log;
+    } catch (error) {
+      throw error;
+    }F
   }
 
   async getLogNegosiasiByNegosiasiId(negosiasi_id) {
