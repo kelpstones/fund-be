@@ -11,7 +11,7 @@ exports.up = function (knex) {
       .references("pengajuans.id")
       .onDelete("CASCADE");
     table.integer("approver_id").unsigned().nullable();
-    table.foreign("approver_id").references("users.id").onDelete("CASCADE");
+    table.foreign("approver_id").references("admins.id").onDelete("CASCADE");
     table
       .enum("status", ["approved", "rejected", "pending"])
       .defaultTo("pending")

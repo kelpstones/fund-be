@@ -30,6 +30,11 @@ class AuthController {
         return responseHelper.error(res, "Email already exists", 400);
       }
 
+      const checkNik = await User.getUserByNik(nik);
+      if (checkNik) {
+        return responseHelper.error(res, "NIK already exists", 400);
+      }
+
       const passwordHash = await hashPassword(password);
       const user = await User.createUser(
         nama,

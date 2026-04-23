@@ -27,7 +27,7 @@ class Penjualans extends BaseModel {
 
   async createPenjualan(data, trx = this.knex) {
     try {
-      const [id] = await trx(this.tableName)
+      const [row] = await trx(this.tableName)
         .insert({
           pengajuans_id: data.pengajuans_id, 
           periode: data.periode,
@@ -38,7 +38,7 @@ class Penjualans extends BaseModel {
         })
         .returning("id");
       
-      return await this.getPenjualanById(id, trx);
+      return this.#formatResponse(row); 
     } catch (error) {
       throw error;
     }

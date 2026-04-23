@@ -44,18 +44,18 @@ class PengajuanController {
         payload.per_anual_return,
       );
       const approval = await approvals.createApproval(
-        pengajuan[0].id,
+        pengajuan.id,
         null,
         "pending",
         null,
       );
       const final = {
-        ...pengajuan[0],
-        approvals: approval[0],
+        ...pengajuan,
+        approvals: approval,
       };
       await notificationHelper.notifyAdminNewPengajuan(
         payload.bisnis_id,
-        pengajuan[0].id,
+        pengajuan.id,
       );
       return responseHelper.success(
         res,
@@ -162,7 +162,7 @@ class PengajuanController {
     try {
       const { id } = req.params;
       const { status, catatan } = req.body;
-      const approver_id = req.admin.id;
+      const { id: approver_id } = req.admin;
       //   console.log(approver_id, status, catatan);
       //   return console.log(approver_id);
       const existingApproval = await approvals.getApprovalByPengajuanId(id);
