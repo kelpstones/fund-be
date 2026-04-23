@@ -1,6 +1,7 @@
 const express = require("express");
 const PengajuanController = require("../controllers/pengajuanController");
 const NegotiationRoutes = require("./negotiationRoutes");
+const PenjualanRoutes = require("./penjualanRoutes");
 const { Auth, Role } = require("../middlewares");
 
 class PengajuanRoutes {
@@ -8,6 +9,7 @@ class PengajuanRoutes {
     this.router = express.Router();
     this.pengajuanController = new PengajuanController();
     this.negotiationRoutes = new NegotiationRoutes();
+    this.penjualanRoutes = new PenjualanRoutes();
   }
 
   routes() {
@@ -15,6 +17,9 @@ class PengajuanRoutes {
 
     // negotiation routes
     this.router.use("/negosiasi", this.negotiationRoutes.routes());
+
+    // penjualan routes
+    this.router.use("/penjualan", this.penjualanRoutes.routes());
 
     this.router.get(
       "/",

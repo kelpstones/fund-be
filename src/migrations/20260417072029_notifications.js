@@ -11,7 +11,7 @@ exports.up = function (knex) {
     table.foreign("admin_id").references("admins.id").onDelete("CASCADE");
     table.string("title").notNullable();
     table.text("message").notNullable();
-    table.enum("type", ["pengajuan", "pengajuan_status", "negosiasi"]).notNullable();
+    table.enum("type", ["pengajuan", "pengajuan_status", "negosiasi", "distribusi_profit"]).notNullable();
     table.integer("reference_id").nullable();
     table.boolean("is_read").defaultTo(false);
     table.timestamps(true, true);
