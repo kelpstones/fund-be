@@ -76,9 +76,9 @@ class PenjualansController {
       for (const inv of investasiList) {
         await NotificationHelper.notifyDistributionProfit({
           investor_id: inv.investor.id,
-          penjualan_id: result.id,
           nominal_profit: (laba_bersih * inv.return_investasi) / 100,
           periode,
+          penjualan_id: result.id,
         });
       }
 
