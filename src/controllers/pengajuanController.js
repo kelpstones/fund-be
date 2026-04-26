@@ -2,7 +2,7 @@ const responseHelper = require("../utils/index").ResponseHelper;
 const Pengajuan = require("../models/pengajuans");
 const { PengajuanValidator } = require("../validation");
 const bisnis = require("../models/bisnis");
-const approvals = require("../models/approvals");
+const Approvals = require("../models/approvals");
 const notificationHelper = require("../utils/index").NotificationHelper;
 class PengajuanController {
   // pengajuan
@@ -43,7 +43,7 @@ class PengajuanController {
         0,
         payload.per_anual_return,
       );
-      const approval = await approvals.createApproval(
+      const approval = await Approvals.createApproval(
         pengajuan.id,
         null,
         "pending",
@@ -165,7 +165,7 @@ class PengajuanController {
       const { id: approver_id } = req.admin;
       //   console.log(approver_id, status, catatan);
       //   return console.log(approver_id);
-      const existingApproval = await approvals.getApprovalByPengajuanId(id);
+      const existingApproval = await Approvals.getApprovalByPengajuanId(id);
       if (!existingApproval) {
         return responseHelper.error(res, "Approval not found", 404);
       }
@@ -185,13 +185,12 @@ class PengajuanController {
         );
       }
 
-      const updatedApproval = await approvals.updateApproval(
-        id,
+      const updatedApproval = await Approvals.updateApproval(existingApproval.id, {
         approver_id,
         status,
         catatan,
-      );
-      //   console.log(existingApproval);
+      });
+      // console.log(existingApproval);
       await Pengajuan.updatePengajuanStatus(
         existingApproval.pengajuans_id,
         "published",

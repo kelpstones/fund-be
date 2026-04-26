@@ -14,6 +14,7 @@ class Bisnis extends BaseModel {
       alamat: row.alamat,
       no_telp: row.no_telp,
       deskripsi: row.deskripsi,
+      created_at: row.created_at,
       kelas: {
         id: row.kelas_id,
         nama_kelas: row.kelas,
@@ -36,6 +37,7 @@ class Bisnis extends BaseModel {
         "bisnis.alamat",
         "bisnis.no_telp",
         "bisnis.deskripsi",
+        "bisnis.created_at",
         "kelas.nama_kelas as kelas",
         "users.nama as pemilik",
         "users.email as email_pemilik",
@@ -45,12 +47,28 @@ class Bisnis extends BaseModel {
       .leftJoin("users", "bisnis.user_id", "users.id");
   }
 
-  async createBisnis(nama, user_id, kelas_id, alamat, no_telp, email, deskripsi) {
+  async createBisnis(
+    nama,
+    user_id,
+    kelas_id,
+    alamat,
+    no_telp,
+    email,
+    deskripsi,
+  ) {
     try {
       const [row] = await this.knex(this.tableName)
-        .insert({ nama_bisnis: nama, user_id, kelas_id, alamat, no_telp, email, deskripsi })
+        .insert({
+          nama_bisnis: nama,
+          user_id,
+          kelas_id,
+          alamat,
+          no_telp,
+          email,
+          deskripsi,
+        })
         .returning("*");
-      return this.#formatResponse(row); 
+      return this.#formatResponse(row);
     } catch (error) {
       throw error;
     }
@@ -80,7 +98,9 @@ class Bisnis extends BaseModel {
 
   async getBisnisByUserId(user_id) {
     try {
-      const row = await this.#baseQuery().where("bisnis.user_id", user_id).first();
+      const row = await this.#baseQuery()
+        .where("bisnis.user_id", user_id)
+        .first();
       return this.#formatResponse(row);
     } catch (error) {
       throw error;
