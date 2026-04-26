@@ -114,3 +114,25 @@ exports.notifyReplyNegotiation = async (
     console.error("Error notifying investor about negosiasi update:", error);
   }
 };
+
+exports.notifyDistributionProfit = async (
+  investor_id,
+  penjualan_id,
+  nominal_profit,
+  periode,
+) => {
+  try {
+    const title = "Profit Distribution Available";
+    const message = `A new profit distribution of ${nominal_profit} is available for your investment in period ${periode}. Please check your dashboard for details.`;
+    await Notifications.createNotification(
+      investor_id,
+      null,
+      title,
+      message,
+      "profit_distribution",
+      penjualan_id,
+    );
+  } catch (error) {
+    console.error("Error notifying investor about profit distribution:", error);
+  }
+};

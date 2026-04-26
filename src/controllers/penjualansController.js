@@ -74,16 +74,18 @@ class PenjualansController {
       await trx.commit();
 
       for (const inv of investasiList) {
-        await NotificationHelper.notify({
-          user_id: inv.investor.id,
-          title: "Distribusi Profit Tersedia",
-          message: `Laporan penjualan periode ${result.periode} telah diinput. Profit kamu segera didistribusikan.`,
-          type: "distribusi_profit",
-          reference_id: result.id,
+        await NotificationHelper.notifyDistributionProfit({
+          investor_id: inv.investor.id,
+          penjualan_id: result.id,
+          nominal_profit: (laba_bersih * inv.return_investasi) / 100,
+          periode,
         });
       }
 
-      return ResponseHelper.created(res, result);
+      return ResponseHelper.created(res, "Penjualan created successfully", {
+        penjualan: result,
+        distribusi_profits: distribusiList,
+      });
     } catch (error) {
       await trx.rollback();
       console.error(error);
