@@ -5,7 +5,6 @@ class Penjualans extends BaseModel {
     super("penjualans");
   }
 
-  
   #formatResponse(row) {
     if (!row) return null;
     return {
@@ -20,8 +19,8 @@ class Penjualans extends BaseModel {
       pengajuan: {
         id: row.pengajuans_id,
         bisnis_id: row.bisnis_id,
-        nama_bisnis: row.nama_bisnis
-      }
+        nama_bisnis: row.nama_bisnis,
+      },
     };
   }
 
@@ -29,7 +28,7 @@ class Penjualans extends BaseModel {
     try {
       const [row] = await trx(this.tableName)
         .insert({
-          pengajuans_id: data.pengajuans_id, 
+          pengajuans_id: data.pengajuans_id,
           periode: data.periode,
           total_penjualan: data.total_penjualan,
           laba_bersih: data.laba_bersih,
@@ -37,8 +36,8 @@ class Penjualans extends BaseModel {
           jumlah_transaksi: data.jumlah_transaksi,
         })
         .returning("id");
-      
-      return this.#formatResponse(row); 
+
+      return this.#formatResponse(row);
     } catch (error) {
       throw error;
     }
@@ -52,7 +51,7 @@ class Penjualans extends BaseModel {
         .join("bisnis", "pengajuans.bisnis_id", "bisnis.id")
         .where("penjualans.pengajuans_id", pengajuans_id);
 
-      return results.map(row => this.#formatResponse(row));
+      return results.map((row) => this.#formatResponse(row));
     } catch (error) {
       throw error;
     }
@@ -75,15 +74,14 @@ class Penjualans extends BaseModel {
 
   async updatePenjualan(id, data) {
     try {
-      await this.knex(this.tableName)
-        .where("id", id)
-        .update({
-          total_penjualan: data.total_penjualan,
-          laba_bersih: data.laba_bersih,
-          jumlah_transaksi: data.jumlah_transaksi,
-          updated_at: this.knex.fn.now(),
-        });
-      
+      await this.knex(this.tableName).where("id", id).update({
+        total_penjualan: data.total_penjualan,
+        laba_bersih: data.laba_bersih,
+        jumlah_transaksi: data.jumlah_transaksi,
+        periode: data.periode,
+        updated_at: this.knex.fn.now(),
+      });
+
       return await this.getPenjualanById(id);
     } catch (error) {
       throw error;
@@ -100,7 +98,7 @@ class Penjualans extends BaseModel {
         .limit(limit)
         .orderBy("penjualans.created_at", "desc");
 
-      return results.map(row => this.#formatResponse(row));
+      return results.map((row) => this.#formatResponse(row));
     } catch (error) {
       throw error;
     }

@@ -23,7 +23,7 @@ exports.penjualanUpdateValidation = (data) => {
     const schema = Joi.object({
       periode: Joi.string().optional(),
       total_penjualan: Joi.number().precision(2).optional(),
-      laba_bersih: Joi.number().precision(2).optional,
+      laba_bersih: Joi.number().precision(2).optional(),
       laba_kotor: Joi.number().precision(2).optional(),
       jumlah_transaksi: Joi.number().integer().optional(),
     });
