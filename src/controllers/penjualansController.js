@@ -61,8 +61,8 @@ class PenjualansController {
         periode: periode,
         status: "pending",
       }));
-      console.log("laba_bersih:", result.laba_bersih);
-      console.log("Distribution Promises:", distributionPromises);
+      // console.log("laba_bersih:", result.laba_bersih);
+      // console.log("Distribution Promises:", distributionPromises);
       let distribusiList = [];
       if (distributionPromises.length > 0) {
         distribusiList = await distribusi_profits.bulkCreate(
