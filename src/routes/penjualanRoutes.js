@@ -12,13 +12,9 @@ class PenjualanRoutes {
   routes() {
     this.router.use(Auth.verifyAnyToken);
 
-    this.router.get(
-      "/",
-      Role.authorize("superadmin", "admin"),
-      (req, res) => {
-        this.penjualansController.getAllPenjualan(req, res);
-      },
-    );
+    this.router.get("/", Role.authorize("superadmin", "admin"), (req, res) => {
+      this.penjualansController.getAllPenjualan(req, res);
+    });
 
     this.router.post("/", Role.authorize("umkm"), (req, res) => {
       this.penjualansController.createPenjualan(req, res);
@@ -29,6 +25,14 @@ class PenjualanRoutes {
       Role.authorize("umkm", "investor", "superadmin", "admin"),
       (req, res) => {
         this.penjualansController.getPenjualanById(req, res);
+      },
+    );
+
+    this.router.get(
+      "/pengajuan/:pengajuans_id",
+      Role.authorize("umkm", "investor", "superadmin", "admin"),
+      (req, res) => {
+        this.penjualansController.getPenjualanByPengajuanId(req, res);
       },
     );
 

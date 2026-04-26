@@ -117,6 +117,7 @@ class PenjualansController {
 
   async getPenjualanByPengajuanId(req, res) {
     try {
+      const { page = 1, limit = 10 } = req.query;
       const { pengajuans_id } = req.params;
       const data = await Penjualans.getPenjualanByPengajuanId(pengajuans_id);
       if (!data || data.length === 0) {
@@ -126,10 +127,11 @@ class PenjualansController {
           404,
         );
       }
-      return ResponseHelper.success(
+      return ResponseHelper.withPagination(
         res,
         "Penjualan data fetched successfully",
         data,
+        { page: 1, limit: data.length, totalItems: data.length },
       );
     } catch (error) {
       console.error(error);
