@@ -126,7 +126,7 @@ exports.notifyDistributionProfit = async (
       null,
       title,
       message,
-      "profit_distribution",
+      "distribusi_profit",
       data.penjualan_id,
     );
   } catch (error) {
