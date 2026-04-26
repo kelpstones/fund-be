@@ -28,6 +28,7 @@ class DistribusiProfits extends BaseModel {
         laba_bersih: row.laba_bersih,
         bisnis_id: row.bisnis_id,
         nama_bisnis: row.nama_bisnis,
+        periode: row.periode,
       },
     };
   }
