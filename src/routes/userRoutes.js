@@ -4,12 +4,14 @@ const AuthController = require("../controllers/authController");
 const BisnisRoutes = require("./bisnisRoutes");
 const { Auth, Role } = require("../middlewares");
 const KelasRoutes = require("./kelasRoute");
+const UserController = require("../controllers/userController");
 class UserRoutes {
   constructor() {
     this.router = router;
     this.authController = new AuthController();
     this.bisnisRoutes = new BisnisRoutes();
     this.kelasRoutes = new KelasRoutes();
+    this.userController = new UserController();
   }
   routes() {
     this.router.post("/register", (req, res) => {
@@ -24,8 +26,40 @@ class UserRoutes {
       this.authController.authMe(req, res);
     });
 
-    
-   
+    this.router.get(
+      "/profile",
+      Role.authorize("umkm", "investor"),
+      (req, res) => {
+        this.userController.getUserProfile(req, res);
+      },
+    );
+
+    this.router.get(
+      "/profile/investor",
+      Role.authorize("investor"),
+      (req, res) => {
+        this.userController.getInvestorProfile(req, res);
+      },
+    )
+
+    this.router.put(
+      "/profile",
+      Role.authorize("umkm", "investor"),
+      (req, res) => {
+        this.userController.updateUserProfile(req, res);
+      },
+    );
+    this.router.get(
+      "/users",
+      Role.authorize("superadmin", "admin"),
+      (req, res) => {
+        this.userController.getAllUsers(req, res);
+      },
+    );
+
+    this.router.get("/:id", Role.authorize("umkm", "investor"), (req, res) => {
+      this.userController.getUserById(req, res);
+    });
     return this.router;
   }
 }

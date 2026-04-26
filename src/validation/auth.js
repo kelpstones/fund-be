@@ -13,6 +13,7 @@ exports.registerValidation = (data) => {
           "any.only": "Password confirmation does not match password",
         }),
       nik: Joi.string().min(16).max(16).required(),
+      no_telp: Joi.string().min(10).max(15).required(),
       role_id: Joi.number().integer().required(),
     });
 

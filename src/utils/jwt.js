@@ -4,7 +4,7 @@ exports.generateToken = (user) => {
   const payload = {
     id: user.id,
     email: user.email,
-    role_name: user.role_name,
+    role_name: user.role.nama_role,
   };
   return jwt.sign(payload, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || "1h",
@@ -17,7 +17,7 @@ exports.refreshToken = (data) => {
       {
         id: data.id,
         email: data.email,
-        role_name: data.role_name,
+        role_name: data.role.nama_role,
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },

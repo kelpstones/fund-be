@@ -9,6 +9,7 @@ exports.up = function(knex) {
         table.string("email").notNullable().unique();
         table.string("password").notNullable();
         table.string("nik").notNullable().unique();
+        table.string("no_telp").notNullable().unique();
         table.integer("role_id").unsigned().references("id").inTable("roles").onDelete("SET NULL");
         table.integer("is_onboarded").defaultTo(0);
         table.timestamps(true, true);
@@ -21,5 +22,5 @@ exports.up = function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = function(knex) {
-  
+    return knex.schema.dropTable("users");
 };
