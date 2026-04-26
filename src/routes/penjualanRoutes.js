@@ -14,9 +14,9 @@ class PenjualanRoutes {
 
     this.router.get(
       "/",
-      Role.authorize("umkm", "investor", "superadmin", "admin"),
+      Role.authorize("superadmin", "admin"),
       (req, res) => {
-        this.penjualansController.getPenjualans(req, res);
+        this.penjualansController.getAllPenjualan(req, res);
       },
     );
 

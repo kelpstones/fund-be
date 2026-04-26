@@ -1,6 +1,9 @@
+const knex = require("../config/db");
 const distribusi_profits = require("../models/distribusi_profits");
+const pengajuans = require("../models/pengajuans");
 const Penjualans = require("../models/penjualans");
-const { ResponseHelper } = require("../utils/index");
+const Investasi = require("../models/investasi");
+const { ResponseHelper, NotificationHelper } = require("../utils/index");
 const { PenjualanValidator } = require("../validation/index");
 class PenjualansController {
   async createPenjualan(req, res) {
@@ -48,19 +51,20 @@ class PenjualansController {
       );
 
       const investasiList =
-        await investasi.getInvestasiByPengajuanId(pengajuans_id);
+        await Investasi.getInvestasiByPengajuanId(pengajuans_id);
 
       const distributionPromises = investasiList.map((investasi) => ({
-        penjualans_id: penjualan.id,
-        investasi_id: inv.id,
-        investor_id: inv.investor.id,
-        nominal_profit: (data.laba_bersih * inv.return_investasi) / 100,
-        periode: data.periode,
+        penjualans_id: result.id,
+        investasi_id: investasi.id,
+        investor_id: investasi.investor.id,
+        nominal_profit: (laba_bersih * investasi.return_investasi) / 100,
+        periode: periode,
         status: "pending",
       }));
-
+      console.log("laba_bersih:", result.laba_bersih);
+      console.log("Distribution Promises:", distributionPromises);
       let distribusiList = [];
-      if (distribusiData.length > 0) {
+      if (distributionPromises.length > 0) {
         distribusiList = await distribusi_profits.bulkCreate(
           distributionPromises,
           trx,
@@ -70,12 +74,12 @@ class PenjualansController {
       await trx.commit();
 
       for (const inv of investasiList) {
-        await notificationHelper.notify({
+        await NotificationHelper.notify({
           user_id: inv.investor.id,
           title: "Distribusi Profit Tersedia",
-          message: `Laporan penjualan periode ${data.periode} telah diinput. Profit kamu segera didistribusikan.`,
+          message: `Laporan penjualan periode ${result.periode} telah diinput. Profit kamu segera didistribusikan.`,
           type: "distribusi_profit",
-          reference_id: penjualan.id,
+          reference_id: result.id,
         });
       }
 
