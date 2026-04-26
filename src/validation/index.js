@@ -5,6 +5,7 @@ const KelasValidator = require("./kelas");
 const NegotiationValidator = require("./negotiations");
 const NotificationValidator = require("./notifications");
 const AdminValidator = require("./admin");
+const PenjualanValidator = require("./penjualans");
 module.exports = {
   AuthValidator,
   BisnisValidator,
@@ -13,4 +14,5 @@ module.exports = {
   NegotiationValidator,
   NotificationValidator,
   AdminValidator,
+  PenjualanValidator,
 };

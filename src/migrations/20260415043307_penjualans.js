@@ -8,8 +8,12 @@ exports.up = function (knex) {
     table.integer("pengajuans_id").unsigned().nullable();
     table.foreign("pengajuans_id").references("pengajuans.id").onDelete("CASCADE");
     table.string("periode").notNullable();
-    table.integer("total_penjualan").notNullable();
-    table.integer("laba_bersih").notNullable();
+    table.bigInteger("total_penjualan").notNullable().defaultTo(0);
+    table.integer("jumlah_transaksi").notNullable().defaultTo(0);
+    table.bigInteger("laba_bersih").notNullable().defaultTo(0);
+    table.bigInteger("laba_kotor").notNullable().defaultTo(0);
+    // table.timestamps("tanggal_distribusi").notNullable();
+    table.timestamps(true, true);
   });
 };
 
@@ -17,4 +21,6 @@ exports.up = function (knex) {
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.down = function (knex) {};
+exports.down = function (knex) {
+  return knex.schema.dropTableIfExists("penjualans");
+};

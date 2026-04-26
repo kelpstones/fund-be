@@ -109,6 +109,23 @@ class User extends BaseModel {
       throw error;
     }
   }
+
+  async getUserByNik(nik) {
+    try {
+      const user = await this.knex(this.tableName)
+        .select(
+          "users.id",
+          "users.nama",
+          "users.email",
+          "users.nik",
+        )
+        .where({ "users.nik": nik })
+        .first();
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = new User();

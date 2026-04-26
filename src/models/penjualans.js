@@ -5,81 +5,84 @@ class Penjualans extends BaseModel {
     super("penjualans");
   }
 
-  async createPenjualan(
-    bisnis_id,
-    periode,
-    total_penjualan,
-    laba_bersih,
-    jumlah_transaksi,
-  ) {
+  #formatResponse(row) {
+    if (!row) return null;
+    return {
+      id: row.id,
+      periode: row.periode,
+      total_penjualan: row.total_penjualan,
+      laba_bersih: row.laba_bersih,
+      laba_kotor: row.laba_kotor,
+      jumlah_transaksi: row.jumlah_transaksi,
+      created_at: row.created_at,
+      // Data Relasi
+      pengajuan: {
+        id: row.pengajuans_id,
+        bisnis_id: row.bisnis_id,
+        nama_bisnis: row.nama_bisnis,
+      },
+    };
+  }
+
+  async createPenjualan(data, trx = this.knex) {
     try {
-      const penjualan = await this.knex(this.tableName)
+      const [row] = await trx(this.tableName)
         .insert({
-          bisnis_id,
-          periode,
-          total_penjualan,
-          laba_bersih,
-          jumlah_transaksi,
+          pengajuans_id: data.pengajuans_id,
+          periode: data.periode,
+          total_penjualan: data.total_penjualan,
+          laba_bersih: data.laba_bersih,
+          laba_kotor: data.laba_kotor,
+          jumlah_transaksi: data.jumlah_transaksi,
         })
-        .returning([
-          "id",
-          "bisnis_id",
-          "periode",
-          "total_penjualan",
-          "laba_bersih",
-          "jumlah_transaksi",
-        ]);
-      return penjualan;
+        .returning("id");
+
+      return this.#formatResponse(row);
     } catch (error) {
       throw error;
     }
   }
 
-  async getPenjualanByBisnisId(bisnis_id) {
+  async getPenjualanByPengajuanId(pengajuans_id) {
     try {
-      const penjualan = await this.knex(this.tableName)
-        .where("bisnis_id", bisnis_id)
-        .select([
-          "id",
-          "bisnis_id",
-          "periode",
-          "total_penjualan",
-          "laba_bersih",
-          "jumlah_transaksi",
-        ]);
-      return penjualan;
+      const results = await this.knex(this.tableName)
+        .select("penjualans.*", "bisnis.nama_bisnis", "pengajuans.bisnis_id")
+        .join("pengajuans", "penjualans.pengajuans_id", "pengajuans.id")
+        .join("bisnis", "pengajuans.bisnis_id", "bisnis.id")
+        .where("penjualans.pengajuans_id", pengajuans_id);
+
+      return results.map((row) => this.#formatResponse(row));
     } catch (error) {
       throw error;
     }
   }
 
-  async updatePenjualan(id, total_penjualan, laba_bersih, jumlah_transaksi) {
+  async getPenjualanById(id, trx = this.knex) {
     try {
-      const penjualan = await this.knex(this.tableName)
-        .where("id", id)
-        .update({
-          total_penjualan,
-          laba_bersih,
-          jumlah_transaksi,
-        })
-        .returning([
-          "id",
-          "bisnis_id",
-          "periode",
-          "total_penjualan",
-          "laba_bersih",
-          "jumlah_transaksi",
-        ]);
-      return penjualan;
+      const row = await trx(this.tableName)
+        .select("penjualans.*", "bisnis.nama_bisnis", "pengajuans.bisnis_id")
+        .join("pengajuans", "penjualans.pengajuans_id", "pengajuans.id")
+        .join("bisnis", "pengajuans.bisnis_id", "bisnis.id")
+        .where("penjualans.id", id)
+        .first();
+
+      return this.#formatResponse(row);
     } catch (error) {
       throw error;
     }
   }
 
-  async deletePenjualan(id) {
+  async updatePenjualan(id, data) {
     try {
-      const penjualan = await this.knex(this.tableName).where("id", id).del();
-      return penjualan;
+      await this.knex(this.tableName).where("id", id).update({
+        total_penjualan: data.total_penjualan,
+        laba_bersih: data.laba_bersih,
+        jumlah_transaksi: data.jumlah_transaksi,
+        periode: data.periode,
+        updated_at: this.knex.fn.now(),
+      });
+
+      return await this.getPenjualanById(id);
     } catch (error) {
       throw error;
     }
@@ -87,28 +90,15 @@ class Penjualans extends BaseModel {
 
   async getAllPenjualan(page = 1, limit = 10) {
     try {
-      const penjualan = await this.knex(this.tableName)
-        .select([
-          "id",
-          "bisnis_id",
-          "periode",
-          "total_penjualan",
-          "laba_bersih",
-          "jumlah_transaksi",
-        ])
+      const results = await this.knex(this.tableName)
+        .select("penjualans.*", "bisnis.nama_bisnis", "pengajuans.bisnis_id")
+        .join("pengajuans", "penjualans.pengajuans_id", "pengajuans.id")
+        .join("bisnis", "pengajuans.bisnis_id", "bisnis.id")
         .offset((page - 1) * limit)
-        .limit(limit);
+        .limit(limit)
+        .orderBy("penjualans.created_at", "desc");
 
-      return penjualan;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async getPenjualanById(id) {
-    try {
-      const penjualan = await this.knex(this.tableName).where("id", id).first();
-      return penjualan;
+      return results.map((row) => this.#formatResponse(row));
     } catch (error) {
       throw error;
     }

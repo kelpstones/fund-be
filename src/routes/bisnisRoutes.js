@@ -23,17 +23,21 @@ class BisnisRoutes {
       },
     );
 
+    
+
     // pengajuan routes
     this.router.use("/pengajuan", this.pengajuanRoutes.routes());
 
     // kelas
     this.router.use("/kelas", this.kelasRoutes.routes());
 
-    this.router.post("/", Role.authorize("umkm"), (req, res) => {
-      this.bisnisController.createBisnis(req, res);
-    });
+   
     this.router.get("/user", Role.authorize("umkm"), (req, res) => {
       this.bisnisController.getBisnisByUserId(req, res);
+    });
+
+     this.router.post("/", Role.authorize("umkm"), (req, res) => {
+      this.bisnisController.createBisnis(req, res);
     });
 
     this.router.get(
