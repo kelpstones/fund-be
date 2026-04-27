@@ -4,7 +4,7 @@ exports.authorize = (...allowedRoles) => {
   return (req, res, next) => {
     // Gabungkan data dari req.user atau req.admin
     const account = req.user || req.admin;
-
+    // console.log("Account Data:", account);
     if (!account) {
       return responseHelper.unauthorized(res, "Identity not found");
     }

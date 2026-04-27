@@ -4,8 +4,10 @@ const LogNegosiasis = require("../models/log_negosiasis");
 const pengajuans = require("../models/pengajuans");
 const { NegotiationValidator } = require("../validation");
 const invoices = require("../models/invoices");
+const Investasi = require("../models/investasi");
 const log_negosiasis = require("../models/log_negosiasis");
 const notificationHelper = require("../utils/index").NotificationHelper;
+const knex = require("../config/db");
 class NegotiationController {
   async getAllNegotiations(req, res) {
     try {
@@ -72,7 +74,7 @@ class NegotiationController {
       }
 
       //   create negosiasi
-      const [negosiasi] = await Negosiasis.createNegosiasi(
+      const negosiasi = await Negosiasis.createNegosiasi(
         pengajuans_id,
         investor_id,
         "active",
@@ -229,29 +231,66 @@ class NegotiationController {
   }
 
   async acceptNegotiation(req, res) {
+    const trx = await knex.transaction();
     try {
       const { id: negosiasi_id } = req.params;
       const { catatan } = req.body;
-      const { id: user_id } = req.user;
-      const { role_name } = req.user;
-
+      const { id: user_id, role_name } = req.user;
+      
       const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id);
       if (!negosiasi || negosiasi.status !== "active") {
+        await trx.rollback();
         return responseHelper.error(
           res,
           "Negosiasi not found or not active",
           404,
         );
       }
-      //   validation
+
       const { error } = NegotiationValidator.acceptRejectNegotiationValidation({
         catatan,
       });
       if (error) {
+        await trx.rollback();
         return responseHelper.error(res, error.details[0].message, 400);
       }
+
+      const lastLog =
+        await log_negosiasis.getLastLogByNegosiasiId(negosiasi_id);
+
       await Negosiasis.updateNegosiasi(negosiasi_id, "deal", user_id);
-      // await pengajuans.updatePengajuanStatus(negosiasi.pengajuan.id, "funded");
+
+      const kodePembayaran = `PAY-${Date.now()}`;
+      const deadline = new Date();
+      deadline.setHours(
+        deadline.getHours() + parseInt(process.env.INVOICE_EXPIRY_HOURS || 24),
+      );
+
+      const invoice = await invoices.createInvoice(
+        negosiasi_id,
+        negosiasi.pengajuan.id,
+        negosiasi.investor.id,
+        lastLog.penawaran_nominal,
+        kodePembayaran,
+        deadline,
+      );
+
+      
+      const investasi = await Investasi.createInvestasi({
+        investor_id: negosiasi.investor.id,
+        pengajuans_id: negosiasi.pengajuan.id,
+        negosiasi_id: negosiasi_id,
+        nominal_investasi: lastLog.penawaran_nominal,
+        return_investasi: lastLog.penawaran_return,
+      });
+
+      await pengajuans.updatePengajuanTotalPendanaan(
+        negosiasi.pengajuan.id,
+        lastLog.penawaran_nominal,
+      );
+
+      await trx.commit();
+
       await notificationHelper.notifyReplyNegotiation(
         role_name === "investor"
           ? negosiasi.investor.id
@@ -261,28 +300,13 @@ class NegotiationController {
         catatan,
       );
 
-      // TODO: create invoice
-      const kodePembayaran = `PAY-${Date.now()}`;
-      const deadline = new Date();
-      const expiryHours = process.env.INVOICE_EXPIRY_HOURS || 24;
-      deadline.setHours(deadline.getHours() + parseInt(expiryHours));
-      const lastLog =
-        await log_negosiasis.getLastLogByNegosiasiId(negosiasi_id);
-      // await pengajuans.updatePengajuanTotalPendanaan(
-      //   negosiasi.pengajuan.id,
-      //   lastLog.penawaran_nominal,
-      // );
-
-      await invoices.createInvoice(
-        negosiasi_id,
-        negosiasi.pengajuan.id,
-        negosiasi.investor.id,
-        lastLog.penawaran_nominal,
-        kodePembayaran,
-        deadline,
-      );
-      return responseHelper.success(res, "Negotiation accepted successfully");
+      return responseHelper.success(res, "Negotiation accepted successfully", {
+        negosiasi: await Negosiasis.getNegosiasiById(negosiasi_id),
+        invoice,
+        investasi,
+      });
     } catch (error) {
+      await trx.rollback();
       console.error(error);
       return responseHelper.serverError(
         res,

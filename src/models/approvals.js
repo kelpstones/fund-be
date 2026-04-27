@@ -33,11 +33,15 @@ class Approvals extends BaseModel {
     }
   }
 
-  async updateApproval(id, approver_id, status, catatan) {
+  async updateApproval(id, data) {
     try {
       const approval = await this.knex(this.tableName)
         .where({ id })
-        .update({ approver_id, status, catatan })
+        .update({
+          approver_id: data.approver_id,
+          status: data.status,
+          catatan: data.catatan,
+        })
         .returning(["id", "pengajuans_id", "approver_id", "status", "catatan"]);
       return approval;
     } catch (error) {

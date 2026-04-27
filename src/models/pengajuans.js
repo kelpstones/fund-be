@@ -52,10 +52,22 @@ class Pengajuan extends BaseModel {
       .leftJoin("admins", "approvals.approver_id", "admins.id");
   }
 
-  async createPengajuan(bisnis_id, target_pendanaan, status, total_pendanaan, per_anual_return) {
+  async createPengajuan(
+    bisnis_id,
+    target_pendanaan,
+    status,
+    total_pendanaan,
+    per_anual_return,
+  ) {
     try {
       const [row] = await this.knex(this.tableName)
-        .insert({ bisnis_id, target_pendanaan, status, total_pendanaan, per_anual_return })
+        .insert({
+          bisnis_id,
+          target_pendanaan,
+          status,
+          total_pendanaan,
+          per_anual_return,
+        })
         .returning("*");
       return this.#formatResponse(row);
     } catch (error) {
@@ -87,14 +99,23 @@ class Pengajuan extends BaseModel {
 
   async getPengajuanByBisnisId(bisnis_id) {
     try {
-      const row = await this.#baseQuery().where("pengajuans.bisnis_id", bisnis_id).first();
+      const row = await this.#baseQuery()
+        .where("pengajuans.bisnis_id", bisnis_id)
+        .first();
       return this.#formatResponse(row);
     } catch (error) {
       throw error;
     }
   }
 
-  async updatePengajuan(id, target_pendanaan, total_pendanaan, per_anual_return, status, trx = this.knex) {
+  async updatePengajuan(
+    id,
+    target_pendanaan,
+    total_pendanaan,
+    per_anual_return,
+    status,
+    trx = this.knex,
+  ) {
     try {
       await trx(this.tableName).where({ id }).update({
         target_pendanaan,
@@ -108,9 +129,12 @@ class Pengajuan extends BaseModel {
     }
   }
 
-  async updatePengajuanTotalPendanaan(id, total_pendanaan, trx = this.knex) {
+  async updatePengajuanTotalPendanaan(id, tambahan_nominal) {
     try {
-      await trx(this.tableName).where({ id }).update({ total_pendanaan });
+      await this.knex(this.tableName)
+        .where({ id })
+        .increment("total_pendanaan", tambahan_nominal)
+        .update({ updated_at: this.knex.fn.now() });
       return await this.getPengajuanById(id);
     } catch (error) {
       throw error;

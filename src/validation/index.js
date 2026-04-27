@@ -6,6 +6,8 @@ const NegotiationValidator = require("./negotiations");
 const NotificationValidator = require("./notifications");
 const AdminValidator = require("./admin");
 const PenjualanValidator = require("./penjualans");
+const BisnisProfileValidator = require("./bisnis_profiles");
+const UserValidator = require("./user");
 module.exports = {
   AuthValidator,
   BisnisValidator,
@@ -15,4 +17,6 @@ module.exports = {
   NotificationValidator,
   AdminValidator,
   PenjualanValidator,
+  BisnisProfileValidator,
+  UserValidator,
 };

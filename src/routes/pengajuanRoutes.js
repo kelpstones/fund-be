@@ -2,8 +2,7 @@ const express = require("express");
 const PengajuanController = require("../controllers/pengajuanController");
 const NegotiationRoutes = require("./negotiationRoutes");
 const PenjualanRoutes = require("./penjualanRoutes");
-const { Auth, Role } = require("../middlewares");
-
+const { Auth, Role, BisnisProfile } = require("../middlewares");
 class PengajuanRoutes {
   constructor() {
     this.router = express.Router();
@@ -29,9 +28,14 @@ class PengajuanRoutes {
       },
     );
 
-    this.router.post("/:bisnis_id", Role.authorize("umkm"), (req, res) => {
-      this.pengajuanController.createPengajuan(req, res);
-    });
+    this.router.post(
+      "/:bisnis_id",
+      Role.authorize("umkm"),
+      BisnisProfile.RequireBisnisProfile,
+      (req, res) => {
+        this.pengajuanController.createPengajuan(req, res);
+      },
+    );
 
     this.router.get(
       "/:bisnis_id",

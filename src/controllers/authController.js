@@ -8,7 +8,7 @@ const admins = require("../models/admins");
 class AuthController {
   async register(req, res) {
     try {
-      const { nama, email, password, password_confirmation, nik, role_id } =
+      const { nama, email, password, password_confirmation, nik, no_telp, role_id } =
         req.body;
 
       const validate = AuthValidator.registerValidation({
@@ -17,6 +17,7 @@ class AuthController {
         password,
         password_confirmation,
         nik,
+        no_telp,
         role_id,
       });
 
@@ -35,12 +36,18 @@ class AuthController {
         return responseHelper.error(res, "NIK already exists", 400);
       }
 
+      const checkNoTelp = await User.getUserByNoTelp(no_telp);
+      if (checkNoTelp) {
+        return responseHelper.error(res, "Phone number already exists", 400);
+      }
+
       const passwordHash = await hashPassword(password);
       const user = await User.createUser(
         nama,
         email,
         passwordHash,
         nik,
+        no_telp,
         role_id,
       );
       return responseHelper.created(res, "User registered successfully", user);
@@ -64,15 +71,20 @@ class AuthController {
       if (!isPasswordValid) {
         return responseHelper.error(res, "Invalid email or password", 401);
       }
+      console.log("User data for token generation:", user);
       const token = await generateToken(user);
 
       const data = {
         id: user.id,
         nama: user.nama,
         email: user.email,
-        role: user.role_name,
-        role_id: user.role_id,
+        is_onboarded: user.is_onboarded,
+        role: {
+          id: user.role.id,
+          nama_role: user.role.nama_role
+        },
         created_at: user.created_at,
+        updated_at: user.updated_at,
       };
 
       return responseHelper.successLogin(res, "Login successful", data, token);
