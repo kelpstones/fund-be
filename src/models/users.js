@@ -90,9 +90,9 @@ class User extends BaseModel {
     return query;
   }
 
-  async createUser(nama, email, password, nik, no_telp, role_id) {
+  async createUser(nama, email, password, nik, no_telp, role_id, trx = this.knex) {
     try {
-      const [inserted] = await this.knex(this.tableName)
+      const [inserted] = await trx(this.tableName)
         .insert({ nama, email, password, nik, no_telp, role_id })
         .returning("id");
 
@@ -233,20 +233,6 @@ class User extends BaseModel {
         .where("users.no_telp", no_telp)
         .first();
       return this.#formatResponse(row, { includeTelp: true });
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async verifyEmail(token) {
-    try {
-      const record = await this.knex("verify_email")
-        .where({ token })
-        .where("expires_at", ">", this.knex.fn.now())
-        .first();
-      if (!record) return null;
-
-      await this.updateUser(record.id_user, { email_verified: true });
     } catch (error) {
       throw error;
     }

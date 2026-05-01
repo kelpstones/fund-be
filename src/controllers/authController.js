@@ -1,3 +1,6 @@
+// authController.js
+
+const crypto = require("crypto"); // ✅ import crypto
 const responseHelper = require("../utils/response");
 const User = require("../models/users");
 const { AuthValidator } = require("../validation");
@@ -5,10 +8,13 @@ const { hashPassword, comparePassword } = require("../utils/Bcrypt");
 const { generateToken, refreshToken, generateAdminToken, refreshAdminToken } =
   require("../utils/index").JwtUtils;
 const VerifyEmail = require("../models/verify_email");
+const { sendVerificationEmail } = require("../utils/mailer"); // ✅ import mailer
 const admins = require("../models/admins");
+const knex = require("../config/db");
 
 class AuthController {
   async register(req, res) {
+    const trx = await knex.transaction();
     try {
       const {
         nama,
@@ -29,24 +35,25 @@ class AuthController {
         no_telp,
         role_id,
       });
-
       if (!validate.status) {
-        console.log(validate);
+        await trx.rollback();
+
         return responseHelper.error(res, validate.message, validate.code);
       }
-
       const checkEmail = await User.getUserByEmail(email);
       if (checkEmail) {
+        await trx.rollback();
+
         return responseHelper.error(res, "Email already exists", 400);
       }
-
       const checkNik = await User.getUserByNik(nik);
       if (checkNik) {
+        await trx.rollback();
         return responseHelper.error(res, "NIK already exists", 400);
       }
-
       const checkNoTelp = await User.getUserByNoTelp(no_telp);
       if (checkNoTelp) {
+        await trx.rollback();
         return responseHelper.error(res, "Phone number already exists", 400);
       }
 
@@ -58,18 +65,21 @@ class AuthController {
         nik,
         no_telp,
         role_id,
+        // trx,
       );
+      // await trx.commit();
 
-      // Kirim email verifikasi
-      const token = 
+      const token = crypto.randomBytes(32).toString("hex");
       await VerifyEmail.createToken(newUser.id, token);
-      const expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 jam
-
-      await User.setVerificationToken(newUser.email, token, expires_at);
-
-
-      return responseHelper.created(res, "User registered successfully", newUser);
+      await sendVerificationEmail(newUser.email, newUser.nama, token);
+      return responseHelper.created(
+        res,
+        "Registrasi berhasil, cek email untuk verifikasi",
+        newUser,
+      );
     } catch (error) {
+      await trx.rollback();
+      console.error(error);
       responseHelper.serverError(res, error);
     }
   }
@@ -87,11 +97,8 @@ class AuthController {
           400,
         );
 
-      // Update email_verified di users
-      await User.updateUser(record.user_id, { email_verified: true });
-
-      // Hapus token dari verify_email
-      await VerifyEmail.deleteByUserId(record.user_id);
+      await User.updateUser(record.user_id, { email_verified: true }); // ✅ tandai verified
+      await VerifyEmail.deleteByUserId(record.user_id); // ✅ hapus token
 
       return responseHelper.success(res, "Email berhasil diverifikasi");
     } catch (error) {
@@ -100,6 +107,7 @@ class AuthController {
   }
 
   async resendVerification(req, res) {
+    const trx = await knex.transaction();
     try {
       const { email } = req.body;
 
@@ -109,14 +117,16 @@ class AuthController {
         return responseHelper.error(res, "Email sudah terverifikasi", 400);
 
       const token = crypto.randomBytes(32).toString("hex");
-      await VerifyEmail.createToken(user.id, token);
-      await User.setVerificationToken(user.email, user.nama, token);
+      await VerifyEmail.createToken(user.id, token, trx);
+      await sendVerificationEmail(user.email, user.nama, token);
 
       return responseHelper.success(
         res,
         "Email verifikasi berhasil dikirim ulang",
       );
     } catch (error) {
+      await trx.rollback();
+      console.error(error);
       responseHelper.serverError(res, error);
     }
   }
@@ -125,36 +135,31 @@ class AuthController {
     try {
       const { email, password } = req.body;
       const validate = AuthValidator.loginValidation({ email, password });
-      if (!validate.status) {
+      if (!validate.status)
         return responseHelper.error(res, validate.message, validate.code);
-      }
 
       const user = await User.getUserByEmail(email);
-      if (!user) {
+      if (!user)
         return responseHelper.error(res, "Invalid email or password", 401);
-      }
 
-      // validate email verified
-      if (!user.email_verified) {
-        return responseHelper.error(res, "Email belum diverifikasi", 403);
-      }
+      if (!user.email_verified)
+        return responseHelper.error(
+          res,
+          "Email belum diverifikasi, cek inbox kamu",
+          403,
+        );
 
       const isPasswordValid = await comparePassword(password, user.password);
-      if (!isPasswordValid) {
+      if (!isPasswordValid)
         return responseHelper.error(res, "Invalid email or password", 401);
-      }
-      console.log("User data for token generation:", user);
-      const token = await generateToken(user);
 
+      const token = await generateToken(user);
       const data = {
         id: user.id,
         nama: user.nama,
         email: user.email,
         is_onboarded: user.is_onboarded,
-        role: {
-          id: user.role.id,
-          nama_role: user.role.nama_role,
-        },
+        role: { id: user.role.id, nama_role: user.role.nama_role },
         created_at: user.created_at,
         updated_at: user.updated_at,
       };
@@ -170,16 +175,13 @@ class AuthController {
     try {
       const id = req.user.id;
       const user = await User.getUserById(id);
-      if (!user) {
-        return responseHelper.error(res, "User not found", 404);
-      }
-      const userData = await User.getUserById(user.id);
-      const refreshed = refreshToken(user);
-      // console.log("Refreshed token:", refreshed);
+      if (!user) return responseHelper.error(res, "User not found", 404);
+
+      const refreshed = refreshToken(user); // ✅ hapus duplikasi getUserById
       return responseHelper.successLogin(
         res,
         "Token refreshed",
-        userData,
+        user,
         refreshed,
       );
     } catch (error) {
@@ -188,24 +190,22 @@ class AuthController {
     }
   }
 
-  // admin
   async loginAdmin(req, res) {
     try {
       const { email, password } = req.body;
       const validate = AuthValidator.loginValidation({ email, password });
-      if (!validate.status) {
+      if (!validate.status)
         return responseHelper.error(res, validate.message, validate.code);
-      }
-      const admin = await admins.getAdminByEmail(email);
-      if (!admin) {
-        return responseHelper.error(res, "Invalid email or password", 401);
-      }
-      const isPasswordValid = await comparePassword(password, admin.password);
-      if (!isPasswordValid) {
-        return responseHelper.error(res, "Invalid email or password", 401);
-      }
-      const token = await generateAdminToken(admin);
 
+      const admin = await admins.getAdminByEmail(email);
+      if (!admin)
+        return responseHelper.error(res, "Invalid email or password", 401);
+
+      const isPasswordValid = await comparePassword(password, admin.password);
+      if (!isPasswordValid)
+        return responseHelper.error(res, "Invalid email or password", 401);
+
+      const token = await generateAdminToken(admin);
       const adminData = {
         id: admin.id,
         nama: admin.nama,
@@ -214,6 +214,7 @@ class AuthController {
         level: admin.level,
         created_at: admin.created_at,
       };
+
       return responseHelper.successLogin(
         res,
         "Login successful",
@@ -230,9 +231,8 @@ class AuthController {
     try {
       const id = req.admin.id;
       const admin = await admins.getAdminById(id);
-      if (!admin) {
-        return responseHelper.error(res, "Admin not found", 404);
-      }
+      if (!admin) return responseHelper.error(res, "Admin not found", 404);
+
       const adminData = await admins.getAdminById(admin.id);
       const refreshed = refreshAdminToken(admin);
       return responseHelper.successLogin(

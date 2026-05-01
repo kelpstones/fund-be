@@ -5,13 +5,16 @@ class VerifyEmail extends BaseModel {
     super("verify_email");
   }
 
-  async createToken(user_id, token) {
+  async createToken(user_id, token, trx = this.knex) {
     try {
-      await this.knex(this.tableName).where({ user_id }).del();
+      await trx(this.tableName).where({ user_id }).del();
 
-      const expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 jam
+      const expires_at = new Date(
+        Date.now() +
+          parseInt(process.env.VERIFY_EMAIL_EXPIRY_HOURS) * 60 * 60 * 1000,
+      ); // 24 jam
 
-      await this.knex(this.tableName).insert({ user_id, token, expires_at });
+      await trx(this.tableName).insert({ user_id, token, expires_at });
 
       return token;
     } catch (error) {
