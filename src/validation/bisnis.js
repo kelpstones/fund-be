@@ -40,6 +40,22 @@ exports.bisnisUpdateValidation = (data) => {
   try {
     const schema = Joi.object({
       nama: Joi.string().optional(),
+      tipe_usaha: Joi.string()
+        .valid(
+          ...[
+            "kuliner",
+            "fashion",
+            "kesehatan_kecantikan",
+            "teknologi",
+            "pendidikan",
+            "pertanian",
+            "perdagangan",
+            "jasa",
+            "kerajinan",
+            "lainnya",
+          ],
+        )
+        .optional(),
       alamat: Joi.string().optional(),
       no_telp: Joi.string().optional(),
       email: Joi.string().email().optional(),
