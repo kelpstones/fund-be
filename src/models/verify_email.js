@@ -23,10 +23,17 @@ class VerifyEmail extends BaseModel {
   }
 
   async findValidToken(token) {
-    return await this.knex(this.tableName)
-      .where({ token })
-      .where("expires_at", ">", this.knex.fn.now())
-      .first();
+    try {
+      const validToken = await this.knex(this.tableName)
+        .where({ token })
+        .where("expires_at", ">", this.knex.fn.now())
+        .first();
+
+      return validToken;
+    } catch (error) {
+      console.error("Error finding valid verify email token:", error);
+      throw error;
+    }
   }
 
   async deleteByUserId(user_id) {

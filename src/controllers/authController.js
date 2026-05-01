@@ -3,14 +3,18 @@
 const crypto = require("crypto"); // ✅ import crypto
 const responseHelper = require("../utils/response");
 const User = require("../models/users");
-const { AuthValidator } = require("../validation");
+const { AuthValidator, PasswordResetValidator } = require("../validation");
 const { hashPassword, comparePassword } = require("../utils/Bcrypt");
 const { generateToken, refreshToken, generateAdminToken, refreshAdminToken } =
   require("../utils/index").JwtUtils;
 const VerifyEmail = require("../models/verify_email");
-const { sendVerificationEmail } = require("../utils/mailer"); // ✅ import mailer
+const {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+} = require("../utils/mailer"); // ✅ import mailer
 const admins = require("../models/admins");
 const knex = require("../config/db");
+const password_resets = require("../models/password_resets");
 
 class AuthController {
   async register(req, res) {
@@ -97,10 +101,13 @@ class AuthController {
           400,
         );
 
-      await User.updateUser(record.user_id, { email_verified: true }); // ✅ tandai verified
-      await VerifyEmail.deleteByUserId(record.user_id); // ✅ hapus token
+      await User.updateUser(record.user_id, { email_verified: true });
+      await VerifyEmail.deleteByUserId(record.user_id);
 
-      return responseHelper.success(res, "Email berhasil diverifikasi");
+      return responseHelper.success(
+        res,
+        "Email has been verified successfully",
+      );
     } catch (error) {
       responseHelper.serverError(res, error);
     }
@@ -112,9 +119,13 @@ class AuthController {
       const { email } = req.body;
 
       const user = await User.getUserByEmail(email);
-      if (!user) return responseHelper.error(res, "Email tidak ditemukan", 404);
+      if (!user) return responseHelper.error(res, "Email not found", 404);
       if (user.email_verified)
-        return responseHelper.error(res, "Email sudah terverifikasi", 400);
+        return responseHelper.error(
+          res,
+          "Email has already been verified",
+          400,
+        );
 
       const token = crypto.randomBytes(32).toString("hex");
       await VerifyEmail.createToken(user.id, token, trx);
@@ -122,7 +133,7 @@ class AuthController {
 
       return responseHelper.success(
         res,
-        "Email verifikasi berhasil dikirim ulang",
+        "Email verification successfully resent, please check your email",
       );
     } catch (error) {
       await trx.rollback();
@@ -145,7 +156,7 @@ class AuthController {
       if (!user.email_verified)
         return responseHelper.error(
           res,
-          "Email belum diverifikasi, cek inbox kamu",
+          "Email has not been verified, please verify your email first",
           403,
         );
 
@@ -177,7 +188,7 @@ class AuthController {
       const user = await User.getUserById(id);
       if (!user) return responseHelper.error(res, "User not found", 404);
 
-      const refreshed = refreshToken(user); // ✅ hapus duplikasi getUserById
+      const refreshed = refreshToken(user);
       return responseHelper.successLogin(
         res,
         "Token refreshed",
@@ -187,6 +198,86 @@ class AuthController {
     } catch (error) {
       console.error(error);
       return responseHelper.serverError(res, "Failed to retrieve user data");
+    }
+  }
+
+  async forgotPassword(req, res) {
+    try {
+      const { email } = req.body;
+
+      // validasi input
+      const validate = PasswordResetValidator.requestPasswordResetValidation({
+        email,
+      });
+      if (!validate.status)
+        return responseHelper.error(res, validate.message, validate.code);
+
+      const user = await User.getUserByEmail(email);
+      if (!user) return responseHelper.error(res, "Email tidak ditemukan", 404);
+      if (!user.email_verified)
+        return responseHelper.error(
+          res,
+          "Email has not been verified, cannot reset password",
+          403,
+        );
+
+      if (password_resets.existsValidTokenForUser(user.id)) {
+        return responseHelper.error(
+          res,
+          "A valid password reset token already exists for this user, please check your email",
+          400,
+        );
+      }
+      const token = crypto.randomBytes(32).toString("hex");
+      await password_resets.createToken(user.id, token);
+      await sendPasswordResetEmail(user.email, user.nama, token);
+      return responseHelper.success(
+        res,
+        "Password reset request successful, please check your email",
+      );
+    } catch (error) {
+      console.error(error);
+      return responseHelper.serverError(
+        res,
+        "An error occurred while processing forgot password request",
+      );
+    }
+  }
+
+  async resetPassword(req, res) {
+    const trx = await knex.transaction();
+    try {
+      const { token, new_password, password_confirmation } = req.body;
+
+      // validasi input
+      const validate = PasswordResetValidator.resetPasswordValidation({
+        token,
+        new_password,
+        password_confirmation,
+      });
+      if (!validate.status) {
+        console.error("Validation error:", validate);
+        await trx.rollback();
+        return responseHelper.error(res, validate.error.details[0].message, validate.code);
+      }
+
+      const validToken = await password_resets.findValidToken(token);
+      if (!validToken)
+        return responseHelper.error(res, "Invalid or expired reset token", 400);
+
+      const hashedPassword = await hashPassword(new_password);
+      await User.updatePassword(validToken.user_id, hashedPassword, trx);
+      await password_resets.deleteToken(token, trx);
+
+      await trx.commit();
+      return responseHelper.success(res, "Password reset successful");
+    } catch (error) {
+      console.error(error);
+      await trx.rollback();
+      return responseHelper.serverError(
+        res,
+        "An error occurred while resetting password",
+      );
     }
   }
 

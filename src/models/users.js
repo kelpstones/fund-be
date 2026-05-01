@@ -90,7 +90,15 @@ class User extends BaseModel {
     return query;
   }
 
-  async createUser(nama, email, password, nik, no_telp, role_id, trx = this.knex) {
+  async createUser(
+    nama,
+    email,
+    password,
+    nik,
+    no_telp,
+    role_id,
+    trx = this.knex,
+  ) {
     try {
       const [inserted] = await trx(this.tableName)
         .insert({ nama, email, password, nik, no_telp, role_id })
@@ -109,6 +117,16 @@ class User extends BaseModel {
         .update({ ...data, updated_at: this.knex.fn.now() });
 
       return await this.getUserById(id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updatePassword(id, newPassword, trx = this.knex) {
+    try {
+      await trx(this.tableName)
+        .where({ id })
+        .update({ password: newPassword, updated_at: this.knex.fn.now() });
     } catch (error) {
       throw error;
     }
