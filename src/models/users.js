@@ -22,14 +22,15 @@ class User extends BaseModel {
       is_onboarded: row.is_onboarded,
       created_at: row.created_at,
       updated_at: row.updated_at,
+      email_verified: row.email_verified,
       role: {
         id: row.role_id,
         nama_role: row.role_name,
       },
     };
 
-    if (includeNik)      data.nik      = row.nik;
-    if (includeTelp)     data.no_telp  = row.no_telp;
+    if (includeNik) data.nik = row.nik;
+    if (includeTelp) data.no_telp = row.no_telp;
     if (includePassword) data.password = row.password;
 
     if (includeBisnis) {
@@ -64,6 +65,7 @@ class User extends BaseModel {
         "users.role_id",
         "users.is_onboarded",
         "users.created_at",
+        "users.email_verified",
         "users.updated_at",
         "roles.nama as role_name",
       )
@@ -160,7 +162,10 @@ class User extends BaseModel {
   async getUserProfile(id) {
     try {
       const row = await this.#baseQuery(true).where("users.id", id).first();
-      return this.#formatResponse(row, { includeTelp: true, includeBisnis: true });
+      return this.#formatResponse(row, {
+        includeTelp: true,
+        includeBisnis: true,
+      });
     } catch (error) {
       throw error;
     }
@@ -189,7 +194,7 @@ class User extends BaseModel {
 
       const total_investasi = investasis.reduce(
         (sum, i) => sum + parseInt(i.nominal_investasi || 0),
-        0
+        0,
       );
 
       const result = this.#formatResponse(row);
@@ -204,7 +209,10 @@ class User extends BaseModel {
   async getUserByEmail(email) {
     try {
       const row = await this.#baseQuery().where("users.email", email).first();
-      return this.#formatResponse(row, { includePassword: true, includeNik: true });
+      return this.#formatResponse(row, {
+        includePassword: true,
+        includeNik: true,
+      });
     } catch (error) {
       throw error;
     }
@@ -221,8 +229,24 @@ class User extends BaseModel {
 
   async getUserByNoTelp(no_telp) {
     try {
-      const row = await this.#baseQuery().where("users.no_telp", no_telp).first();
+      const row = await this.#baseQuery()
+        .where("users.no_telp", no_telp)
+        .first();
       return this.#formatResponse(row, { includeTelp: true });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async verifyEmail(token) {
+    try {
+      const record = await this.knex("verify_email")
+        .where({ token })
+        .where("expires_at", ">", this.knex.fn.now())
+        .first();
+      if (!record) return null;
+
+      await this.updateUser(record.id_user, { email_verified: true });
     } catch (error) {
       throw error;
     }

@@ -2,14 +2,23 @@ const responseHelper = require("../utils/response");
 const User = require("../models/users");
 const { AuthValidator } = require("../validation");
 const { hashPassword, comparePassword } = require("../utils/Bcrypt");
-const { generateToken, refreshToken, generateAdminToken, refreshAdminToken } = require("../utils/index").JwtUtils;
+const { generateToken, refreshToken, generateAdminToken, refreshAdminToken } =
+  require("../utils/index").JwtUtils;
+const VerifyEmail = require("../models/verify_email");
 const admins = require("../models/admins");
 
 class AuthController {
   async register(req, res) {
     try {
-      const { nama, email, password, password_confirmation, nik, no_telp, role_id } =
-        req.body;
+      const {
+        nama,
+        email,
+        password,
+        password_confirmation,
+        nik,
+        no_telp,
+        role_id,
+      } = req.body;
 
       const validate = AuthValidator.registerValidation({
         nama,
@@ -42,7 +51,7 @@ class AuthController {
       }
 
       const passwordHash = await hashPassword(password);
-      const user = await User.createUser(
+      const newUser = await User.createUser(
         nama,
         email,
         passwordHash,
@@ -50,7 +59,63 @@ class AuthController {
         no_telp,
         role_id,
       );
-      return responseHelper.created(res, "User registered successfully", user);
+
+      // Kirim email verifikasi
+      const token = 
+      await VerifyEmail.createToken(newUser.id, token);
+      const expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 jam
+
+      await User.setVerificationToken(newUser.email, token, expires_at);
+
+
+      return responseHelper.created(res, "User registered successfully", newUser);
+    } catch (error) {
+      responseHelper.serverError(res, error);
+    }
+  }
+
+  async verifyEmail(req, res) {
+    try {
+      const { token } = req.query;
+      if (!token) return responseHelper.error(res, "Token tidak valid", 400);
+
+      const record = await VerifyEmail.findValidToken(token);
+      if (!record)
+        return responseHelper.error(
+          res,
+          "Token expired atau tidak ditemukan",
+          400,
+        );
+
+      // Update email_verified di users
+      await User.updateUser(record.user_id, { email_verified: true });
+
+      // Hapus token dari verify_email
+      await VerifyEmail.deleteByUserId(record.user_id);
+
+      return responseHelper.success(res, "Email berhasil diverifikasi");
+    } catch (error) {
+      responseHelper.serverError(res, error);
+    }
+  }
+
+  async resendVerification(req, res) {
+    try {
+      const { email } = req.body;
+
+      const user = await User.getUserByEmail(email);
+      if (!user) return responseHelper.error(res, "Email tidak ditemukan", 404);
+      if (user.email_verified)
+        return responseHelper.error(res, "Email sudah terverifikasi", 400);
+
+      const token = crypto.randomBytes(32).toString("hex");
+      await VerifyEmail.createToken(user.id, token);
+      await User.setVerificationToken(user.email, user.nama, token);
+
+      return responseHelper.success(
+        res,
+        "Email verifikasi berhasil dikirim ulang",
+      );
     } catch (error) {
       responseHelper.serverError(res, error);
     }
@@ -63,10 +128,17 @@ class AuthController {
       if (!validate.status) {
         return responseHelper.error(res, validate.message, validate.code);
       }
+
       const user = await User.getUserByEmail(email);
       if (!user) {
         return responseHelper.error(res, "Invalid email or password", 401);
       }
+
+      // validate email verified
+      if (!user.email_verified) {
+        return responseHelper.error(res, "Email belum diverifikasi", 403);
+      }
+
       const isPasswordValid = await comparePassword(password, user.password);
       if (!isPasswordValid) {
         return responseHelper.error(res, "Invalid email or password", 401);
@@ -81,7 +153,7 @@ class AuthController {
         is_onboarded: user.is_onboarded,
         role: {
           id: user.role.id,
-          nama_role: user.role.nama_role
+          nama_role: user.role.nama_role,
         },
         created_at: user.created_at,
         updated_at: user.updated_at,
@@ -141,34 +213,39 @@ class AuthController {
         no_telp: admin.no_telp,
         level: admin.level,
         created_at: admin.created_at,
-      }
-      return responseHelper.successLogin(res, "Login successful", adminData, token);
+      };
+      return responseHelper.successLogin(
+        res,
+        "Login successful",
+        adminData,
+        token,
+      );
     } catch (error) {
       console.error(error);
       responseHelper.serverError(res, error);
     }
   }
 
-    async authMeAdmin(req, res) {
-      try {
-        const id = req.admin.id;
-        const admin = await admins.getAdminById(id);
-        if (!admin) {
-          return responseHelper.error(res, "Admin not found", 404);
-        }
-        const adminData = await admins.getAdminById(admin.id);
-        const refreshed = refreshAdminToken(admin);
-        return responseHelper.successLogin(
-          res,
-          "Token refreshed",
-          adminData,
-          refreshed,
-        );
-      } catch (error) {
-        console.error(error);
-        responseHelper.serverError(res, error);
+  async authMeAdmin(req, res) {
+    try {
+      const id = req.admin.id;
+      const admin = await admins.getAdminById(id);
+      if (!admin) {
+        return responseHelper.error(res, "Admin not found", 404);
       }
+      const adminData = await admins.getAdminById(admin.id);
+      const refreshed = refreshAdminToken(admin);
+      return responseHelper.successLogin(
+        res,
+        "Token refreshed",
+        adminData,
+        refreshed,
+      );
+    } catch (error) {
+      console.error(error);
+      responseHelper.serverError(res, error);
     }
+  }
 }
 
 module.exports = AuthController;

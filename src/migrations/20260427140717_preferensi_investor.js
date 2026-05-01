@@ -3,7 +3,7 @@
  * @returns { Promise<void> }
  */
 exports.up = function (knex) {
-  return knex.schema.table("preferensi_investor", function (table) {
+  return knex.schema.createTable("preferensi_investor", function (table) {
     table.increments("id").primary();
     table.integer("investor_id").unsigned().notNullable();
     table
@@ -11,13 +11,11 @@ exports.up = function (knex) {
       .references("id")
       .inTable("users")
       .onDelete("CASCADE");
-    table.string("tipe_usaha").notNullable();
-    table.string("level_usaha").notNullable();
-    table.string("range_penghasilan").notNullable();
-    table.unique("investor_id");
-    
+    table.string("tipe_usaha", 255).notNullable();
+    table.string("level_usaha", 255).notNullable();
+    table.string("range_penghasilan", 255).notNullable();
+    table.unique(["investor_id"]);
     table.timestamps(true, true);
-
   });
 };
 

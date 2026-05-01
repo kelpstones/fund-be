@@ -3,7 +3,7 @@
  * @returns { Promise<void> }
  */
 exports.up = function (knex) {
-  return knex.schema.table("personalisasi", function (table) {
+  return knex.schema.createTable("personalisasi", function (table) {
     table.increments("id").primary();
     table.integer("investor_id").unsigned().notNullable();
     table

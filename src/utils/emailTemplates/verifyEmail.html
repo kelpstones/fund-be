@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verifikasi Email</title>
+  </head>
+  <body
+    style="margin: 0; padding: 0; background: #f4f4f4; font-family: sans-serif"
+  >
+    <table
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      style="background: #f4f4f4; padding: 40px 0"
+    >
+      <tr>
+        <td align="center">
+          <table
+            width="480"
+            cellpadding="0"
+            cellspacing="0"
+            style="
+              background: #ffffff;
+              border-radius: 8px;
+              overflow: hidden;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            "
+          >
+            <!-- Header -->
+            <tr>
+              <td style="background: #01696f; padding: 32px 40px">
+                <h1 style="margin: 0; color: #ffffff; font-size: 22px">
+                  Fund App
+                </h1>
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+              <td style="padding: 40px">
+                <h2 style="margin: 0 0 12px; color: #1a1a1a; font-size: 20px">
+                  Hai, {{nama}}!
+                </h2>
+                <p
+                  style="
+                    margin: 0 0 24px;
+                    color: #555;
+                    font-size: 15px;
+                    line-height: 1.6;
+                  "
+                >
+                  Terima kasih sudah mendaftar di <strong>Fund App</strong>.
+                  Klik tombol di bawah untuk memverifikasi email kamu dan mulai
+                  menggunakan akun.
+                </p>
+
+                <!-- CTA Button -->
+                <table cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="border-radius: 6px; background: #01696f">
+                      <a
+                        href="{{verifyUrl}}"
+                        style="
+                          display: inline-block;
+                          padding: 14px 28px;
+                          color: #ffffff;
+                          font-size: 15px;
+                          font-weight: bold;
+                          text-decoration: none;
+                          border-radius: 6px;
+                        "
+                      >
+                        Verifikasi Email
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <p
+                  style="
+                    margin: 24px 0 0;
+                    color: #888;
+                    font-size: 13px;
+                    line-height: 1.6;
+                  "
+                >
+                  Link ini berlaku selama <strong>24 jam</strong>.<br />
+                  Abaikan email ini jika kamu tidak mendaftar.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="padding: 20px 40px; border-top: 1px solid #eee">
+                <p
+                  style="
+                    margin: 0;
+                    color: #bbb;
+                    font-size: 12px;
+                    line-height: 1.6;
+                  "
+                >
+                  Atau copy link ini ke browser:<br />
+                  <a
+                    href="{{verifyUrl}}"
+                    style="
+                      color: #01696f;
+                      word-break: break-all;
+                      font-size: 12px;
+                    "
+                  >
+                    {{verifyUrl}}
+                  </a>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
