@@ -58,6 +58,7 @@ class BisnisController {
       }
       const bisnis = await Bisnis.createBisnis(
         payload.nama,
+        payload.tipe_usaha,
         payload.user_id,
         payload.kelas_id,
         payload.alamat,
