@@ -10,6 +10,7 @@ class Bisnis extends BaseModel {
     return {
       id: row.id,
       nama_bisnis: row.nama_bisnis,
+      tipe_usaha: row.tipe_usaha,
       email: row.email,
       alamat: row.alamat,
       no_telp: row.no_telp,
@@ -32,6 +33,7 @@ class Bisnis extends BaseModel {
       .select(
         "bisnis.id",
         "bisnis.nama_bisnis",
+        "bisnis.tipe_usaha",
         "bisnis.email",
         "bisnis.kelas_id",
         "bisnis.alamat",
@@ -49,6 +51,7 @@ class Bisnis extends BaseModel {
 
   async createBisnis(
     nama,
+    tipe_usaha,
     user_id,
     kelas_id,
     alamat,
@@ -60,6 +63,7 @@ class Bisnis extends BaseModel {
       const [row] = await this.knex(this.tableName)
         .insert({
           nama_bisnis: nama,
+          tipe_usaha: tipe_usaha,
           user_id,
           kelas_id,
           alamat,
@@ -116,10 +120,20 @@ class Bisnis extends BaseModel {
     }
   }
 
-  async updateBisnis(id, nama, alamat, no_telp, email, deskripsi, kelas_id) {
+  async updateBisnis(
+    id,
+    nama,
+    tipe_usaha,
+    alamat,
+    no_telp,
+    email,
+    deskripsi,
+    kelas_id,
+  ) {
     try {
       await this.knex(this.tableName).where({ id }).update({
         nama_bisnis: nama,
+        tipe_usaha,
         kelas_id,
         alamat,
         no_telp,

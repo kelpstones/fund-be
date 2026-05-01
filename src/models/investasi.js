@@ -15,6 +15,7 @@ class Investasi extends BaseModel {
       bisnis: {
         id: row.bisnis_id,
         nama_bisnis: row.nama_bisnis,
+        tipe_usaha: row.bisnis_tipe_usaha,
       },
       investor: {
         id: row.investor_id,
@@ -41,6 +42,7 @@ class Investasi extends BaseModel {
         "investasis.created_at",
         "pengajuans.bisnis_id",
         "bisnis.nama_bisnis",
+        "bisnis.tipe_usaha as bisnis_tipe_usaha",
         "users.nama as investor_name",
         "users.id as investor_id",
         "negosiasis.status as negosiasi_status",

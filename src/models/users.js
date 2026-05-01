@@ -38,6 +38,7 @@ class User extends BaseModel {
         ? {
             id: row.bisnis_id,
             nama_bisnis: row.bisnis_nama,
+            tipe_usaha: row.bisnis_tipe_usaha,
             email: row.bisnis_email,
             no_telp: row.bisnis_no_telp,
             alamat: row.bisnis_alamat,
@@ -76,6 +77,7 @@ class User extends BaseModel {
         .select(
           "bisnis.id as bisnis_id",
           "bisnis.nama_bisnis as bisnis_nama",
+          "bisnis.tipe_usaha as bisnis_tipe_usaha",
           "bisnis.email as bisnis_email",
           "bisnis.no_telp as bisnis_no_telp",
           "bisnis.alamat as bisnis_alamat",
@@ -205,6 +207,7 @@ class User extends BaseModel {
           "pengajuans.status as pengajuan_status",
           "pengajuans.target_pendanaan",
           "bisnis.nama_bisnis",
+          "bisnis.tipe_usaha as bisnis_tipe_usaha",
         )
         .leftJoin("pengajuans", "pengajuans.id", "investasis.pengajuans_id")
         .leftJoin("bisnis", "bisnis.id", "pengajuans.bisnis_id")

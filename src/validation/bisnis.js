@@ -5,6 +5,22 @@ exports.bisnisValidation = (data) => {
     // console.log(data);
     const schema = Joi.object({
       nama: Joi.string().required(),
+      tipe_usaha: Joi.string()
+        .valid(
+          ...[
+            "kuliner",
+            "fashion",
+            "kesehatan_kecantikan",
+            "teknologi",
+            "pendidikan",
+            "pertanian",
+            "perdagangan",
+            "jasa",
+            "kerajinan",
+            "lainnya",
+          ],
+        )
+        .required(),
       alamat: Joi.string().required(),
       no_telp: Joi.string().optional(),
       email: Joi.string().email().required(),
@@ -31,14 +47,9 @@ exports.bisnisUpdateValidation = (data) => {
       kelas_id: Joi.number().integer().optional(),
     });
 
-    
-
     return schema.validate(data);
   } catch (error) {
     console.error(error);
     throw error;
   }
 };
-
-
-
