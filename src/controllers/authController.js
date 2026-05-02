@@ -60,22 +60,24 @@ class AuthController {
         await trx.rollback();
         return responseHelper.error(res, "Phone number already exists", 400);
       }
-
-      const passwordHash = await hashPassword(password);
-      const newUser = await User.createUser(
-        nama,
-        email,
-        passwordHash,
-        nik,
-        no_telp,
-        role_id,
-        // trx,
-      );
       // await trx.commit();
+      const passwordHash = await hashPassword(password);
+      const newUser = await knex.transaction(async (trx) => {
+        const user = await User.createUser(
+          nama,
+          email,
+          passwordHash,
+          nik,
+          no_telp,
+          role_id,
+          trx,
+        );
+        const token = crypto.randomBytes(32).toString("hex");
+        await VerifyEmail.createToken(user.id, token, trx);
+        return { user, token };
+      });
 
-      const token = crypto.randomBytes(32).toString("hex");
-      await VerifyEmail.createToken(newUser.id, token);
-      await sendVerificationEmail(newUser.email, newUser.nama, token);
+      await sendVerificationEmail(newUser.user.email, newUser.user.nama, newUser.token);
       return responseHelper.created(
         res,
         "Registrasi berhasil, cek email untuk verifikasi",
@@ -130,7 +132,7 @@ class AuthController {
       const token = crypto.randomBytes(32).toString("hex");
       await VerifyEmail.createToken(user.id, token, trx);
       await sendVerificationEmail(user.email, user.nama, token);
-
+      await trx.commit();
       return responseHelper.success(
         res,
         "Email verification successfully resent, please check your email",
@@ -258,7 +260,11 @@ class AuthController {
       if (!validate.status) {
         console.error("Validation error:", validate);
         await trx.rollback();
-        return responseHelper.error(res, validate.error.details[0].message, validate.code);
+        return responseHelper.error(
+          res,
+          validate.error.details[0].message,
+          validate.code,
+        );
       }
 
       const validToken = await password_resets.findValidToken(token);
