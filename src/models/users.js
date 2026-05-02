@@ -54,8 +54,8 @@ class User extends BaseModel {
     return data;
   }
 
-  #baseQuery(withBisnis = false) {
-    const query = this.knex(this.tableName)
+  #baseQuery(withBisnis = false, trx = this.knex) {
+    const query = trx(this.tableName)
       .select(
         "users.id",
         "users.nama",
@@ -106,19 +106,19 @@ class User extends BaseModel {
         .insert({ nama, email, password, nik, no_telp, role_id })
         .returning("id");
 
-      return await this.getUserById(inserted.id);
+      return await this.getUserById(inserted.id, trx);
     } catch (error) {
       throw error;
     }
   }
 
-  async updateUser(id, data) {
+  async updateUser(id, data, trx = this.knex) {
     try {
-      await this.knex(this.tableName)
+      await trx(this.tableName)
         .where({ id })
-        .update({ ...data, updated_at: this.knex.fn.now() });
+        .update({ ...data, updated_at: trx.fn.now() });
 
-      return await this.getUserById(id);
+      return await this.getUserById(id, trx);
     } catch (error) {
       throw error;
     }
@@ -128,29 +128,29 @@ class User extends BaseModel {
     try {
       await trx(this.tableName)
         .where({ id })
-        .update({ password: newPassword, updated_at: this.knex.fn.now() });
+        .update({ password: newPassword, updated_at: trx.fn.now() });
     } catch (error) {
       throw error;
     }
   }
 
-  async deleteUser(id) {
+  async deleteUser(id, trx = this.knex) {
     try {
-      await this.knex(this.tableName).where({ id }).del();
+      await trx(this.tableName).where({ id }).del();
     } catch (error) {
       throw error;
     }
   }
 
-  async getAllUsers(page = 1, limit = 10, search = "") {
+  async getAllUsers(page = 1, limit = 10, search = "", trx = this.knex) {
     try {
-      const rows = await this.#baseQuery()
+      const rows = await this.#baseQuery(false, trx)
         .where("users.nama", "like", `%${search}%`)
         .orWhere("users.email", "like", `%${search}%`)
         .offset((page - 1) * limit)
         .limit(limit);
 
-      const [{ total }] = await this.knex(this.tableName)
+      const [{ total }] = await trx(this.tableName)
         .count("id as total")
         .where("nama", "like", `%${search}%`)
         .orWhere("email", "like", `%${search}%`);
@@ -169,9 +169,9 @@ class User extends BaseModel {
     }
   }
 
-  async getUserById(id) {
+  async getUserById(id, trx = this.knex) {
     try {
-      const row = await this.#baseQuery().where("users.id", id).first();
+      const row = await this.#baseQuery(false, trx).where("users.id", id).first();
       return this.#formatResponse(row);
     } catch (error) {
       throw error;
@@ -179,9 +179,9 @@ class User extends BaseModel {
   }
 
   // Profile untuk role umkm — include bisnis & kelas
-  async getUserProfile(id) {
+  async getUserProfile(id, trx = this.knex) {
     try {
-      const row = await this.#baseQuery(true).where("users.id", id).first();
+      const row = await this.#baseQuery(true, trx).where("users.id", id).first();
       return this.#formatResponse(row, {
         includeTelp: true,
         includeBisnis: true,
@@ -192,12 +192,12 @@ class User extends BaseModel {
   }
 
   // Profile untuk role investor — include riwayat investasi
-  async getUserProfileInvestor(id) {
+  async getUserProfileInvestor(id, trx = this.knex) {
     try {
-      const row = await this.#baseQuery().where("users.id", id).first();
+      const row = await this.#baseQuery(false, trx).where("users.id", id).first();
       if (!row) return null;
 
-      const investasis = await this.knex("investasis")
+      const investasis = await trx("investasis")
         .select(
           "investasis.id",
           "investasis.nominal_investasi",
@@ -227,9 +227,9 @@ class User extends BaseModel {
     }
   }
 
-  async getUserByEmail(email) {
+  async getUserByEmail(email, trx = this.knex) {
     try {
-      const row = await this.#baseQuery().where("users.email", email).first();
+      const row = await this.#baseQuery(false, trx).where("users.email", email).first();
       return this.#formatResponse(row, {
         includePassword: true,
         includeNik: true,
@@ -239,18 +239,18 @@ class User extends BaseModel {
     }
   }
 
-  async getUserByNik(nik) {
+  async getUserByNik(nik, trx = this.knex) {
     try {
-      const row = await this.#baseQuery().where("users.nik", nik).first();
+      const row = await this.#baseQuery(false, trx).where("users.nik", nik).first();
       return this.#formatResponse(row, { includeNik: true });
     } catch (error) {
       throw error;
     }
   }
 
-  async getUserByNoTelp(no_telp) {
+  async getUserByNoTelp(no_telp, trx = this.knex) {
     try {
-      const row = await this.#baseQuery()
+      const row = await this.#baseQuery(false, trx)
         .where("users.no_telp", no_telp)
         .first();
       return this.#formatResponse(row, { includeTelp: true });
