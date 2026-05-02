@@ -49,7 +49,7 @@ class KelasController {
       const { id } = req.params;
       const kelas = await Kelas.getKelasById(id);
       if (!kelas) {
-        return responseHelper.notFound(res, "Kelas not found");
+        return responseHelper.error(res, "Kelas not found", 404);
       }
       return responseHelper.success(
         res,

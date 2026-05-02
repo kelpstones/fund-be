@@ -2,7 +2,7 @@ const express = require("express");
 const BisnisController = require("../controllers/bisnisController");
 const { Auth } = require("../middlewares");
 const { Role } = require("../middlewares");
-const KelasRoutes = require("./kelasRoute");
+const KelasRoutes = require("./kelasRoutes");
 const PengajuanRoutes = require("./pengajuanRoutes");
 const BisnisProfileController = require("../controllers/bisnisProfileController");
 class BisnisRoutes {
@@ -26,10 +26,10 @@ class BisnisRoutes {
     );
 
     // pengajuan routes
-    this.router.use("/pengajuan", this.pengajuanRoutes.routes());
+    this.router.use("/proposals", this.pengajuanRoutes.routes());
 
     // kelas
-    this.router.use("/kelas", this.kelasRoutes.routes());
+    this.router.use("/classes", this.kelasRoutes.routes());
 
     this.router.get("/user", Role.authorize("umkm"), (req, res) => {
       this.bisnisController.getBisnisByUserId(req, res);

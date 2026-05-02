@@ -3,7 +3,7 @@ const router = express.Router();
 const AuthController = require("../controllers/authController");
 const BisnisRoutes = require("./bisnisRoutes");
 const { Auth, Role } = require("../middlewares");
-const KelasRoutes = require("./kelasRoute");
+const KelasRoutes = require("./kelasRoutes");
 const UserController = require("../controllers/userController");
 class UserRoutes {
   constructor() {

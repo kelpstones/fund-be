@@ -81,7 +81,7 @@ class AuthController {
       return responseHelper.created(
         res,
         "Registrasi berhasil, cek email untuk verifikasi",
-        newUser,
+        newUser.user,
       );
     } catch (error) {
       await trx.rollback();

@@ -5,10 +5,11 @@ const { hashPassword } = require("../utils/Bcrypt");
  * @returns { Promise<void> }
  */
 exports.seed = async function (knex) {
+  const existing = await knex("admins").count("id as count").first();
+  if (parseInt(existing.count) > 0) return;
+
   const hashedPassword = await hashPassword("password123");
 
-  // Deletes ALL existing entries
-  await knex("admins").del();
   await knex("admins").insert([
     {
       nama: "John Doe",

@@ -8,17 +8,17 @@ class PengajuanController {
   // pengajuan
   async createPengajuan(req, res) {
     try {
-      const { bisnis_id } = req.params;
+      // const { bisnis_id } = req.params;
       const data = req.body;
-      const payload = { ...data, bisnis_id };
+      const payload = { ...data };
 
-      const bisnisCheck = await bisnis.getBisnisById(bisnis_id);
+      const bisnisCheck = await bisnis.getBisnisById(payload.bisnis_id);
       if (!bisnisCheck) {
         return responseHelper.error(res, "Bisnis not found", 404);
       }
       //   check bisnis_id exist
       const existingPengajuan =
-        await PengajuanValidator.checkBisnisIdExist(bisnis_id);
+        await PengajuanValidator.checkBisnisIdExist(payload.bisnis_id);
       if (!existingPengajuan.status) {
         return responseHelper.error(
           res,
@@ -185,11 +185,14 @@ class PengajuanController {
         );
       }
 
-      const updatedApproval = await Approvals.updateApproval(existingApproval.id, {
-        approver_id,
-        status,
-        catatan,
-      });
+      const updatedApproval = await Approvals.updateApproval(
+        existingApproval.id,
+        {
+          approver_id,
+          status,
+          catatan,
+        },
+      );
       // console.log(existingApproval);
       await Pengajuan.updatePengajuanStatus(
         existingApproval.pengajuans_id,

@@ -44,7 +44,8 @@ class DistribusiProfitController {
 
   async getByPenjualanId(req, res) {
     try {
-      const { penjualans_id } = req.params;
+      const { penjualans_id } = req.query;
+      // console.log("Fetching distribusi profit for penjualan ID:", penjualans_id);
       const data = await DistribusiProfit.getByPenjualanId(penjualans_id);
       if (!data || data.length === 0) {
         return responseHelper.error(
