@@ -12,6 +12,7 @@ exports.up = function(knex) {
         table.string("no_telp").notNullable().unique();
         table.integer("role_id").unsigned().references("id").inTable("roles").onDelete("SET NULL");
         table.integer("is_onboarded").defaultTo(0);
+        table.boolean("email_verified").defaultTo(false).notNullable();
         table.timestamps(true, true);
     });
   

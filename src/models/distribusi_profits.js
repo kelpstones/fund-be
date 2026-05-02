@@ -28,6 +28,7 @@ class DistribusiProfits extends BaseModel {
         laba_bersih: row.laba_bersih,
         bisnis_id: row.bisnis_id,
         nama_bisnis: row.nama_bisnis,
+        tipe_usaha: row.bisnis_tipe_usaha,
         periode: row.periode,
       },
     };
@@ -43,6 +44,7 @@ class DistribusiProfits extends BaseModel {
         "penjualans.laba_bersih",
         "pengajuans.bisnis_id",
         "bisnis.nama_bisnis",
+        "bisnis.tipe_usaha as bisnis_tipe_usaha",
       )
       .join("users", "distribusi_profits.investor_id", "users.id")
       .join("investasis", "distribusi_profits.investasi_id", "investasis.id")

@@ -21,6 +21,22 @@ class UserRoutes {
       this.authController.login(req, res);
     });
 
+    this.router.get("/verify-email", (req, res) => {
+      this.authController.verifyEmail(req, res);
+    });
+
+    this.router.post("/resend-verify", (req, res) => {
+      this.authController.resendVerification(req, res);
+    });
+
+    this.router.post("/forgot-password", (req, res) => {
+      this.authController.forgotPassword(req, res);
+    });
+
+    this.router.post("/reset-password", (req, res) => {
+      this.authController.resetPassword(req, res);
+    });
+
     this.router.use(Auth.verifyAnyToken);
     this.router.post("/me", Role.authorize("umkm", "investor"), (req, res) => {
       this.authController.authMe(req, res);
@@ -40,7 +56,7 @@ class UserRoutes {
       (req, res) => {
         this.userController.getInvestorProfile(req, res);
       },
-    )
+    );
 
     this.router.put(
       "/profile",
