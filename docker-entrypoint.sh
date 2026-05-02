@@ -11,4 +11,4 @@ echo "🌱 Running seeds..."
 npx knex seed:run
 
 echo "🚀 Starting server..."
-exec node src/app.js
+exec npx nodemon src/app.js
