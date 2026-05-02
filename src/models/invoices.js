@@ -11,6 +11,7 @@ class Invoices extends BaseModel {
       id: row.id,
       kode_pembayaran: row.kode_pembayaran,
       nominal_tagihan: row.nominal_tagihan,
+      ppn: row.ppn,
       status: row.status,
       tenggat_waktu: row.tenggat_waktu,
       created_at: row.created_at,

@@ -8,6 +8,7 @@ const Investasi = require("../models/investasi");
 const log_negosiasis = require("../models/log_negosiasis");
 const notificationHelper = require("../utils/index").NotificationHelper;
 const knex = require("../config/db");
+const { sendInvoiceEmail } = require("../utils/mailer");
 class NegotiationController {
   async getAllNegotiations(req, res) {
     try {
@@ -266,8 +267,7 @@ class NegotiationController {
         deadline.getHours() + parseInt(process.env.INVOICE_EXPIRY_HOURS || 24),
       );
 
-
-
+      // createInvoice sekarang return raw row, jadi semua field langsung accessible
       const invoice = await invoices.createInvoice(
         negosiasi_id,
         negosiasi.pengajuan.id,
@@ -297,6 +297,13 @@ class NegotiationController {
 
       await trx.commit();
 
+      sendInvoiceEmail(
+        negosiasi.investor.email,
+        negosiasi.investor.nama,
+        invoice,
+        negosiasi,
+      ).catch((err) => console.error("Failed to send invoice email:", err));
+
       await notificationHelper.notifyReplyNegotiation(
         role_name === "investor"
           ? negosiasi.investor.id
@@ -306,11 +313,9 @@ class NegotiationController {
         catatan,
       );
 
-
-
       return responseHelper.success(res, "Negotiation accepted successfully", {
         negosiasi: await Negosiasis.getNegosiasiById(negosiasi_id),
-        invoice,
+        invoice: await invoices.getInvoiceById(invoice.id), 
         investasi,
       });
     } catch (error) {

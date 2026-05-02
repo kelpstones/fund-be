@@ -2,7 +2,8 @@ const nodemailer = require("nodemailer");
 const fs = require("fs");
 const path = require("path");
 const Loader = require("./loadTemplate");
-const { Helpers } = require(".");
+// const { HelpersUtils } = require("./index");
+const { formatRupiah, formatDate } = require("./helpers");
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: parseInt(process.env.SMTP_PORT),
@@ -56,20 +57,19 @@ const sendPasswordResetEmail = async (to, nama, token) => {
 const sendInvoiceEmail = async (to, nama, invoice, negosiasi = {}) => {
   try {
     const subtotal = parseFloat(invoice.nominal_tagihan);
-    const ppnRate = parseFloat(invoice.ppn);
+    const ppnRate = parseFloat(invoice.ppn); // default 11.00 dari DB
     const ppnAmount = subtotal * (ppnRate / 100);
     const totalAkhir = subtotal + ppnAmount;
     const invNumber = "INV-" + String(invoice.id).padStart(4, "0");
 
-    // Satu baris item sebagai string HTML (sesuai kontrak Loader)
     const items = `
       <tr>
         <td style="padding:12px 16px;border-bottom:1px solid #eee;">
-          Investasi Dana — ${negosiasi.nama_usaha || "Seri A"}<br/>
-          <small style="color:#999;">Negosiasi #${invoice.negosiasi_id} · Pengajuan #${invoice.pengajuan_id}</small>
+          Investasi Dana — ${negosiasi.bisnis?.nama || "Seri A"}<br/>
+          <small style="color:#999;">Negosiasi #${negosiasi.id} · Pengajuan #${invoice.detail_pengajuan.id}</small>
         </td>
         <td style="padding:12px 16px;text-align:right;border-bottom:1px solid #eee;font-weight:500;">
-          ${Helpers.formatRupiah(subtotal)}
+          ${formatRupiah(subtotal)}
         </td>
       </tr>`;
 
@@ -77,14 +77,14 @@ const sendInvoiceEmail = async (to, nama, invoice, negosiasi = {}) => {
       nama,
       invoiceNumber: invNumber,
       invoiceUrl: `${process.env.FRONTEND_URL}/investor/invoice/${invoice.id}`,
-      tanggalInvoice: Helpers.formatDate(invoice.created_at),
-      jatuhTempo: Helpers.formatDate(invoice.tenggat_waktu),
+      tanggalInvoice: formatDate(invoice.created_at),
+      jatuhTempo: formatDate(invoice.tenggat_waktu),
       companyName: process.env.SMTP_FROM_NAME || "Kelpstones",
-      items, // string HTML <tr>...</tr>
-      subtotal: Helpers.formatRupiah(subtotal),
-      diskon: Helpers.formatRupiah(0), // belum ada field diskon di schema
-      ppn: `${ppnRate.toFixed(0)}% — ${Helpers.formatRupiah(ppnAmount)}`,
-      totalAkhir: Helpers.formatRupiah(totalAkhir),
+      items,
+      subtotal: formatRupiah(subtotal),
+      diskon: formatRupiah(0),
+      ppn: `${ppnRate.toFixed(0)}% — ${formatRupiah(ppnAmount)}`,
+      totalAkhir: formatRupiah(totalAkhir),
       metodePembayaran: invoice.kode_pembayaran,
       emailSupport: process.env.SUPPORT_EMAIL || "support@kelpstones.id",
       alamatPerusahaan: process.env.COMPANY_ADDRESS || "Jakarta, Indonesia",
@@ -94,7 +94,7 @@ const sendInvoiceEmail = async (to, nama, invoice, negosiasi = {}) => {
     const info = await transporter.sendMail({
       from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_USER}>`,
       to,
-      subject: `[${invNumber}] Invoice Investasi — Jatuh Tempo ${Helpers.formatDate(invoice.tenggat_waktu)}`,
+      subject: `[${invNumber}] Invoice Investasi — Jatuh Tempo ${formatDate(invoice.tenggat_waktu)}`,
       html,
     });
 
