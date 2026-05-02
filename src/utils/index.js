@@ -3,6 +3,7 @@ const ResponseHelper = require("./response");
 const NotificationHelper = require("./notifications");
 const JwtUtils = require("./JWT");
 const VerifyEmail = require("./mailer");
+const Loader = require("./loadTemplate");
 
 module.exports = {
   BcryptUtils,
@@ -10,4 +11,5 @@ module.exports = {
   NotificationHelper,
   JwtUtils,
   VerifyEmail,
+  Loader,
 };

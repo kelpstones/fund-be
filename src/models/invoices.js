@@ -5,7 +5,7 @@ class Invoices extends BaseModel {
     super("invoices");
   }
 
-  #formatResponse(row) {
+  #formatResponse(row, trx = this.knex) {
     if (!row) return null;
     return {
       id: row.id,
@@ -30,8 +30,8 @@ class Invoices extends BaseModel {
     };
   }
 
-  #baseQuery() {
-    return this.knex(this.tableName)
+  #baseQuery(trx = this.knex) {
+    return trx(this.tableName)
       .select(
         "invoices.*",
         "bisnis.nama_bisnis",
@@ -49,9 +49,17 @@ class Invoices extends BaseModel {
       .leftJoin("negosiasis", "invoices.negosiasi_id", "negosiasis.id");
   }
 
-  async createInvoice(id_negosiasi, pengajuan_id, investor_id, nominal_tagihan, kode_pembayaran, tenggat_waktu) {
+  async createInvoice(
+    id_negosiasi,
+    pengajuan_id,
+    investor_id,
+    nominal_tagihan,
+    kode_pembayaran,
+    tenggat_waktu,
+    trx = this.knex,
+  ) {
     try {
-      const [row] = await this.knex(this.tableName)
+      const [row] = await trx(this.tableName)
         .insert({
           negosiasi_id: id_negosiasi,
           pengajuan_id,
@@ -62,41 +70,57 @@ class Invoices extends BaseModel {
           status: "pending",
         })
         .returning("*");
-      return this.#formatResponse(row);
+      return this.#formatResponse(row, trx);
     } catch (error) {
       throw error;
     }
   }
 
-  async getAllInvoices(page = 1, limit = 10, startDate, endDate, status) {
+  async getAllInvoices(
+    page = 1,
+    limit = 10,
+    startDate,
+    endDate,
+    status,
+    trx = this.knex,
+  ) {
     try {
-      let query = this.#baseQuery();
-      if (startDate && endDate) query = query.whereBetween("invoices.created_at", [startDate, endDate]);
+      let query = this.#baseQuery(trx);
+      if (startDate && endDate)
+        query = query.whereBetween("invoices.created_at", [startDate, endDate]);
       if (status) query = query.where("invoices.status", status);
 
       const results = await query
         .orderBy("invoices.created_at", "desc")
         .limit(limit)
         .offset((page - 1) * limit);
-      return results.map((row) => this.#formatResponse(row));
+      return results.map((row) => this.#formatResponse(row, trx));
     } catch (error) {
       throw error;
     }
   }
 
-  async getInvoiceById(id) {
+  async getInvoiceById(id, trx = this.knex) {
     try {
-      const row = await this.#baseQuery().where("invoices.id", id).first();
-      return this.#formatResponse(row);
+      const row = await this.#baseQuery(trx).where("invoices.id", id).first();
+      return this.#formatResponse(row, trx);
     } catch (error) {
       throw error;
     }
   }
 
-  async getInvoicesByInvestor(investor_id, page = 1, limit = 10, status, startDate, endDate) {
+  async getInvoicesByInvestor(
+    investor_id,
+    page = 1,
+    limit = 10,
+    status,
+    startDate,
+    endDate,
+  ) {
     try {
       let query = this.#baseQuery().where("invoices.investor_id", investor_id);
-      if (startDate && endDate) query = query.whereBetween("invoices.created_at", [startDate, endDate]);
+      if (startDate && endDate)
+        query = query.whereBetween("invoices.created_at", [startDate, endDate]);
       if (status) query = query.where("invoices.status", status);
 
       const results = await query

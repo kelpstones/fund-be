@@ -18,6 +18,7 @@ exports.up = function (knex) {
     table.integer("investor_id").unsigned().notNullable();
     table.foreign("investor_id").references("users.id").onDelete("CASCADE");
     table.bigint("nominal_tagihan", 20, 2).unsigned().notNullable();
+    table.bigint("ppn", 20, 2).unsigned().defaultTo(1100).notNullable();
     table.string("kode_pembayaran", 100).notNullable();
     table.timestamp("tenggat_waktu").notNullable();
     table

@@ -42,9 +42,8 @@ class Negosiasis extends BaseModel {
     };
   }
 
-  #baseQuery() {
-    const knex = this.knex;
-    return knex(this.tableName)
+  #baseQuery(trx = this.knex) {
+    return trx(this.tableName)
       .select(
         "negosiasis.id",
         "negosiasis.status",
@@ -60,9 +59,9 @@ class Negosiasis extends BaseModel {
         "bisnis.id as bisnis_id",
         "bisnis.nama_bisnis",
         "bisnis.user_id as bisnis_user_id",
-        knex.raw("l.penawaran_return as last_penawaran_return"),
-        knex.raw("l.catatan as last_catatan"),
-        knex.raw("l.penawaran_nominal as last_penawaran_nominal"),
+        trx.raw("l.penawaran_return as last_penawaran_return"),
+        trx.raw("l.catatan as last_catatan"),
+        trx.raw("l.penawaran_nominal as last_penawaran_nominal"),
       )
       .join("pengajuans", "negosiasis.pengajuans_id", "pengajuans.id")
       .join("bisnis", "pengajuans.bisnis_id", "bisnis.id")
@@ -72,16 +71,22 @@ class Negosiasis extends BaseModel {
         this.on("negosiasis.id", "l.negosiasi_id").andOn(
           "l.created_at",
           "=",
-          knex.raw(
+          trx.raw(
             "(SELECT MAX(created_at) FROM log_negosiasis WHERE negosiasi_id = negosiasis.id)",
           ),
         );
       });
   }
 
-  async createNegosiasi(pengajuans_id, investor_id, status, id_terakhir_oleh) {
+  async createNegosiasi(
+    pengajuans_id,
+    investor_id,
+    status,
+    id_terakhir_oleh,
+    trx = this.knex,
+  ) {
     try {
-      const [row] = await this.knex(this.tableName)
+      const [row] = await trx(this.tableName)
         .insert({ pengajuans_id, investor_id, status, id_terakhir_oleh })
         .returning("*");
       return this.#formatResponse(row);
@@ -103,10 +108,10 @@ class Negosiasis extends BaseModel {
     }
   }
 
-  async getNegosiasiById(id) {
+  async getNegosiasiById(id, trx = this.knex) {
     try {
-      const row = await this.#baseQuery().where("negosiasis.id", id).first();
-      return this.#formatResponse(row);
+      const row = await this.#baseQuery(trx).where("negosiasis.id", id).first();
+      return this.#formatResponse(row, trx);
     } catch (error) {
       throw error;
     }
@@ -114,8 +119,10 @@ class Negosiasis extends BaseModel {
 
   async getNegosiasiByPengajuanId(pengajuans_id) {
     try {
-      const results = await this.#baseQuery()
-        .where("negosiasis.pengajuans_id", pengajuans_id);
+      const results = await this.#baseQuery().where(
+        "negosiasis.pengajuans_id",
+        pengajuans_id,
+      );
       return results.map((row) => this.#formatResponse(row));
     } catch (error) {
       throw error;
@@ -124,7 +131,8 @@ class Negosiasis extends BaseModel {
 
   async getNegosiasiByUserId(user_id, role) {
     try {
-      const column = role === "investor" ? "negosiasis.investor_id" : "bisnis.user_id";
+      const column =
+        role === "investor" ? "negosiasis.investor_id" : "bisnis.user_id";
       const results = await this.#baseQuery().where(column, user_id);
       return results.map((row) => this.#formatResponse(row));
     } catch (error) {
@@ -132,18 +140,20 @@ class Negosiasis extends BaseModel {
     }
   }
 
-  async updateNegosiasi(id, status, id_terakhir_oleh) {
+  async updateNegosiasi(id, status, id_terakhir_oleh, trx = this.knex) {
     try {
-      await this.knex(this.tableName).where({ id }).update({ status, id_terakhir_oleh });
-      return await this.getNegosiasiById(id);
+      await trx(this.tableName)
+        .where({ id })
+        .update({ status, id_terakhir_oleh });
+      return await this.getNegosiasiById(id, trx);
     } catch (error) {
       throw error;
     }
   }
 
-  async deleteNegosiasi(id) {
+  async deleteNegosiasi(id, trx = this.knex) {
     try {
-      await this.knex(this.tableName).where({ id }).del();
+      await trx(this.tableName).where({ id }).del();
       return { message: "Negosiasi berhasil dihapus" };
     } catch (error) {
       throw error;

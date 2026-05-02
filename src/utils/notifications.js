@@ -115,9 +115,7 @@ exports.notifyReplyNegotiation = async (
   }
 };
 
-exports.notifyDistributionProfit = async (
- data
-) => {
+exports.notifyDistributionProfit = async (data) => {
   try {
     const title = "Profit Distribution Available";
     const message = `A new profit distribution of ${data.nominal_profit} is available for your investment in period ${data.periode}. Please check your dashboard for details.`;

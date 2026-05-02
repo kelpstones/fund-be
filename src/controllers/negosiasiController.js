@@ -236,7 +236,7 @@ class NegotiationController {
       const { id: negosiasi_id } = req.params;
       const { catatan } = req.body;
       const { id: user_id, role_name } = req.user;
-      
+
       const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id);
       if (!negosiasi || negosiasi.status !== "active") {
         await trx.rollback();
@@ -258,13 +258,15 @@ class NegotiationController {
       const lastLog =
         await log_negosiasis.getLastLogByNegosiasiId(negosiasi_id);
 
-      await Negosiasis.updateNegosiasi(negosiasi_id, "deal", user_id);
+      await Negosiasis.updateNegosiasi(negosiasi_id, "deal", user_id, trx);
 
       const kodePembayaran = `PAY-${Date.now()}`;
       const deadline = new Date();
       deadline.setHours(
         deadline.getHours() + parseInt(process.env.INVOICE_EXPIRY_HOURS || 24),
       );
+
+
 
       const invoice = await invoices.createInvoice(
         negosiasi_id,
@@ -273,20 +275,24 @@ class NegotiationController {
         lastLog.penawaran_nominal,
         kodePembayaran,
         deadline,
+        trx,
       );
 
-      
-      const investasi = await Investasi.createInvestasi({
-        investor_id: negosiasi.investor.id,
-        pengajuans_id: negosiasi.pengajuan.id,
-        negosiasi_id: negosiasi_id,
-        nominal_investasi: lastLog.penawaran_nominal,
-        return_investasi: lastLog.penawaran_return,
-      });
+      const investasi = await Investasi.createInvestasi(
+        {
+          investor_id: negosiasi.investor.id,
+          pengajuans_id: negosiasi.pengajuan.id,
+          negosiasi_id: negosiasi_id,
+          nominal_investasi: lastLog.penawaran_nominal,
+          return_investasi: lastLog.penawaran_return,
+        },
+        trx,
+      );
 
       await pengajuans.updatePengajuanTotalPendanaan(
         negosiasi.pengajuan.id,
         lastLog.penawaran_nominal,
+        trx,
       );
 
       await trx.commit();
@@ -299,6 +305,8 @@ class NegotiationController {
         "deal",
         catatan,
       );
+
+
 
       return responseHelper.success(res, "Negotiation accepted successfully", {
         negosiasi: await Negosiasis.getNegosiasiById(negosiasi_id),
