@@ -29,9 +29,9 @@ class InvestasiController {
 
   async getInvestasiByPengajuanId(req, res) {
     try {
-      const { pengajuans_id } = req.params;
-      console.log("Pengajuans ID:", pengajuans_id); // Debugging log
-      const { page = 1, limit = 10 } = req.query;
+      // const { pengajuans_id } = req.query;
+      // console.log("Pengajuans ID:", pengajuans_id); // Debugging log
+      const { page = 1, limit = 10, pengajuans_id } = req.query;
       const investasiList = await investasi.getInvestasiByPengajuanId(
         pengajuans_id,
         page,

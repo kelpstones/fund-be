@@ -141,10 +141,20 @@ class InvoicesController {
         trx,
       );
       await trx.commit();
+
+      const data = {
+        invoice: updatedInvoice,
+        pengajuan: {
+          id: pengajuan.id,
+          total_pendanaan: totalDanaBaru,
+          status: statusBaru,
+        },
+      };
+
       return ResponseHelper.success(
         res,
         "Invoice paid successfully",
-        updatedInvoice,
+        data,
       );
     } catch (error) {
       console.error(error);
