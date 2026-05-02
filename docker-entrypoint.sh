@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e
+
 
 echo "⏳ Waiting for database..."
 until npx knex migrate:latest; do

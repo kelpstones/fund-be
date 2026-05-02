@@ -14,7 +14,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-    command: npx nodemon src/app.js
+    entrypoint: ["sh", "-c", "sed -i 's/\\r//' /app/docker-entrypoint.sh && sh /app/docker-entrypoint.sh"]
     networks:
       - fund_network
 
