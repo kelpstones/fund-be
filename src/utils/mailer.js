@@ -2,6 +2,7 @@ const nodemailer = require("nodemailer");
 const fs = require("fs");
 const path = require("path");
 const Loader = require("./loadTemplate");
+const { Helpers } = require(".");
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: parseInt(process.env.SMTP_PORT),
@@ -52,33 +53,51 @@ const sendPasswordResetEmail = async (to, nama, token) => {
   }
 };
 
-const sendInvoiceEmail = async (to, nama, data) => {
+const sendInvoiceEmail = async (to, nama, invoice, negosiasi = {}) => {
   try {
+    const subtotal = parseFloat(invoice.nominal_tagihan);
+    const ppnRate = parseFloat(invoice.ppn);
+    const ppnAmount = subtotal * (ppnRate / 100);
+    const totalAkhir = subtotal + ppnAmount;
+    const invNumber = "INV-" + String(invoice.id).padStart(4, "0");
+
+    // Satu baris item sebagai string HTML (sesuai kontrak Loader)
+    const items = `
+      <tr>
+        <td style="padding:12px 16px;border-bottom:1px solid #eee;">
+          Investasi Dana — ${negosiasi.nama_usaha || "Seri A"}<br/>
+          <small style="color:#999;">Negosiasi #${invoice.negosiasi_id} · Pengajuan #${invoice.pengajuan_id}</small>
+        </td>
+        <td style="padding:12px 16px;text-align:right;border-bottom:1px solid #eee;font-weight:500;">
+          ${Helpers.formatRupiah(subtotal)}
+        </td>
+      </tr>`;
+
     const html = Loader.loadTemplate("invoice", {
-      nama: nama,
-      invoiceUrl: data.invoiceUrl,
-      nomorInvoice: data.nomorInvoice,
-      tanggal: data.tanggal,
-      tanggalInvoice: data.tanggalInvoice,
-      jatuhTempo: data.jatuhTempo,
-      metodePembayaran: "Transfer Bank",
-      subtotal: "Rp 12.250.000",
-      ppn: "Rp 1.347.500",
-      diskon: "Rp 500.000",
-      totalAkhir: "Rp 13.097.500",
-      items: `<tr><td>Layanan Web</td><td style="text-align:center;">1</td><td>Rp 12.250.000</td></tr>`,
-      companyName: "PT. Nama Kamu",
-      emailSupport: "support@email.com",
-      alamatPerusahaan: "Jl. Contoh, Depok",
+      nama,
+      invoiceNumber: invNumber,
+      invoiceUrl: `${process.env.FRONTEND_URL}/investor/invoice/${invoice.id}`,
+      tanggalInvoice: Helpers.formatDate(invoice.created_at),
+      jatuhTempo: Helpers.formatDate(invoice.tenggat_waktu),
+      companyName: process.env.SMTP_FROM_NAME || "Kelpstones",
+      items, // string HTML <tr>...</tr>
+      subtotal: Helpers.formatRupiah(subtotal),
+      diskon: Helpers.formatRupiah(0), // belum ada field diskon di schema
+      ppn: `${ppnRate.toFixed(0)}% — ${Helpers.formatRupiah(ppnAmount)}`,
+      totalAkhir: Helpers.formatRupiah(totalAkhir),
+      metodePembayaran: invoice.kode_pembayaran,
+      emailSupport: process.env.SUPPORT_EMAIL || "support@kelpstones.id",
+      alamatPerusahaan: process.env.COMPANY_ADDRESS || "Jakarta, Indonesia",
       unsubscribeUrl: "#",
     });
 
     const info = await transporter.sendMail({
       from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_USER}>`,
       to,
-      subject: "Invoice Pembayaran",
+      subject: `[${invNumber}] Invoice Investasi — Jatuh Tempo ${Helpers.formatDate(invoice.tenggat_waktu)}`,
       html,
     });
+
     console.log("Invoice email sent:", info.messageId);
     return info;
   } catch (error) {

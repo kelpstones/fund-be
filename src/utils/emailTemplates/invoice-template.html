@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invoice Template</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ─── */
+:root {
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-body: 'Inter', 'Helvetica Neue', sans-serif;
+  --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+  --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+  --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+  --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem;
+  --space-4: 1rem; --space-5: 1.25rem; --space-6: 1.5rem;
+  --space-8: 2rem; --space-10: 2.5rem; --space-12: 3rem;
+  --space-16: 4rem;
+  --radius-sm: 0.375rem; --radius-md: 0.5rem;
+  --radius-lg: 0.75rem; --radius-xl: 1rem; --radius-full: 9999px;
+  --transition: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root, [data-theme="light"] {
+  --color-bg: #f7f6f2;
+  --color-surface: #ffffff;
+  --color-surface-2: #f9f8f5;
+  --color-surface-offset: #f3f0ec;
+  --color-divider: #e8e5e0;
+  --color-border: #d4d1ca;
+  --color-text: #1a1814;
+  --color-text-muted: #6b6965;
+  --color-text-faint: #b0aea9;
+  --color-text-inverse: #f9f8f4;
+  --color-primary: #01696f;
+  --color-primary-hover: #0c4e54;
+  --color-primary-highlight: #e8f2f1;
+  --color-success: #437a22;
+  --color-success-highlight: #edf5e7;
+  --color-warning: #964219;
+  --color-warning-highlight: #fdf0e8;
+  --shadow-sm: 0 1px 2px oklch(0.2 0.01 80 / 0.06);
+  --shadow-md: 0 4px 16px oklch(0.2 0.01 80 / 0.08);
+  --shadow-lg: 0 12px 40px oklch(0.2 0.01 80 / 0.12);
+}
+
+[data-theme="dark"] {
+  --color-bg: #141312;
+  --color-surface: #1c1b19;
+  --color-surface-2: #201f1d;
+  --color-surface-offset: #252320;
+  --color-divider: #2e2c29;
+  --color-border: #3a3835;
+  --color-text: #d4d2cf;
+  --color-text-muted: #7a7876;
+  --color-text-faint: #4f4e4c;
+  --color-text-inverse: #1a1814;
+  --color-primary: #4f98a3;
+  --color-primary-hover: #6ab5bf;
+  --color-primary-highlight: #1e3033;
+  --color-success: #6daa45;
+  --color-success-highlight: #1e2e16;
+  --color-warning: #bb653b;
+  --color-warning-highlight: #2e1c10;
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.25);
+  --shadow-md: 0 4px 16px oklch(0 0 0 / 0.35);
+  --shadow-lg: 0 12px 40px oklch(0 0 0 / 0.45);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  background: var(--color-bg);
+  min-height: 100dvh;
+  padding: var(--space-8) var(--space-4);
+  transition: background var(--transition), color var(--transition);
+}
+
+/* ─── TOOLBAR ─── */
+.toolbar {
+  max-width: 800px;
+  margin: 0 auto var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.toolbar-brand {
+  display: flex; align-items: center; gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.toolbar-actions { display: flex; gap: var(--space-2); align-items: center; }
+.btn {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+.btn-primary:hover { background: var(--color-primary-hover); }
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+}
+.btn-ghost:hover { background: var(--color-surface-offset); color: var(--color-text); }
+.btn-icon {
+  padding: var(--space-2);
+  background: transparent;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--transition), color var(--transition);
+}
+.btn-icon:hover { background: var(--color-surface-offset); color: var(--color-text); }
+
+/* ─── INVOICE CARD ─── */
+.invoice-wrap {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.invoice {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+/* Header */
+.invoice-header {
+  background: var(--color-primary);
+  padding: var(--space-10) var(--space-10);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: var(--space-8);
+}
+.invoice-brand { display: flex; flex-direction: column; gap: var(--space-3); }
+.brand-logo {
+  display: flex; align-items: center; gap: var(--space-3);
+}
+.brand-name {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  color: var(--color-text-inverse);
+  line-height: 1;
+  font-style: italic;
+}
+.brand-tagline {
+  font-size: var(--text-xs);
+  color: oklch(from var(--color-text-inverse) l c h / 0.6);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.invoice-label-block { text-align: right; }
+.invoice-word {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--color-text-inverse);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.invoice-number {
+  font-size: var(--text-xs);
+  color: oklch(from var(--color-text-inverse) l c h / 0.65);
+  margin-top: var(--space-1);
+  letter-spacing: 0.05em;
+}
+.invoice-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  margin-top: var(--space-2);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.badge-unpaid {
+  background: oklch(from var(--color-text-inverse) l c h / 0.15);
+  color: var(--color-text-inverse);
+}
+
+/* Body */
+.invoice-body { padding: var(--space-8) var(--space-10); }
+
+/* Meta row */
+.invoice-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-6);
+  padding-bottom: var(--space-8);
+  border-bottom: 1px solid var(--color-divider);
+  margin-bottom: var(--space-8);
+}
+.meta-block { display: flex; flex-direction: column; gap: var(--space-1); }
+.meta-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+.meta-value {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  font-weight: 500;
+}
+.meta-value.editable {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  padding: 0;
+  font-family: var(--font-body);
+}
+.meta-value.editable:focus {
+  background: var(--color-primary-highlight);
+  border-radius: var(--radius-sm);
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
+
+/* Party section */
+.invoice-parties {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-8);
+  padding-bottom: var(--space-8);
+  border-bottom: 1px solid var(--color-divider);
+  margin-bottom: var(--space-8);
+}
+.party-block {}
+.party-title {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-3);
+}
+.party-name {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--space-1);
+}
+.party-detail {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.8;
+}
+.editable-field {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: var(--font-body);
+  color: inherit;
+  width: 100%;
+}
+.editable-field:focus {
+  background: var(--color-primary-highlight);
+  border-radius: var(--radius-sm);
+  padding: 1px 4px;
+  margin: 0 -4px;
+}
+
+/* Items table */
+.items-section { margin-bottom: var(--space-8); }
+.items-header {
+  display: grid;
+  grid-template-columns: 1fr 80px 110px 120px;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface-offset);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-2);
+}
+.items-header span {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-faint);
+}
+.items-header span:not(:first-child) { text-align: right; }
+
+.item-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 110px 120px;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-divider);
+  align-items: center;
+  transition: background var(--transition);
+}
+.item-row:hover { background: var(--color-surface-2); border-radius: var(--radius-md); }
+.item-row:last-child { border-bottom: none; }
+
+.item-name {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text);
+}
+.item-desc {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+.item-cell {
+  text-align: right;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.item-cell.editable-field {
+  text-align: right;
+}
+
+.add-item-row {
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.btn-add-item {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--text-xs);
+  color: var(--color-primary);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  transition: background var(--transition);
+  font-family: var(--font-body);
+}
+.btn-add-item:hover { background: var(--color-primary-highlight); }
+
+/* Summary */
+.invoice-summary {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-8);
+}
+.summary-box {
+  width: 280px;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  border: 1px solid var(--color-divider);
+}
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+  font-size: var(--text-sm);
+}
+.summary-row + .summary-row { border-top: 1px solid var(--color-divider); }
+.summary-label { color: var(--color-text-muted); }
+.summary-value { font-variant-numeric: tabular-nums; font-weight: 500; }
+
+.summary-row.ppn-row { }
+.ppn-control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.ppn-input {
+  width: 44px;
+  text-align: right;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--space-2);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.ppn-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-highlight);
+}
+.ppn-symbol {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.summary-divider { border: none; border-top: 2px solid var(--color-text); margin: var(--space-2) 0; }
+.summary-row.total-row {
+  padding-top: var(--space-3);
+}
+.summary-row.total-row .summary-label {
+  font-weight: 700;
+  font-size: var(--text-base);
+  color: var(--color-text);
+}
+.summary-row.total-row .summary-value {
+  font-weight: 700;
+  font-size: var(--text-base);
+  color: var(--color-primary);
+}
+
+/* Notes */
+.invoice-notes {
+  background: var(--color-surface-offset);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-8);
+}
+.notes-label {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-2);
+}
+.notes-text {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: 1.7;
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  resize: none;
+  font-family: var(--font-body);
+  min-height: 60px;
+}
+.notes-text:focus {
+  background: var(--color-primary-highlight);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  margin: calc(-1 * var(--space-2));
+}
+
+/* Footer */
+.invoice-footer {
+  padding: var(--space-6) var(--space-10);
+  border-top: 1px solid var(--color-divider);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-surface-2);
+}
+.footer-bank {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.footer-bank-label {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-faint);
+  font-weight: 600;
+}
+.footer-bank-detail {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.8;
+}
+.footer-thanks {
+  text-align: right;
+}
+.footer-thanks-text {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--text-lg);
+  color: var(--color-primary);
+}
+.footer-thanks-sub {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  margin-top: var(--space-1);
+}
+
+/* ─── PRINT ─── */
+@media print {
+  body { padding: 0; background: white; }
+  .toolbar { display: none !important; }
+  .invoice-wrap { max-width: 100%; }
+  .invoice { border-radius: 0; box-shadow: none; }
+  .invoice-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .btn-add-item { display: none; }
+  .item-row { break-inside: avoid; }
+  .ppn-input { border: none; appearance: none; background: transparent; }
+  [data-theme="dark"] {
+    --color-bg: white;
+    --color-surface: white;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Toolbar -->
+<div class="toolbar" id="toolbar">
+  <div class="toolbar-brand">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-label="Invoice icon">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14,2 14,8 20,8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/>
+      <line x1="16" y1="17" x2="8" y2="17"/>
+      <polyline points="10,9 9,9 8,9"/>
+    </svg>
+    Invoice Template — Klik teks untuk edit
+  </div>
+  <div class="toolbar-actions">
+    <button class="btn-icon" onclick="toggleTheme()" id="themeBtn" aria-label="Toggle dark mode">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="btn btn-ghost" onclick="window.print()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 6,2 18,2 18,9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print / PDF
+    </button>
+    <button class="btn btn-primary" onclick="downloadPDF()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download PDF
+    </button>
+  </div>
+</div>
+
+<!-- Invoice -->
+<div class="invoice-wrap" id="invoiceArea">
+<article class="invoice" role="main" aria-label="Invoice document">
+
+  <!-- Header -->
+  <header class="invoice-header">
+    <div class="invoice-brand">
+      <div class="brand-logo">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-label="Company logo">
+          <rect width="36" height="36" rx="8" fill="rgba(255,255,255,0.15)"/>
+          <path d="M10 26 L18 10 L26 26" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M13 21 L23 21" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span class="brand-name" contenteditable="true" spellcheck="false">Nama Perusahaan</span>
+      </div>
+      <span class="brand-tagline" contenteditable="true" spellcheck="false">Tagline perusahaan Anda</span>
+    </div>
+    <div class="invoice-label-block">
+      <div class="invoice-word">INVOICE</div>
+      <div class="invoice-number" contenteditable="true" spellcheck="false">#INV-2026-001</div>
+      <div>
+        <span class="invoice-status-badge badge-unpaid" id="statusBadge">● Belum Lunas</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Body -->
+  <div class="invoice-body">
+
+    <!-- Meta -->
+    <div class="invoice-meta">
+      <div class="meta-block">
+        <span class="meta-label">Tanggal Invoice</span>
+        <input type="date" class="meta-value editable" id="invoiceDate" value="2026-05-02" style="cursor:pointer;">
+      </div>
+      <div class="meta-block">
+        <span class="meta-label">Jatuh Tempo</span>
+        <input type="date" class="meta-value editable" id="dueDate" value="2026-05-16" style="cursor:pointer;">
+      </div>
+      <div class="meta-block">
+        <span class="meta-label">Status</span>
+        <select class="meta-value editable" id="statusSelect" style="cursor:pointer;" onchange="updateStatus(this.value)">
+          <option value="unpaid">Belum Lunas</option>
+          <option value="paid">Lunas</option>
+          <option value="partial">Sebagian</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Parties -->
+    <div class="invoice-parties">
+      <div class="party-block">
+        <div class="party-title">Dari</div>
+        <div class="party-name" contenteditable="true" spellcheck="false">Nama Perusahaan Anda</div>
+        <div class="party-detail">
+          <input class="editable-field" placeholder="Alamat lengkap" style="display:block; font-size: var(--text-xs); color: var(--color-text-muted);"><br>
+          <input class="editable-field" placeholder="Kota, Provinsi, Kode Pos" style="display:block; font-size: var(--text-xs); color: var(--color-text-muted);"><br>
+          <input class="editable-field" placeholder="email@perusahaan.com" style="display:block; font-size: var(--text-xs); color: var(--color-text-muted);"><br>
+          <input class="editable-field" placeholder="+62 812 0000 0000" style="display:block; font-size: var(--text-xs); color: var(--color-text-muted);">
+        </div>
+      </div>
+      <div class="party-block">
+        <div class="party-title">Kepada</div>
+        <div class="party-name" contenteditable="true" spellcheck="false">Nama Klien / Perusahaan</div>
+        <div class="party-detail">
+          <input class="editable-field" placeholder="Alamat lengkap klien" style="display:block; font-size: var(--text-xs); color: var(--color-text-muted);"><br>
+          <input class="editable-field" placeholder="Kota, Provinsi, Kode Pos" style="display:block; font-size: var(--text-xs); color: var(--color-text-muted);"><br>
+          <input class="editable-field" placeholder="email@klien.com" style="display:block; font-size: var(--text-xs); color: var(--color-text-muted);"><br>
+          <input class="editable-field" placeholder="+62 812 1111 1111" style="display:block; font-size: var(--text-xs); color: var(--color-text-muted);">
+        </div>
+      </div>
+    </div>
+
+    <!-- Items Table -->
+    <div class="items-section">
+      <div class="items-header">
+        <span>Deskripsi</span>
+        <span>Qty</span>
+        <span>Harga Satuan</span>
+        <span>Total</span>
+      </div>
+      <div id="itemsBody">
+        <!-- Item rows injected by JS -->
+      </div>
+      <div class="add-item-row">
+        <button class="btn-add-item" onclick="addItem()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Tambah Item
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="invoice-summary">
+      <div class="summary-box">
+        <div class="summary-row">
+          <span class="summary-label">Subtotal</span>
+          <span class="summary-value" id="subtotalDisplay">Rp 0</span>
+        </div>
+        <div class="summary-row ppn-row">
+          <div class="ppn-control">
+            <span class="summary-label">PPN</span>
+            <input type="number" class="ppn-input" id="ppnRate" value="11" min="0" max="100" step="1" oninput="recalc()">
+            <span class="ppn-symbol">%</span>
+          </div>
+          <span class="summary-value" id="ppnDisplay">Rp 0</span>
+        </div>
+        <hr class="summary-divider">
+        <div class="summary-row total-row">
+          <span class="summary-label">TOTAL</span>
+          <span class="summary-value" id="totalDisplay">Rp 0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="invoice-notes">
+      <div class="notes-label">Catatan</div>
+      <textarea class="notes-text" placeholder="Tambahkan catatan pembayaran, syarat & ketentuan, atau pesan untuk klien...">Pembayaran mohon dilakukan dalam 14 hari setelah invoice diterima. Terima kasih atas kepercayaan Anda.</textarea>
+    </div>
+
+  </div><!-- /invoice-body -->
+
+  <!-- Footer -->
+  <footer class="invoice-footer">
+    <div class="footer-bank">
+      <div class="footer-bank-label">Informasi Pembayaran</div>
+      <div class="footer-bank-detail">
+        <input class="editable-field" placeholder="Bank: BCA / Mandiri / BNI" style="display:block; font-size: var(--text-xs); color: var(--color-text-muted);">
+        <input class="editable-field" placeholder="No. Rekening: 1234 5678 9012" style="display:block; font-size: var(--text-xs); color: var(--color-text-muted);">
+        <input class="editable-field" placeholder="A/N: Nama Pemilik Rekening" style="display:block; font-size: var(--text-xs); color: var(--color-text-muted);">
+      </div>
+    </div>
+    <div class="footer-thanks">
+      <div class="footer-thanks-text">Terima Kasih</div>
+      <div class="footer-thanks-sub" contenteditable="true" spellcheck="false">Semoga kerjasama kita terus berlanjut.</div>
+    </div>
+  </footer>
+
+</article>
+</div><!-- /invoice-wrap -->
+
+<script>
+// ─── DATA ───
+let items = [
+  { name: "Jasa Pengembangan Web", desc: "Frontend & Backend development", qty: 1, price: 5000000 },
+  { name: "Desain UI/UX", desc: "Wireframe, mockup, dan prototype", qty: 1, price: 2500000 },
+  { name: "Konsultasi Teknis", desc: "2 sesi × 2 jam", qty: 2, price: 750000 },
+];
+
+// ─── THEME ───
+(function(){
+  const html = document.documentElement;
+  const isDark = matchMedia("(prefers-color-scheme: dark)").matches;
+  html.setAttribute("data-theme", isDark ? "dark" : "light");
+  updateThemeIcon(isDark ? "dark" : "light");
+})();
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute("data-theme");
+  const next = current === "dark" ? "light" : "dark";
+  html.setAttribute("data-theme", next);
+  updateThemeIcon(next);
+}
+
+function updateThemeIcon(theme) {
+  const btn = document.getElementById("themeBtn");
+  if (!btn) return;
+  btn.innerHTML = theme === "dark"
+    ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`
+    : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+}
+
+// ─── STATUS ───
+function updateStatus(val) {
+  const badge = document.getElementById("statusBadge");
+  const map = {
+    unpaid: { text: "● Belum Lunas", cls: "badge-unpaid" },
+    paid:   { text: "✓ Lunas",        cls: "badge-paid" },
+    partial:{ text: "◐ Sebagian",     cls: "badge-partial" },
+  };
+  badge.textContent = map[val].text;
+  badge.className = "invoice-status-badge badge-unpaid";
+}
+
+// ─── FORMAT ───
+function fmt(n) {
+  return "Rp " + Math.round(n).toLocaleString("id-ID");
+}
+
+// ─── RECALC ───
+function recalc() {
+  const subtotal = items.reduce((s, item) => s + (item.qty * item.price), 0);
+  const ppnRate  = parseFloat(document.getElementById("ppnRate").value) || 0;
+  const ppn      = subtotal * ppnRate / 100;
+  const total    = subtotal + ppn;
+  document.getElementById("subtotalDisplay").textContent = fmt(subtotal);
+  document.getElementById("ppnDisplay").textContent      = fmt(ppn);
+  document.getElementById("totalDisplay").textContent    = fmt(total);
+}
+
+// ─── RENDER ITEMS ───
+function renderItems() {
+  const body = document.getElementById("itemsBody");
+  body.innerHTML = items.map((item, i) => `
+    <div class="item-row" id="row-${i}">
+      <div>
+        <div class="item-name">
+          <input class="editable-field item-name-input" value="${item.name}" 
+            oninput="items[${i}].name=this.value" 
+            style="font-weight:500; font-size: var(--text-sm);" placeholder="Nama item">
+        </div>
+        <div class="item-desc">
+          <input class="editable-field" value="${item.desc}" 
+            oninput="items[${i}].desc=this.value"
+            style="font-size: var(--text-xs); color: var(--color-text-muted);" placeholder="Deskripsi">
+        </div>
+      </div>
+      <div class="item-cell">
+        <input class="editable-field item-cell" type="number" value="${item.qty}" min="1"
+          oninput="items[${i}].qty=parseFloat(this.value)||1; recalc();"
+          style="width:60px; text-align:right; font-variant-numeric: tabular-nums;">
+      </div>
+      <div class="item-cell">
+        <input class="editable-field item-cell" type="number" value="${item.price}" min="0"
+          oninput="items[${i}].price=parseFloat(this.value)||0; recalc();"
+          style="width:100px; text-align:right; font-variant-numeric: tabular-nums;">
+      </div>
+      <div class="item-cell" style="display:flex; align-items:center; justify-content:flex-end; gap: var(--space-2);">
+        <span id="row-total-${i}">${fmt(item.qty * item.price)}</span>
+        <button onclick="removeItem(${i})" style="background:none;border:none;cursor:pointer;color:var(--color-text-faint);padding:2px;line-height:1;" title="Hapus item" aria-label="Hapus item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join("");
+
+  // Live update row totals as user edits qty/price
+  items.forEach((_, i) => {
+    const qtyEl   = document.querySelector(`#row-${i} input[type=number]:nth-of-type(1)`);
+    const priceEl = document.querySelector(`#row-${i} input[type=number]:nth-of-type(2)`);
+    if (qtyEl && priceEl) {
+      const update = () => {
+        const t = (parseFloat(qtyEl.value)||1) * (parseFloat(priceEl.value)||0);
+        document.getElementById(`row-total-${i}`).textContent = fmt(t);
+        recalc();
+      };
+      qtyEl.addEventListener("input", update);
+      priceEl.addEventListener("input", update);
+    }
+  });
+
+  recalc();
+}
+
+function addItem() {
+  items.push({ name: "Item Baru", desc: "Deskripsi item", qty: 1, price: 0 });
+  renderItems();
+}
+
+function removeItem(i) {
+  if (items.length <= 1) return;
+  items.splice(i, 1);
+  renderItems();
+}
+
+// ─── DOWNLOAD PDF ───
+function downloadPDF() {
+  const toolbar = document.getElementById("toolbar");
+  toolbar.style.display = "none";
+  document.title = "Invoice-" + (document.querySelector(".invoice-number")?.textContent?.trim() || "dokumen");
+  window.print();
+  setTimeout(() => { toolbar.style.display = ""; }, 500);
+}
+
+// ─── INIT ───
+renderItems();
+</script>
+</body>
+</html>
