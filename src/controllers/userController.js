@@ -107,8 +107,8 @@ class UserController {
       return responseHelper.withPagination(
         res,
         "Users fetched successfully",
-        users,
-        { page, limit, totalItems: users.length, search },
+        users.data,
+        { page, limit, totalItems: users.pagination.total, search },
       );
     } catch (error) {
       console.error(error);

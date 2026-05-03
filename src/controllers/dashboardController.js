@@ -49,7 +49,7 @@ class DashboardController {
             total: bisnisList.length,
           },
           users: {
-            total: userList.length,
+            total: userList.data.length,
           },
           pengajuan: {
             total: pengajuanList.length,
