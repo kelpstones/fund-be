@@ -84,7 +84,7 @@ class AuthController {
         newUser.user,
       );
     } catch (error) {
-      await trx.rollback();
+      // await trx.rollback();
       console.error(error);
       responseHelper.serverError(res, error);
     }
