@@ -337,12 +337,11 @@ class AuthController {
       const admin = await admins.getAdminById(id);
       if (!admin) return responseHelper.error(res, "Admin not found", 404);
 
-      const adminData = await admins.getAdminById(admin.id);
       const refreshed = refreshAdminToken(admin);
       return responseHelper.successLogin(
         res,
         "Token refreshed",
-        adminData,
+        admin,
         refreshed,
       );
     } catch (error) {
