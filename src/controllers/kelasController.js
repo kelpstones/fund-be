@@ -1,6 +1,7 @@
 const Kelas = require("../models/kelas");
 const { KelasValidator } = require("../validation");
 const responseHelper = require("../utils/index").ResponseHelper;
+const logger = require("../utils/index").logger;
 class KelasController {
   async getAllKelas(req, res) {
     try {
@@ -13,7 +14,7 @@ class KelasController {
         { page, limit, totalItems: kelasList.length, search },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching kelas data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching kelas data",
@@ -36,7 +37,7 @@ class KelasController {
       const kelas = await Kelas.createKelas(data.nama_kelas, data.deskripsi);
       return responseHelper.created(res, "Kelas created successfully", kelas);
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while creating kelas data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while creating kelas data",
@@ -57,7 +58,7 @@ class KelasController {
         kelas,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching kelas data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching kelas data",
@@ -89,7 +90,7 @@ class KelasController {
         kelas,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while updating kelas data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while updating kelas data",
@@ -110,7 +111,7 @@ class KelasController {
         kelas,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while deleting kelas data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while deleting kelas data",

@@ -1,7 +1,7 @@
 const User = require("../models/users");
 const responseHelper = require("../utils/response");
 const { UserValidator } = require("../validation");
-
+const logger = require("../utils/index").logger;
 class UserController {
   async getUserProfile(req, res) {
     try {
@@ -16,7 +16,7 @@ class UserController {
         user,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching user profile", { error });
       return responseHelper.error(
         res,
         "An error occurred while fetching user profile",
@@ -38,7 +38,7 @@ class UserController {
         user,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching investor profile", { error });
       return responseHelper.error(
         res,
         "An error occurred while fetching investor profile",
@@ -91,7 +91,7 @@ class UserController {
         updatedUser,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while updating user profile", { error });
       return responseHelper.error(
         res,
         "An error occurred while updating user profile",
@@ -111,7 +111,7 @@ class UserController {
         { page, limit, totalItems: users.pagination.total, search },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching users", { error });
       return responseHelper.error(
         res,
         "An error occurred while fetching users",
@@ -129,7 +129,7 @@ class UserController {
       }
       return responseHelper.success(res, "User fetched successfully", user);
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching user", { error });
       return responseHelper.error(
         res,
         "An error occurred while fetching user",

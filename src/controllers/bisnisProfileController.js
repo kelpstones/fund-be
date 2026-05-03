@@ -2,6 +2,7 @@ const responseHelper = require("../utils/response");
 const BisnisProfiles = require("../models/bisnis_profiles");
 const Bisnis = require("../models/bisnis");
 const { BisnisProfileValidator } = require("../validation");
+const logger = require("../utils/index").logger;
 
 class BisnisProfileController {
   async upsertProfile(req, res) {
@@ -64,7 +65,7 @@ class BisnisProfileController {
         profile,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while saving bisnis profile", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while saving bisnis profile",
@@ -87,7 +88,7 @@ class BisnisProfileController {
         profile,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching bisnis profile", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching bisnis profile",
@@ -128,7 +129,7 @@ class BisnisProfileController {
         updated,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while updating bisnis class", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while updating bisnis class",

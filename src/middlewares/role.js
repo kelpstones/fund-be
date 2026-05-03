@@ -6,14 +6,23 @@ exports.authorize = (...allowedRoles) => {
     const account = req.user || req.admin;
     // console.log("Account Data:", account);
     if (!account) {
+      logger.warn("Identity not found", {
+        ip: req.ip,
+        method: req.method,
+      });
       return responseHelper.unauthorized(res, "Identity not found");
     }
 
-  
     const userRole = account.role_name || account.level;
     // console.log("User Role:", userRole);
     // console.log("Allowed Roles:", allowedRoles);
     if (!allowedRoles.includes(userRole)) {
+      logger.warn("Unauthorized access attempt", {
+        ip: req.ip,
+        method: req.method,
+        userRole,
+        allowedRoles,
+      });
       return responseHelper.forbidden(
         res,
         "You don't have permission to access this resource",

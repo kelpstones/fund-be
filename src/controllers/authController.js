@@ -1,6 +1,6 @@
 // authController.js
 
-const crypto = require("crypto"); // ✅ import crypto
+const crypto = require("crypto");
 const responseHelper = require("../utils/response");
 const User = require("../models/users");
 const { AuthValidator, PasswordResetValidator } = require("../validation");
@@ -11,11 +11,11 @@ const VerifyEmail = require("../models/verify_email");
 const {
   sendVerificationEmail,
   sendPasswordResetEmail,
-} = require("../utils/mailer"); // ✅ import mailer
+} = require("../utils/mailer"); 
 const admins = require("../models/admins");
 const knex = require("../config/db");
 const password_resets = require("../models/password_resets");
-
+const logger = require("../utils/index").logger;
 class AuthController {
   async register(req, res) {
     // const trx = await knex.transaction();
@@ -89,7 +89,7 @@ class AuthController {
       );
     } catch (error) {
       // await trx.rollback();
-      console.error(error);
+      logger.error("An error occurred while registering user", { error });
       responseHelper.serverError(res, error);
     }
   }
@@ -115,6 +115,7 @@ class AuthController {
         "Email has been verified successfully",
       );
     } catch (error) {
+      logger.error("An error occurred while verifying email", { error });
       responseHelper.serverError(res, error);
     }
   }
@@ -143,7 +144,7 @@ class AuthController {
       );
     } catch (error) {
       await trx.rollback();
-      console.error(error);
+      logger.error("An error occurred while resending verification email", { error });
       responseHelper.serverError(res, error);
     }
   }
@@ -183,7 +184,7 @@ class AuthController {
 
       return responseHelper.successLogin(res, "Login successful", data, token);
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while logging in", { error });
       responseHelper.serverError(res, error);
     }
   }
@@ -202,7 +203,7 @@ class AuthController {
         refreshed,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while retrieving user data", { error });
       return responseHelper.serverError(res, "Failed to retrieve user data");
     }
   }
@@ -245,7 +246,7 @@ class AuthController {
         "Password reset request successful, please check your email",
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while processing forgot password request", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while processing forgot password request",
@@ -285,7 +286,7 @@ class AuthController {
       await trx.commit();
       return responseHelper.success(res, "Password reset successful");
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while resetting password", { error });
       await trx.rollback();
       return responseHelper.serverError(
         res,
@@ -326,7 +327,7 @@ class AuthController {
         token,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while logging in as admin", { error });
       responseHelper.serverError(res, error);
     }
   }
@@ -345,7 +346,7 @@ class AuthController {
         refreshed,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while retrieving admin data", { error });
       responseHelper.serverError(res, error);
     }
   }

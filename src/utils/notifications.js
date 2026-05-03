@@ -3,6 +3,7 @@ const admins = require("../models/admins");
 const { NotificationValidator } = require("../validation");
 const pengajuans = require("../models/pengajuans");
 const bisnis = require("../models/bisnis");
+const logger = require("./index").logger;
 exports.notifyAdminNewPengajuan = async (bisnis_id, pengajuans_id) => {
   try {
     const allAdmins = await admins.getAllAdmins(1, 100);
@@ -19,7 +20,7 @@ exports.notifyAdminNewPengajuan = async (bisnis_id, pengajuans_id) => {
     );
     await Promise.all(notificationPromises);
   } catch (error) {
-    console.error("Error notifying admin about new pengajuan:", error);
+    logger.error("Error notifying admin about new pengajuan:", { error });
     throw error;
   }
 };
@@ -50,7 +51,7 @@ exports.notifyUserPengajuanStatus = async (pengajuans_id, status) => {
       pengajuans_id,
     );
   } catch (error) {
-    console.error("Error notifying user about pengajuan status update:", error);
+    logger.error("Error notifying user about pengajuan status update:", { error });
     throw error;
   }
 };
@@ -77,7 +78,7 @@ exports.notifyStartNegotiation = async (
       negosiasi_id,
     );
   } catch (error) {
-    console.error("Error notifying UMKM about negosiasi update:", error);
+    logger.error("Error notifying UMKM about negosiasi update:", { error });
   }
 };
 
@@ -111,7 +112,7 @@ exports.notifyReplyNegotiation = async (
       negosiasi_id,
     );
   } catch (error) {
-    console.error("Error notifying investor about negosiasi update:", error);
+    logger.error("Error notifying investor about negosiasi update:", { error });
   }
 };
 
@@ -128,6 +129,6 @@ exports.notifyDistributionProfit = async (data) => {
       data.penjualan_id,
     );
   } catch (error) {
-    console.error("Error notifying investor about profit distribution:", error);
+    logger.error("Error notifying investor about profit distribution:", { error });
   }
 };

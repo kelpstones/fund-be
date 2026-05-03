@@ -2,6 +2,7 @@ const responseHelper = require("../utils/index").ResponseHelper;
 const Bisnis = require("../models/bisnis");
 const { BisnisValidator, PengajuanValidator } = require("../validation");
 const pengajuans = require("../models/pengajuans");
+const logger = require("../utils/index").logger;
 class BisnisController {
   async getBisnis(req, res) {
     try {
@@ -14,7 +15,7 @@ class BisnisController {
         { page, limit, totalItems: bisnisList.length, search },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching bisnis data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching bisnis data",
@@ -68,7 +69,7 @@ class BisnisController {
       );
       return responseHelper.created(res, "Bisnis created successfully", bisnis);
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while creating bisnis data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while creating bisnis data",
@@ -89,7 +90,7 @@ class BisnisController {
         bisnisList,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching bisnis data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching bisnis data",
@@ -107,7 +108,7 @@ class BisnisController {
         bisnisList,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching bisnis data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching bisnis data",
@@ -157,7 +158,7 @@ class BisnisController {
       }
       return responseHelper.success(res, "Bisnis updated successfully", bisnis);
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while updating bisnis data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while updating bisnis data",
@@ -183,7 +184,7 @@ class BisnisController {
       const result = await Bisnis.deleteBisnis(id);
       return responseHelper.success(res, "Bisnis deleted successfully", result);
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while deleting bisnis data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while deleting bisnis data",

@@ -5,6 +5,7 @@ const JwtUtils = require("./JWT");
 const VerifyEmail = require("./mailer");
 const Loader = require("./loadTemplate");
 const HelpersUtils = require("./helpers");
+const logger = require("./logger");
 
 module.exports = {
   BcryptUtils,
@@ -14,4 +15,5 @@ module.exports = {
   VerifyEmail,
   Loader,
   HelpersUtils,
+  logger,
 };

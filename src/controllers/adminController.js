@@ -2,6 +2,7 @@ const Admin = require("../models/admins");
 const { hashPassword } = require("../utils/Bcrypt");
 const responseHelper = require("../utils/response");
 const AdminValidator = require("../validation/index").AdminValidator;
+const logger = require("../utils/index").logger;
 class AdminController {
   async createAdmin(req, res) {
     try {
@@ -14,7 +15,7 @@ class AdminController {
         no_telp,
         level,
       });
-      console.log(error);
+      // console.log(error);
       if (error) {
         return responseHelper.error(res, error.details[0].message, 400);
       }
@@ -34,7 +35,7 @@ class AdminController {
       );
       return responseHelper.created(res, "Admin created successfully", admin);
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while creating admin", { error });
       return responseHelper.error(
         res,
         "An error occurred while creating admin",
@@ -55,7 +56,7 @@ class AdminController {
         { page, limit, totalItems: admins.length, search },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching admins", { error });
       return responseHelper.error(
         res,
         "An error occurred while fetching admins",
@@ -73,7 +74,7 @@ class AdminController {
       }
       return responseHelper.success(res, "Admin fetched successfully", admin);
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching admin", { error });
       return responseHelper.error(
         res,
         "An error occurred while fetching admin",
@@ -114,7 +115,7 @@ class AdminController {
         updatedAdmin,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while updating admin", { error });
       return responseHelper.error(
         res,
         "An error occurred while updating admin",
@@ -133,7 +134,7 @@ class AdminController {
       await Admin.deleteAdmin(id);
       return responseHelper.success(res, "Admin deleted successfully");
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while deleting admin", { error });
       return responseHelper.error(
         res,
         "An error occurred while deleting admin",

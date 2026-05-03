@@ -2,6 +2,7 @@ const nodemailer = require("nodemailer");
 const fs = require("fs");
 const path = require("path");
 const Loader = require("./loadTemplate");
+const logger = require("./index").logger;
 // const { HelpersUtils } = require("./index");
 const { formatRupiah, formatDate } = require("./helpers");
 const transporter = nodemailer.createTransport({
@@ -26,10 +27,10 @@ const sendVerificationEmail = async (to, nama, token) => {
       subject: "Verifikasi Email Kamu",
       html,
     });
-    console.log("Verification email sent:", info.messageId);
+    logger.info("Verification email sent:", { messageId: info.messageId });
     return info;
   } catch (error) {
-    console.error("Error sending verification email:", error);
+    logger.error("Error sending verification email:", { error });
     throw error;
   }
 };
@@ -46,10 +47,10 @@ const sendPasswordResetEmail = async (to, nama, token) => {
       subject: "Reset Password",
       html,
     });
-    console.log("Password reset email sent:", info.messageId);
+    logger.info("Password reset email sent:", { messageId: info.messageId });
     return info;
   } catch (error) {
-    console.error("Error sending password reset email:", error);
+    logger.error("Error sending password reset email:", { error });
     throw error;
   }
 };
@@ -98,10 +99,10 @@ const sendInvoiceEmail = async (to, nama, invoice, negosiasi = {}) => {
       html,
     });
 
-    console.log("Invoice email sent:", info.messageId);
+    logger.info("Invoice email sent:", { messageId: info.messageId });
     return info;
   } catch (error) {
-    console.error("Error sending invoice email:", error);
+    logger.error("Error sending invoice email:", { error });
     throw error;
   }
 };

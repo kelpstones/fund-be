@@ -9,6 +9,7 @@ const log_negosiasis = require("../models/log_negosiasis");
 const notificationHelper = require("../utils/index").NotificationHelper;
 const knex = require("../config/db");
 const { sendInvoiceEmail } = require("../utils/mailer");
+const logger = require("../utils/index").logger;
 class NegotiationController {
   async getAllNegotiations(req, res) {
     try {
@@ -25,7 +26,7 @@ class NegotiationController {
         { page, limit, totalItems: negosiasiList.pagination.total, status },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching negosiasi data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching negosiasi data",
@@ -71,6 +72,7 @@ class NegotiationController {
         catatan,
       });
       if (error) {
+        logger.error("Validation error while starting negotiation", { error });
         return responseHelper.error(res, error.details[0].message, 400);
       }
 
@@ -101,7 +103,7 @@ class NegotiationController {
         log_negosiasi,
       });
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while creating negosiasi data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while creating negosiasi data",
@@ -123,7 +125,7 @@ class NegotiationController {
         negosiasiList,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching negosiasi data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching negosiasi data",
@@ -148,7 +150,7 @@ class NegotiationController {
         negosiasiList,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching negosiasi data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching negosiasi data",
@@ -169,7 +171,7 @@ class NegotiationController {
         negosiasi,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching negosiasi data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching negosiasi data",
@@ -223,7 +225,7 @@ class NegotiationController {
         log_negosiasi,
       });
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while replying to negosiasi", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while replying to negosiasi",
@@ -320,7 +322,7 @@ class NegotiationController {
       });
     } catch (error) {
       await trx.rollback();
-      console.error(error);
+      logger.error("An error occurred while accepting negosiasi", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while accepting negosiasi",
@@ -361,7 +363,7 @@ class NegotiationController {
       );
       return responseHelper.success(res, "Negotiation rejected successfully");
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while rejecting negosiasi", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while rejecting negosiasi",

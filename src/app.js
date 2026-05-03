@@ -5,6 +5,7 @@ const { Key, RateLimiter } = require("./middlewares");
 const morgan = require("morgan");
 const Routes = require("./routes/index");
 const response = require("./utils/index").ResponseHelper;
+const logger = require("./utils/index").logger;
 const app = express();
 
 const rootRouter = new Routes();
@@ -28,7 +29,15 @@ const corsOptions = {
 };
 
 // Middleware
-app.use(morgan("dev"));
+app.use(
+  morgan("combined", {
+    stream: {
+      write: (message) => logger.http(message.trim()),
+    },
+    skip: () => process.env.NODE_ENV === "test",
+  }),
+);
+
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(Key.validateApiKey);
@@ -37,11 +46,14 @@ app.use(RateLimiter.genRateLimiter);
 app.use("/api/v1", rootRouter.routes());
 
 app.use((err, req, res, next) => {
+  logger.error(err.message, { stack: err.stack });
+  if (err.message && err.message.startsWith("CORS policy")) {
+    return response.error(res, err.message, 403);
+  }
   response.serverError(res, err);
-  next();
 });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  logger.info(`Server running on port ${PORT}`);
 });
