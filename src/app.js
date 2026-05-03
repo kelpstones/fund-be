@@ -38,6 +38,7 @@ app.use("/api/v1", rootRouter.routes());
 
 app.use((err, req, res, next) => {
   response.serverError(res, err);
+  next();
 });
 
 const PORT = process.env.PORT || 5000;
