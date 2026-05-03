@@ -29,6 +29,7 @@ class RateLimiter {
         ip: req.ip,
         method: req.method,
         path: req.originalUrl,
+        email: req.body?.email,
       });
       responseHelper.error(
         res,

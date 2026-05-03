@@ -1,4 +1,4 @@
-const { createLogger, format, transports } = require("winston");
+const { createLogger, format, transports, addColors } = require("winston");
 const DailyRotateFile = require("winston-daily-rotate-file");
 const path = require("path");
 
@@ -20,6 +20,8 @@ const customLevels = {
     debug: "white",
   },
 };
+
+addColors(customLevels.colors);
 
 const logFormat = printf(({ level, message, timestamp, stack, ...meta }) => {
   const metaStr = Object.keys(meta).length
