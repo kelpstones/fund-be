@@ -3,7 +3,11 @@
  * @returns { Promise<void> }
  */
 exports.seed = async function (knex) {
-  // Deletes ALL existing entries
-  await knex("roles").del();
-  await knex("roles").insert([{ nama: "umkm" }, { nama: "investor" }]);
+  const existing = await knex("roles").count("id as count").first();
+  if (parseInt(existing.count) > 0) return;
+
+  await knex("roles").insert([
+    { nama: "umkm" },
+    { nama: "investor" }
+  ]);
 };

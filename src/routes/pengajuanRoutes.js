@@ -5,7 +5,7 @@ const PenjualanRoutes = require("./penjualanRoutes");
 const { Auth, Role, BisnisProfile } = require("../middlewares");
 class PengajuanRoutes {
   constructor() {
-    this.router = express.Router();
+    this.router = express.Router({ mergeParams: true });
     this.pengajuanController = new PengajuanController();
     this.negotiationRoutes = new NegotiationRoutes();
     this.penjualanRoutes = new PenjualanRoutes();
@@ -15,10 +15,10 @@ class PengajuanRoutes {
     this.router.use(Auth.verifyAnyToken);
 
     // negotiation routes
-    this.router.use("/negosiasi", this.negotiationRoutes.routes());
+    this.router.use("/negotiations", this.negotiationRoutes.routes());
 
     // penjualan routes
-    this.router.use("/penjualan", this.penjualanRoutes.routes());
+    this.router.use("/sales", this.penjualanRoutes.routes());
 
     this.router.get(
       "/",
@@ -29,7 +29,7 @@ class PengajuanRoutes {
     );
 
     this.router.post(
-      "/:bisnis_id",
+      "/",
       Role.authorize("umkm"),
       BisnisProfile.RequireBisnisProfile,
       (req, res) => {
@@ -38,7 +38,7 @@ class PengajuanRoutes {
     );
 
     this.router.get(
-      "/:bisnis_id",
+      "/",
       Role.authorize("umkm", "investor", "superadmin", "admin"),
       (req, res) => {
         this.pengajuanController.getPengajuanByBisnisId(req, res);

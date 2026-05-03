@@ -3,12 +3,15 @@ const { ResponseHelper } = require("../utils/index");
 const {
   validatePreferensiInvestor,
 } = require("../validations/preferensi_investor");
-
+const logger = require("../utils/index").logger;
 const upsertPreferensi = async (req, res) => {
   try {
     const id_user = req.user.id;
     const { error, value } = validatePreferensiInvestor(req.body);
-    if (error) return ResponseHelper.error(res, 400, error.details[0].message);
+    if (error) {
+      logger.error("Validation error while upserting preferensi", { error: error.details[0].message });
+      return ResponseHelper.error(res, error.details[0].message, 400);
+    }
 
     const data = await PreferensiInvestor.upsertPreferensi(id_user, value);
     return ResponseHelper.success(
@@ -18,7 +21,8 @@ const upsertPreferensi = async (req, res) => {
       data,
     );
   } catch (error) {
-    return ResponseHelper.error(res, 500, error.message);
+    logger.error("An error occurred while upserting preferensi", { error });
+    return ResponseHelper.error(res, "An error occurred while upserting preferensi", 500);
   }
 };
 
@@ -36,7 +40,8 @@ const getPreferensi = async (req, res) => {
       data,
     );
   } catch (error) {
-    return ResponseHelper.error(res, 500, error.message);
+    logger.error("An error occurred while fetching preferensi", { error });
+    return ResponseHelper.error(res, "An error occurred while fetching preferensi", 500);
   }
 };
 
@@ -51,7 +56,8 @@ const deletePreferensi = async (req, res) => {
     await PreferensiInvestor.deleteByUserId(id_user);
     return ResponseHelper.success(res, 200, "Preferensi berhasil dihapus");
   } catch (error) {
-    return ResponseHelper.error(res, 500, error.message);
+    logger.error("An error occurred while deleting preferensi", { error });
+    return ResponseHelper.error(res, "An error occurred while deleting preferensi", 500);
   }
 };
 

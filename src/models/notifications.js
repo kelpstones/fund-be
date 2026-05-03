@@ -12,9 +12,10 @@ class Notifications extends BaseModel {
     message,
     type,
     reference_id,
+    trx = this.knex,
   ) {
     try {
-      const notification = await this.knex(this.tableName)
+      const notification = await trx(this.tableName)
         .insert({
           user_id,
           admin_id,
@@ -31,9 +32,9 @@ class Notifications extends BaseModel {
     }
   }
 
-  async getNotificationsByUserId(user_id, limit = 10, page = 1) {
+  async getNotificationsByUserId(user_id, limit = 10, page = 1, trx = this.knex) {
     try {
-      const notifications = await this.knex(this.tableName)
+      const notifications = await trx(this.tableName)
         .where("user_id", user_id)
         .orderBy("created_at", "desc")
         .limit(limit)
@@ -45,9 +46,9 @@ class Notifications extends BaseModel {
     }
   }
 
-  async getNotificationsByAdminId(admin_id, limit = 10, page = 1) {
+  async getNotificationsByAdminId(admin_id, limit = 10, page = 1, trx = this.knex) {
     try {
-      const notifications = await this.knex(this.tableName)
+      const notifications = await trx(this.tableName)
         .where("admin_id", admin_id)
         .orderBy("created_at", "desc")
         .limit(limit)
@@ -59,9 +60,9 @@ class Notifications extends BaseModel {
     }
   }
 
-  async markAsRead(notification_id) {
+  async markAsRead(notification_id, trx = this.knex) {
     try {
-      return await this.knex(this.tableName)
+      return await trx(this.tableName)
         .where("id", notification_id)
         .update({ is_read: true })
         .returning("*");
@@ -71,9 +72,9 @@ class Notifications extends BaseModel {
     }
   }
 
-  async deleteNotification(notification_id) {
+  async deleteNotification(notification_id, trx = this.knex) {
     try {
-      return await this.knex(this.tableName)
+      return await trx(this.tableName)
         .where("id", notification_id)
         .del()
         .returning("*");

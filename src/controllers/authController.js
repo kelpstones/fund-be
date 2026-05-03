@@ -1,6 +1,6 @@
 // authController.js
 
-const crypto = require("crypto"); // ✅ import crypto
+const crypto = require("crypto");
 const responseHelper = require("../utils/response");
 const User = require("../models/users");
 const { AuthValidator, PasswordResetValidator } = require("../validation");
@@ -11,14 +11,14 @@ const VerifyEmail = require("../models/verify_email");
 const {
   sendVerificationEmail,
   sendPasswordResetEmail,
-} = require("../utils/mailer"); // ✅ import mailer
+} = require("../utils/mailer"); 
 const admins = require("../models/admins");
 const knex = require("../config/db");
 const password_resets = require("../models/password_resets");
-
+const logger = require("../utils/index").logger;
 class AuthController {
   async register(req, res) {
-    const trx = await knex.transaction();
+    // const trx = await knex.transaction();
     try {
       const {
         nama,
@@ -40,24 +40,24 @@ class AuthController {
         role_id,
       });
       if (!validate.status) {
-        await trx.rollback();
+        // await trx.rollback();
 
         return responseHelper.error(res, validate.message, validate.code);
       }
       const checkEmail = await User.getUserByEmail(email);
       if (checkEmail) {
-        await trx.rollback();
+        // await trx.rollback();
 
         return responseHelper.error(res, "Email already exists", 400);
       }
       const checkNik = await User.getUserByNik(nik);
       if (checkNik) {
-        await trx.rollback();
+        // await trx.rollback();
         return responseHelper.error(res, "NIK already exists", 400);
       }
       const checkNoTelp = await User.getUserByNoTelp(no_telp);
       if (checkNoTelp) {
-        await trx.rollback();
+        // await trx.rollback();
         return responseHelper.error(res, "Phone number already exists", 400);
       }
       // await trx.commit();
@@ -77,15 +77,19 @@ class AuthController {
         return { user, token };
       });
 
-      await sendVerificationEmail(newUser.user.email, newUser.user.nama, newUser.token);
+      await sendVerificationEmail(
+        newUser.user.email,
+        newUser.user.nama,
+        newUser.token,
+      );
       return responseHelper.created(
         res,
         "Registrasi berhasil, cek email untuk verifikasi",
-        newUser,
+        newUser.user,
       );
     } catch (error) {
-      await trx.rollback();
-      console.error(error);
+      // await trx.rollback();
+      logger.error("An error occurred while registering user", { error });
       responseHelper.serverError(res, error);
     }
   }
@@ -111,6 +115,7 @@ class AuthController {
         "Email has been verified successfully",
       );
     } catch (error) {
+      logger.error("An error occurred while verifying email", { error });
       responseHelper.serverError(res, error);
     }
   }
@@ -139,7 +144,7 @@ class AuthController {
       );
     } catch (error) {
       await trx.rollback();
-      console.error(error);
+      logger.error("An error occurred while resending verification email", { error });
       responseHelper.serverError(res, error);
     }
   }
@@ -179,7 +184,7 @@ class AuthController {
 
       return responseHelper.successLogin(res, "Login successful", data, token);
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while logging in", { error });
       responseHelper.serverError(res, error);
     }
   }
@@ -198,7 +203,7 @@ class AuthController {
         refreshed,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while retrieving user data", { error });
       return responseHelper.serverError(res, "Failed to retrieve user data");
     }
   }
@@ -223,7 +228,10 @@ class AuthController {
           403,
         );
 
-      if (password_resets.existsValidTokenForUser(user.id)) {
+      const existingToken = await password_resets.findValidTokenByUserId(
+        user.id,
+      );
+      if (existingToken) {
         return responseHelper.error(
           res,
           "A valid password reset token already exists for this user, please check your email",
@@ -238,7 +246,7 @@ class AuthController {
         "Password reset request successful, please check your email",
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while processing forgot password request", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while processing forgot password request",
@@ -278,7 +286,7 @@ class AuthController {
       await trx.commit();
       return responseHelper.success(res, "Password reset successful");
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while resetting password", { error });
       await trx.rollback();
       return responseHelper.serverError(
         res,
@@ -319,7 +327,7 @@ class AuthController {
         token,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while logging in as admin", { error });
       responseHelper.serverError(res, error);
     }
   }
@@ -330,16 +338,15 @@ class AuthController {
       const admin = await admins.getAdminById(id);
       if (!admin) return responseHelper.error(res, "Admin not found", 404);
 
-      const adminData = await admins.getAdminById(admin.id);
       const refreshed = refreshAdminToken(admin);
       return responseHelper.successLogin(
         res,
         "Token refreshed",
-        adminData,
+        admin,
         refreshed,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while retrieving admin data", { error });
       responseHelper.serverError(res, error);
     }
   }

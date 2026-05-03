@@ -24,7 +24,7 @@ exports.RequireBisnisProfile = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error(error);
+    logger.error("An error occurred while checking bisnis profile", { error });
     return responseHelper.serverError(res, "An error occurred");
   }
 };

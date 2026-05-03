@@ -5,7 +5,7 @@ const { Role } = require("../middlewares");
 
 class DistribusiProfitRoutes {
   constructor() {
-    this.router = express.Router();
+    this.router = express.Router({ mergeParams: true });
     this.distribusiProfitController = new DistribusiProfitController();
   }
 
@@ -20,17 +20,17 @@ class DistribusiProfitRoutes {
       },
     );
 
-    this.router.get("/investor", Role.authorize("investor"), (req, res) => {
-      this.distribusiProfitController.getByInvestor(req, res);
-    });
-
     this.router.get(
-      "/penjualan/:penjualans_id",
+      "/sales",
       Role.authorize("umkm", "investor", "superadmin", "admin"),
       (req, res) => {
         this.distribusiProfitController.getByPenjualanId(req, res);
       },
     );
+
+    this.router.get("/investor", Role.authorize("investor"), (req, res) => {
+      this.distribusiProfitController.getByInvestor(req, res);
+    });
 
     this.router.get(
       "/:id",

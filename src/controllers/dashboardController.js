@@ -5,6 +5,7 @@ const Investasi = require("../models/investasi");
 const DistribusiProfit = require("../models/distribusi_profits");
 const Users = require("../models/users");
 const Penjualan = require("../models/penjualans");
+const logger = require("../utils/index").logger;
 
 class DashboardController {
   async getAdminDashboard(req, res) {
@@ -49,7 +50,7 @@ class DashboardController {
             total: bisnisList.length,
           },
           users: {
-            total: userList.length,
+            total: userList.data.length,
           },
           pengajuan: {
             total: pengajuanList.length,
@@ -65,7 +66,7 @@ class DashboardController {
         },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching admin dashboard data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching dashboard data",
@@ -115,7 +116,7 @@ class DashboardController {
         },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching investor dashboard data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching dashboard data",
@@ -182,7 +183,7 @@ class DashboardController {
         },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching bisnis dashboard", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching bisnis dashboard",

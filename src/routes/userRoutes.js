@@ -2,8 +2,8 @@ const express = require("express");
 const router = express.Router();
 const AuthController = require("../controllers/authController");
 const BisnisRoutes = require("./bisnisRoutes");
-const { Auth, Role } = require("../middlewares");
-const KelasRoutes = require("./kelasRoute");
+const { Auth, Role, RateLimiter } = require("../middlewares");
+const KelasRoutes = require("./kelasRoutes");
 const UserController = require("../controllers/userController");
 class UserRoutes {
   constructor() {
@@ -14,10 +14,10 @@ class UserRoutes {
     this.userController = new UserController();
   }
   routes() {
-    this.router.post("/register", (req, res) => {
+    this.router.post("/register", RateLimiter.authRateLimiter, (req, res) => {
       this.authController.register(req, res);
     });
-    this.router.post("/login", (req, res) => {
+    this.router.post("/login", RateLimiter.authRateLimiter, (req, res) => {
       this.authController.login(req, res);
     });
 
@@ -25,13 +25,21 @@ class UserRoutes {
       this.authController.verifyEmail(req, res);
     });
 
-    this.router.post("/resend-verify", (req, res) => {
-      this.authController.resendVerification(req, res);
-    });
+    this.router.post(
+      "/resend-verify",
+      RateLimiter.emailRateLimiter,
+      (req, res) => {
+        this.authController.resendVerification(req, res);
+      },
+    );
 
-    this.router.post("/forgot-password", (req, res) => {
-      this.authController.forgotPassword(req, res);
-    });
+    this.router.post(
+      "/forgot-password",
+      RateLimiter.emailRateLimiter,
+      (req, res) => {
+        this.authController.forgotPassword(req, res);
+      },
+    );
 
     this.router.post("/reset-password", (req, res) => {
       this.authController.resetPassword(req, res);

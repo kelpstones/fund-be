@@ -4,22 +4,25 @@ const { PengajuanValidator } = require("../validation");
 const bisnis = require("../models/bisnis");
 const Approvals = require("../models/approvals");
 const notificationHelper = require("../utils/index").NotificationHelper;
+const logger = require("../utils/index").logger;
 class PengajuanController {
   // pengajuan
   async createPengajuan(req, res) {
     try {
-      const { bisnis_id } = req.params;
+      // const { bisnis_id } = req.params;
       const data = req.body;
-      const payload = { ...data, bisnis_id };
+      const payload = { ...data };
 
-      const bisnisCheck = await bisnis.getBisnisById(bisnis_id);
+      const bisnisCheck = await bisnis.getBisnisById(payload.bisnis_id);
       if (!bisnisCheck) {
+        logger.error("Bisnis not found", { bisnis_id: payload.bisnis_id });
         return responseHelper.error(res, "Bisnis not found", 404);
       }
       //   check bisnis_id exist
       const existingPengajuan =
-        await PengajuanValidator.checkBisnisIdExist(bisnis_id);
+        await PengajuanValidator.checkBisnisIdExist(payload.bisnis_id);
       if (!existingPengajuan.status) {
+        logger.error(existingPengajuan.message, { bisnis_id: payload.bisnis_id });
         return responseHelper.error(
           res,
           existingPengajuan.message,
@@ -29,6 +32,7 @@ class PengajuanController {
 
       const validate = PengajuanValidator.pengajuanValidation(payload);
       if (validate.error) {
+        logger.error("Invalid pengajuan data", { error: validate.error });
         return responseHelper.error(
           res,
           validate.error.details[0].message,
@@ -63,7 +67,7 @@ class PengajuanController {
         final,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while creating pengajuan data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while creating pengajuan data",
@@ -86,7 +90,7 @@ class PengajuanController {
         { page, limit, totalItems: pengajuanList.length },
       );
     } catch (error) {
-      console.error(error, "pengajuanController getAllPengajuan");
+      logger.error("An error occurred while fetching pengajuan data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching pengajuan data",
@@ -98,7 +102,7 @@ class PengajuanController {
     try {
       const { bisnis_id } = req.params;
       const pengajuanList = await Pengajuan.getPengajuanByBisnisId(bisnis_id);
-      console.log(pengajuanList);
+      
 
       if (!pengajuanList) {
         return responseHelper.error(
@@ -113,7 +117,7 @@ class PengajuanController {
         pengajuanList,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching pengajuan data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching pengajuan data",
@@ -150,7 +154,7 @@ class PengajuanController {
         updatedPengajuan,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while updating pengajuan data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while updating pengajuan data",
@@ -185,11 +189,14 @@ class PengajuanController {
         );
       }
 
-      const updatedApproval = await Approvals.updateApproval(existingApproval.id, {
-        approver_id,
-        status,
-        catatan,
-      });
+      const updatedApproval = await Approvals.updateApproval(
+        existingApproval.id,
+        {
+          approver_id,
+          status,
+          catatan,
+        },
+      );
       // console.log(existingApproval);
       await Pengajuan.updatePengajuanStatus(
         existingApproval.pengajuans_id,
@@ -205,7 +212,7 @@ class PengajuanController {
         updatedApproval,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while updating approval status", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while updating approval status",
@@ -224,7 +231,7 @@ class PengajuanController {
       await Pengajuan.deletePengajuan(id);
       return responseHelper.success(res, "Pengajuan deleted successfully");
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while deleting pengajuan data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while deleting pengajuan data",

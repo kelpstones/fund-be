@@ -1,6 +1,6 @@
 const responseHelper = require("../utils/index").ResponseHelper;
 const DistribusiProfit = require("../models/distribusi_profits");
-
+const logger = require("../utils/index").logger;
 class DistribusiProfitController {
   async getAllDistribusiProfits(req, res) {
     try {
@@ -13,7 +13,7 @@ class DistribusiProfitController {
         { page, limit, totalItems: data.length },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching distribusi profits", { error });
       return responseHelper.error(res, "Failed to fetch distribusi profits");
     }
   }
@@ -34,7 +34,7 @@ class DistribusiProfitController {
         { page, limit, totalItems: data.length },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching distribusi profit data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching distribusi profit data",
@@ -44,7 +44,8 @@ class DistribusiProfitController {
 
   async getByPenjualanId(req, res) {
     try {
-      const { penjualans_id } = req.params;
+      const { penjualans_id } = req.query;
+      // console.log("Fetching distribusi profit for penjualan ID:", penjualans_id);
       const data = await DistribusiProfit.getByPenjualanId(penjualans_id);
       if (!data || data.length === 0) {
         return responseHelper.error(
@@ -59,7 +60,7 @@ class DistribusiProfitController {
         data,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching distribusi profit data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching distribusi profit data",
@@ -80,7 +81,7 @@ class DistribusiProfitController {
         data,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching distribusi profit data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching distribusi profit data",
@@ -114,7 +115,7 @@ class DistribusiProfitController {
         updated,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while updating distribusi profit status", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while updating distribusi profit status",

@@ -4,7 +4,7 @@ const Invoice = require("../models/invoices");
 const pengajuans = require("../models/pengajuans");
 const { ResponseHelper } = require("../utils/index");
 const { invoiceValidation } = require("../validation/invoices");
-
+const logger = require("../utils/index").logger;
 class InvoicesController {
   async getAllInvoices(req, res) {
     try {
@@ -30,7 +30,7 @@ class InvoicesController {
         },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching invoices", { error });
       return ResponseHelper.serverError(
         res,
         "An error occurred while fetching invoices",
@@ -45,9 +45,13 @@ class InvoicesController {
       if (!invoice) {
         return ResponseHelper.error(res, "Invoice not found", 404);
       }
-      return ResponseHelper.success(res, "Invoice fetched successfully");
+      return ResponseHelper.success(
+        res,
+        "Invoice fetched successfully",
+        invoice,
+      );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching the invoice", { error });
       return ResponseHelper.serverError(
         res,
         "An error occurred while fetching the invoice",
@@ -81,7 +85,7 @@ class InvoicesController {
         },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching invoices", { error });
       return ResponseHelper.serverError(
         res,
         "An error occurred while fetching invoices",
@@ -122,11 +126,10 @@ class InvoicesController {
       const pengajuan = await pengajuans.getPengajuanById(
         invoice.detail_pengajuan.id,
       );
-      console.log("Current Pengajuan:", pengajuan.total_pendanaan);
 
       const totalDanaBaru =
         Number(pengajuan.total_pendanaan) + Number(invoice.nominal_tagihan);
-      console.log("Total Dana Baru:", totalDanaBaru);
+
       let statusBaru = pengajuan.status;
       if (totalDanaBaru >= pengajuan.target_pendanaan) {
         statusBaru = "funded";
@@ -141,13 +144,19 @@ class InvoicesController {
         trx,
       );
       await trx.commit();
-      return ResponseHelper.success(
-        res,
-        "Invoice paid successfully",
-        updatedInvoice,
-      );
+
+      const data = {
+        invoice: updatedInvoice,
+        pengajuan: {
+          id: pengajuan.id,
+          total_pendanaan: totalDanaBaru,
+          status: statusBaru,
+        },
+      };
+      logger.info("Invoice paid successfully", { invoiceId: id, data });
+      return ResponseHelper.success(res, "Invoice paid successfully", data);
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while processing the payment", { error });
       return ResponseHelper.serverError(
         res,
         "An error occurred while processing the payment",

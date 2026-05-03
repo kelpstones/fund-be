@@ -1,6 +1,6 @@
 const responseHelper = require("../utils/index").ResponseHelper;
 const Notifications = require("../models/notifications");
-
+const logger = require("../utils/index").logger;
 class NotificationsController {
   async getNotifications(req, res) {
     try {
@@ -30,7 +30,7 @@ class NotificationsController {
         { page, limit, totalItems: notifications.length },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching notifications data", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching notifications data",
@@ -51,7 +51,7 @@ class NotificationsController {
         notification,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while marking notification as read", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while marking notification as read",
@@ -72,7 +72,7 @@ class NotificationsController {
         notification,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while deleting notification", { error });
       return responseHelper.serverError(
         res,
         "An error occurred while deleting notification",

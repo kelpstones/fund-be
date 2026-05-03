@@ -5,7 +5,7 @@ const { Role } = require("../middlewares");
 
 class PenjualanRoutes {
   constructor() {
-    this.router = express.Router();
+    this.router = express.Router({ mergeParams: true });
     this.penjualansController = new PenjualansController();
   }
 
@@ -29,7 +29,7 @@ class PenjualanRoutes {
     );
 
     this.router.get(
-      "/pengajuan/:pengajuans_id",
+      "/pengajuan",
       Role.authorize("umkm", "investor", "superadmin", "admin"),
       (req, res) => {
         this.penjualansController.getPenjualanByPengajuanId(req, res);

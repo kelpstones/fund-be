@@ -5,6 +5,8 @@ const Penjualans = require("../models/penjualans");
 const Investasi = require("../models/investasi");
 const { ResponseHelper, NotificationHelper } = require("../utils/index");
 const { PenjualanValidator } = require("../validation/index");
+const logger = require("../utils/index").logger;
+
 class PenjualansController {
   async createPenjualan(req, res) {
     const trx = await knex.transaction();
@@ -27,8 +29,9 @@ class PenjualansController {
       });
 
       if (error) {
+        logger.error("Validation error while creating penjualan data", { error: error.details[0].message });
         await trx.rollback();
-        return ResponseHelper.badRequest(res, error.details[0].message);
+        return ResponseHelper.error(res, error.details[0].message, 400);
       }
 
       const pengajuan = await pengajuans.getPengajuanById(pengajuans_id);
@@ -88,7 +91,7 @@ class PenjualansController {
       });
     } catch (error) {
       await trx.rollback();
-      console.error(error);
+      logger.error("An error occurred while creating penjualan data", { error });
       return ResponseHelper.serverError(
         res,
         "An error occurred while creating penjualan data",
@@ -107,7 +110,7 @@ class PenjualansController {
         { page, limit, totalItems: data.length },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching penjualan data", { error });
       return ResponseHelper.serverError(
         res,
         "An error occurred while fetching penjualan data",
@@ -134,7 +137,7 @@ class PenjualansController {
         { page: 1, limit: data.length, totalItems: data.length },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching penjualan data", { error });
       return ResponseHelper.serverError(
         res,
         "An error occurred while fetching penjualan data",
@@ -155,7 +158,7 @@ class PenjualansController {
         data,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching penjualan data", { error });
       return ResponseHelper.serverError(
         res,
         "An error occurred while fetching penjualan data",
@@ -188,7 +191,7 @@ class PenjualansController {
         updated,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while updating penjualan data", { error });
       return ResponseHelper.serverError(
         res,
         "An error occurred while updating penjualan data",

@@ -1,5 +1,5 @@
 const investasi = require("../models/investasi");
-
+const logger = require("../utils/index").logger;
 const { ResponseHelper } = require("../utils/index");
 
 class InvestasiController {
@@ -19,7 +19,7 @@ class InvestasiController {
         { page, limit, totalItems: investasiList.length, startDate, endDate },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching investasi data", { error });
       return ResponseHelper.serverError(
         res,
         "An error occurred while fetching investasi data",
@@ -29,9 +29,9 @@ class InvestasiController {
 
   async getInvestasiByPengajuanId(req, res) {
     try {
-      const { pengajuans_id } = req.params;
-      console.log("Pengajuans ID:", pengajuans_id); // Debugging log
-      const { page = 1, limit = 10 } = req.query;
+      // const { pengajuans_id } = req.query;
+      // console.log("Pengajuans ID:", pengajuans_id); // Debugging log
+      const { page = 1, limit = 10, pengajuans_id } = req.query;
       const investasiList = await investasi.getInvestasiByPengajuanId(
         pengajuans_id,
         page,
@@ -44,7 +44,7 @@ class InvestasiController {
         { page, limit, totalItems: investasiList.length },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching investasi data", { error });
       return ResponseHelper.serverError(
         res,
         "An error occurred while fetching investasi data",
@@ -65,7 +65,7 @@ class InvestasiController {
         investasis,
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching the investasi data", { error });
       return ResponseHelper.serverError(
         res,
         "An error occurred while fetching the investasi data",
@@ -92,7 +92,7 @@ class InvestasiController {
         { page, limit, startDate, endDate },
       );
     } catch (error) {
-      console.error(error);
+      logger.error("An error occurred while fetching investasi data", { error });
       return ResponseHelper.serverError(
         res,
         "An error occurred while fetching investasi data",

@@ -21,6 +21,14 @@ class InvestasiRoutes {
     });
 
     this.router.get(
+      "/proposals",
+      Role.authorize("superadmin", "admin", "umkm"),
+      (req, res) => {
+        this.investasiController.getInvestasiByPengajuanId(req, res);
+      },
+    );
+
+    this.router.get(
       "/:id",
       Role.authorize("superadmin", "admin"),
       (req, res) => {
@@ -28,13 +36,6 @@ class InvestasiRoutes {
       },
     );
 
-    this.router.get(
-      "/pengajuan/:pengajuans_id",
-      Role.authorize("superadmin", "admin", "umkm"),
-      (req, res) => {
-        this.investasiController.getInvestasiByPengajuanId(req, res);
-      },
-    );
     return this.router;
   }
 }

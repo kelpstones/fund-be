@@ -5,7 +5,7 @@ class Pengajuan extends BaseModel {
     super("pengajuans");
   }
 
-  #formatResponse(row) {
+  #formatResponse(row, trx = this.knex) {
     if (!row) return null;
     return {
       id: row.id,
@@ -32,8 +32,8 @@ class Pengajuan extends BaseModel {
     };
   }
 
-  #baseQuery() {
-    return this.knex(this.tableName)
+  #baseQuery(trx = this.knex) {
+    return trx(this.tableName)
       .select(
         "pengajuans.id",
         "pengajuans.bisnis_id",
@@ -88,16 +88,16 @@ class Pengajuan extends BaseModel {
     }
   }
 
-  async getPengajuanById(id) {
+  async getPengajuanById(id, trx = this.knex) {
     try {
-      const row = await this.#baseQuery().where("pengajuans.id", id).first();
-      return this.#formatResponse(row);
+      const row = await this.#baseQuery(trx).where("pengajuans.id", id).first();
+      return this.#formatResponse(row, trx);
     } catch (error) {
       throw error;
     }
   }
 
-  async getPengajuanByBisnisId(bisnis_id) {
+  async getPengajuanByBisnisId(bisnis_id, trx = this.knex) {
     try {
       const row = await this.#baseQuery()
         .where("pengajuans.bisnis_id", bisnis_id)
@@ -123,36 +123,36 @@ class Pengajuan extends BaseModel {
         per_anual_return,
         status,
       });
-      return await this.getPengajuanById(id);
+      return await this.getPengajuanById(id, trx);
     } catch (error) {
       throw error;
     }
   }
 
-  async updatePengajuanTotalPendanaan(id, tambahan_nominal) {
+  async updatePengajuanTotalPendanaan(id, tambahan_nominal, trx = this.knex) {
     try {
-      await this.knex(this.tableName)
+      await trx(this.tableName)
         .where({ id })
         .increment("total_pendanaan", tambahan_nominal)
-        .update({ updated_at: this.knex.fn.now() });
-      return await this.getPengajuanById(id);
+        .update({ updated_at: trx.fn.now() });
+      return await this.getPengajuanById(id, trx);
     } catch (error) {
       throw error;
     }
   }
 
-  async updatePengajuanStatus(id, status) {
+  async updatePengajuanStatus(id, status, trx = this.knex) {
     try {
-      await this.knex(this.tableName).where({ id }).update({ status });
-      return await this.getPengajuanById(id);
+      await trx(this.tableName).where({ id }).update({ status });
+      return await this.getPengajuanById(id, trx);
     } catch (error) {
       throw error;
     }
   }
 
-  async deletePengajuan(id) {
+  async deletePengajuan(id, trx = this.knex) {
     try {
-      await this.knex(this.tableName).where({ id }).del();
+      await trx(this.tableName).where({ id }).del();
       return { message: "Pengajuan berhasil dihapus" };
     } catch (error) {
       throw error;
