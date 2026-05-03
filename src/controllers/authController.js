@@ -18,7 +18,7 @@ const password_resets = require("../models/password_resets");
 
 class AuthController {
   async register(req, res) {
-    const trx = await knex.transaction();
+    // const trx = await knex.transaction();
     try {
       const {
         nama,
@@ -40,24 +40,24 @@ class AuthController {
         role_id,
       });
       if (!validate.status) {
-        await trx.rollback();
+        // await trx.rollback();
 
         return responseHelper.error(res, validate.message, validate.code);
       }
       const checkEmail = await User.getUserByEmail(email);
       if (checkEmail) {
-        await trx.rollback();
+        // await trx.rollback();
 
         return responseHelper.error(res, "Email already exists", 400);
       }
       const checkNik = await User.getUserByNik(nik);
       if (checkNik) {
-        await trx.rollback();
+        // await trx.rollback();
         return responseHelper.error(res, "NIK already exists", 400);
       }
       const checkNoTelp = await User.getUserByNoTelp(no_telp);
       if (checkNoTelp) {
-        await trx.rollback();
+        // await trx.rollback();
         return responseHelper.error(res, "Phone number already exists", 400);
       }
       // await trx.commit();
