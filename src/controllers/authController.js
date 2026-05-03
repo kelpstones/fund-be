@@ -77,7 +77,11 @@ class AuthController {
         return { user, token };
       });
 
-      await sendVerificationEmail(newUser.user.email, newUser.user.nama, newUser.token);
+      await sendVerificationEmail(
+        newUser.user.email,
+        newUser.user.nama,
+        newUser.token,
+      );
       return responseHelper.created(
         res,
         "Registrasi berhasil, cek email untuk verifikasi",
@@ -223,7 +227,10 @@ class AuthController {
           403,
         );
 
-      if (password_resets.existsValidTokenForUser(user.id)) {
+      const existingToken = await password_resets.findValidTokenByUserId(
+        user.id,
+      );
+      if (existingToken) {
         return responseHelper.error(
           res,
           "A valid password reset token already exists for this user, please check your email",
