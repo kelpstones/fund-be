@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const { Key } = require("./middlewares");
+const { Key, RateLimiter } = require("./middlewares");
 const morgan = require("morgan");
 const Routes = require("./routes/index");
 const response = require("./utils/index").ResponseHelper;
@@ -32,7 +32,7 @@ app.use(morgan("dev"));
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(Key.validateApiKey);
-
+app.use(RateLimiter.genRateLimiter);
 // Routes
 app.use("/api/v1", rootRouter.routes());
 

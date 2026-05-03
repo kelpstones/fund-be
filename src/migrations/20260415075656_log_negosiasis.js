@@ -5,9 +5,9 @@
 exports.up = function (knex) {
   return knex.schema.createTable("log_negosiasis", (table) => {
     table.increments("id").primary();
-    table.integer("negosiasi_id").unsigned().notNullable();
+    table.integer("negosiasis_id").unsigned().notNullable();
     table
-      .foreign("negosiasi_id")
+      .foreign("negosiasis_id")
       .references("negosiasis.id")
       .onDelete("CASCADE");
     table.integer("pengirim_id").unsigned().notNullable();
