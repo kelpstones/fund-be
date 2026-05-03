@@ -99,12 +99,44 @@ class Negosiasis extends BaseModel {
 
   async getAllNegosiasis(page = 1, limit = 10, status = "") {
     try {
-      const results = await this.#baseQuery()
-        .where("negosiasis.status", "ilike", `%${status}%`)
+      const offset = (parseInt(page) - 1) * parseInt(limit);
+
+    
+      const dataQuery = this.#baseQuery()
+        .where(function () {
+          if (status) {
+            // exact match karena status adalah enum
+            this.where("negosiasis.status", status);
+          }
+        })
         .orderBy("negosiasis.created_at", "desc")
-        .limit(limit)
-        .offset((page - 1) * limit);
-      return results.map((row) => this.#formatResponse(row));
+        .limit(parseInt(limit))
+        .offset(offset);
+
+    
+      const countQuery = this.knex("negosiasis")
+        .where(function () {
+          if (status) {
+            this.where("status", status);
+          }
+        })
+        .count("id as total")
+        .first();
+
+     
+      const [results, countResult] = await Promise.all([dataQuery, countQuery]);
+
+      const total = parseInt(countResult.total);
+
+      return {
+        data: results.map((row) => this.#formatResponse(row)),
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          total_pages: Math.ceil(total / parseInt(limit)),
+        },
+      };
     } catch (error) {
       throw error;
     }

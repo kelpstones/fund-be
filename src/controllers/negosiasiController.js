@@ -21,8 +21,8 @@ class NegotiationController {
       return responseHelper.withPagination(
         res,
         "Negosiasi data fetched successfully",
-        negosiasiList,
-        { page, limit, totalItems: negosiasiList.length, status },
+        negosiasiList.data,
+        { page, limit, totalItems: negosiasiList.pagination.total, status },
       );
     } catch (error) {
       console.error(error);
