@@ -147,7 +147,6 @@ class User extends BaseModel {
       const offset = (page - 1) * limit;
       const searchPattern = `%${search}%`;
 
-      // ✅ Data query — pakai #baseQuery seperti biasa
       const dataQuery = this.#baseQuery(false, trx)
         .where(function () {
           this.where("users.nama", "ilike", searchPattern).orWhere(
@@ -159,7 +158,6 @@ class User extends BaseModel {
         .offset(offset)
         .limit(limit);
 
-      // ✅ Count query — query sendiri, TIDAK pakai #baseQuery
       const countQuery = trx("users")
         .where(function () {
           this.where("users.nama", "ilike", searchPattern).orWhere(
