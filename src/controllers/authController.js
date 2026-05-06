@@ -11,7 +11,7 @@ const VerifyEmail = require("../models/verify_email");
 const {
   sendVerificationEmail,
   sendPasswordResetEmail,
-} = require("../utils/mailer"); 
+} = require("../utils/mailer");
 const admins = require("../models/admins");
 const knex = require("../config/db");
 const password_resets = require("../models/password_resets");
@@ -77,10 +77,12 @@ class AuthController {
         return { user, token };
       });
 
-      await sendVerificationEmail(
+      sendVerificationEmail(
         newUser.user.email,
         newUser.user.nama,
         newUser.token,
+      ).catch((err) =>
+        logger.error("Failed to send verification email", { err }),
       );
       return responseHelper.created(
         res,
@@ -136,15 +138,26 @@ class AuthController {
 
       const token = crypto.randomBytes(32).toString("hex");
       await VerifyEmail.createToken(user.id, token, trx);
-      await sendVerificationEmail(user.email, user.nama, token);
+
+      await sendVerificationEmail(
+        newUser.user.email,
+        newUser.user.nama,
+        newUser.token,
+      ).catch((err) =>
+        logger.error("Failed to send verification email", { err }),
+      );
+
       await trx.commit();
+
       return responseHelper.success(
         res,
         "Email verification successfully resent, please check your email",
       );
     } catch (error) {
       await trx.rollback();
-      logger.error("An error occurred while resending verification email", { error });
+      logger.error("An error occurred while resending verification email", {
+        error,
+      });
       responseHelper.serverError(res, error);
     }
   }
@@ -195,7 +208,8 @@ class AuthController {
       const user = await User.getUserById(id);
       if (!user) return responseHelper.error(res, "User not found", 404);
 
-      const refreshed = refreshToken(user);
+      const refreshed = await refreshToken(user);
+      // logger.info("Token refreshed successfully for user", { refreshed });
       return responseHelper.successLogin(
         res,
         "Token refreshed",
@@ -246,7 +260,10 @@ class AuthController {
         "Password reset request successful, please check your email",
       );
     } catch (error) {
-      logger.error("An error occurred while processing forgot password request", { error });
+      logger.error(
+        "An error occurred while processing forgot password request",
+        { error },
+      );
       return responseHelper.serverError(
         res,
         "An error occurred while processing forgot password request",
@@ -338,7 +355,7 @@ class AuthController {
       const admin = await admins.getAdminById(id);
       if (!admin) return responseHelper.error(res, "Admin not found", 404);
 
-      const refreshed = refreshAdminToken(admin);
+      const refreshed = await refreshAdminToken(admin);
       return responseHelper.successLogin(
         res,
         "Token refreshed",

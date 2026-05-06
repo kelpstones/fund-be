@@ -3,7 +3,7 @@ const admins = require("../models/admins");
 const { NotificationValidator } = require("../validation");
 const pengajuans = require("../models/pengajuans");
 const bisnis = require("../models/bisnis");
-const logger = require("./index").logger;
+const logger = require("./logger");
 exports.notifyAdminNewPengajuan = async (bisnis_id, pengajuans_id) => {
   try {
     const allAdmins = await admins.getAllAdmins(1, 100);

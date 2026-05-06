@@ -31,7 +31,7 @@ exports.up = function (knex) {
     })
     .table("invoices", (table) => {
       table.index(["investor_id"], "idx_invoices_investor_id");
-      table.index(["negosiasis_id"], "idx_invoices_negosiasis_id");
+      table.index(["negosiasi_id"], "idx_invoices_negosiasi_id");
       table.index(["status"], "idx_invoices_status");
     });
 };
@@ -48,13 +48,13 @@ exports.down = function (knex) {
       table.dropIndex([], "idx_pengajuans_bisnis_status");
     })
     .table("negosiasis", (table) => {
-      table.dropIndex([], "idx_negosiasis_pengajuans_id");
       table.dropIndex([], "idx_negosiasis_investor_id");
+      table.dropIndex([], "idx_negosiasis_pengajuan_id"); // fix: was idx_negosiasis_pengajuans_id
       table.dropIndex([], "idx_negosiasis_status");
-      table.dropIndex([], "idx_negosiasis_pengajuan_status");
+      table.dropIndex([], "idx_negosiasis_investor_status"); // fix: was idx_negosiasis_pengajuan_status
     })
     .table("log_negosiasis", (table) => {
-      table.dropIndex([], "idx_log_negosiasis_negosiasi_created");
+      table.dropIndex([], "idx_log_negosiasis_negosiasis_id"); // fix: was idx_log_negosiasis_negosiasi_created
     })
     .table("investasis", (table) => {
       table.dropIndex([], "idx_investasis_investor_id");
@@ -62,11 +62,11 @@ exports.down = function (knex) {
     })
     .table("notifications", (table) => {
       table.dropIndex([], "idx_notifications_user_id");
-      table.dropIndex([], "idx_notifications_user_is_read");
+      table.dropIndex([], "idx_notifications_user_id_is_read"); // fix: was idx_notifications_user_is_read
     })
     .table("invoices", (table) => {
-      table.dropIndex([], "idx_invoices_negosiasi_id");
       table.dropIndex([], "idx_invoices_investor_id");
+      table.dropIndex([], "idx_invoices_negosiasi_id");
       table.dropIndex([], "idx_invoices_status");
     });
 };

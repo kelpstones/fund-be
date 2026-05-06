@@ -4,7 +4,6 @@ const LogNegosiasis = require("../models/log_negosiasis");
 const pengajuans = require("../models/pengajuans");
 const { NegotiationValidator } = require("../validation");
 const invoices = require("../models/invoices");
-const Investasi = require("../models/investasi");
 const log_negosiasis = require("../models/log_negosiasis");
 const notificationHelper = require("../utils/index").NotificationHelper;
 const knex = require("../config/db");
@@ -26,7 +25,9 @@ class NegotiationController {
         { page, limit, totalItems: negosiasiList.pagination.total, status },
       );
     } catch (error) {
-      logger.error("An error occurred while fetching negosiasi data", { error });
+      logger.error("An error occurred while fetching negosiasi data", {
+        error,
+      });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching negosiasi data",
@@ -35,14 +36,16 @@ class NegotiationController {
   }
 
   async startNegotiation(req, res) {
+    const trx = await knex.transaction();
     try {
       const { pengajuans_id, penawaran_return, penawaran_nominal, catatan } =
         req.body;
       const { id: investor_id } = req.user;
 
-      //   cek pengajuan
+      // Cek pengajuan
       const pengajuan = await pengajuans.getPengajuanById(pengajuans_id);
       if (!pengajuan || pengajuan.status !== "published") {
+        await trx.rollback();
         return responseHelper.error(
           res,
           "Pengajuan not found or not published",
@@ -50,13 +53,14 @@ class NegotiationController {
         );
       }
 
-      //   cek negosiasi aktif
+      // Cek negosiasi aktif (double check)
       const activeNegosiasi =
         await Negosiasis.getNegosiasiByPengajuanId(pengajuans_id);
       if (
         activeNegosiasi.length !== 0 &&
         activeNegosiasi.some((n) => n.status === "active")
       ) {
+        await trx.rollback();
         return responseHelper.error(
           res,
           "An active negotiation already exists for this pengajuan",
@@ -64,7 +68,7 @@ class NegotiationController {
         );
       }
 
-      //   validation
+      // Validation
       const { error } = NegotiationValidator.negotiationValidation({
         pengajuans_id,
         penawaran_return,
@@ -72,25 +76,34 @@ class NegotiationController {
         catatan,
       });
       if (error) {
+        await trx.rollback();
         logger.error("Validation error while starting negotiation", { error });
         return responseHelper.error(res, error.details[0].message, 400);
       }
 
-      //   create negosiasi
+      await pengajuans.lockPengajuan(pengajuans_id, investor_id, trx);
+
       const negosiasi = await Negosiasis.createNegosiasi(
         pengajuans_id,
         investor_id,
         "active",
         investor_id,
+        trx,
       );
 
+      // Log penawaran pertama
       const log_negosiasi = await LogNegosiasis.createLogNegosiasi(
         negosiasi.id,
         investor_id,
         penawaran_return,
         penawaran_nominal,
         catatan,
+        "investor", // diajukan_oleh
+        "pending", // status log
+        trx,
       );
+
+      await trx.commit();
 
       await notificationHelper.notifyStartNegotiation(
         pengajuans_id,
@@ -98,12 +111,16 @@ class NegotiationController {
         penawaran_return,
         penawaran_nominal,
       );
+
       return responseHelper.success(res, "Negotiation started successfully", {
         negosiasi,
         log_negosiasi,
       });
     } catch (error) {
-      logger.error("An error occurred while creating negosiasi data", { error });
+      await trx.rollback();
+      logger.error("An error occurred while creating negosiasi data", {
+        error,
+      });
       return responseHelper.serverError(
         res,
         "An error occurred while creating negosiasi data",
@@ -125,7 +142,9 @@ class NegotiationController {
         negosiasiList,
       );
     } catch (error) {
-      logger.error("An error occurred while fetching negosiasi data", { error });
+      logger.error("An error occurred while fetching negosiasi data", {
+        error,
+      });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching negosiasi data",
@@ -150,7 +169,9 @@ class NegotiationController {
         negosiasiList,
       );
     } catch (error) {
-      logger.error("An error occurred while fetching negosiasi data", { error });
+      logger.error("An error occurred while fetching negosiasi data", {
+        error,
+      });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching negosiasi data",
@@ -171,7 +192,9 @@ class NegotiationController {
         negosiasi,
       );
     } catch (error) {
-      logger.error("An error occurred while fetching negosiasi data", { error });
+      logger.error("An error occurred while fetching negosiasi data", {
+        error,
+      });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching negosiasi data",
@@ -180,29 +203,50 @@ class NegotiationController {
   }
 
   async replyNegotiation(req, res) {
+    const trx = await knex.transaction();
     try {
       const { id: negosiasi_id } = req.params;
       const { penawaran_return, penawaran_nominal, catatan } = req.body;
-      const { id: user_id } = req.user;
-      const { role_name } = req.user;
-      const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id);
+      const { id: user_id, role_name } = req.user;
+
+      const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id, trx);
       if (!negosiasi || negosiasi.status !== "active") {
+        await trx.rollback();
         return responseHelper.error(
           res,
           "Negosiasi not found or not active",
           404,
         );
       }
+      logger.info("Fetched negosiasi for reply", {
+        isLastReplier:
+          parseInt(negosiasi.id_terakhir_oleh) === parseInt(user_id),
+      });
+      if (parseInt(negosiasi.id_terakhir_oleh) === parseInt(user_id)) {
+        await trx.rollback();
+        return responseHelper.error(
+          res,
+          "Waiting for opposite to reply before you can reply again",
+          400,
+        );
+      }
 
-      //   validation
+      // Validation
       const { error } = NegotiationValidator.replyNegotiationValidation({
         penawaran_return,
         penawaran_nominal,
         catatan,
       });
       if (error) {
+        await trx.rollback();
         return responseHelper.error(res, error.details[0].message, 400);
       }
+
+      await trx("log_negosiasis")
+        .where({ negosiasis_id: negosiasi_id, status: "pending" })
+        .update({ status: "rejected" });
+
+      const diajukan_oleh = role_name === "investor" ? "investor" : "umkm";
 
       const log_negosiasi = await LogNegosiasis.createLogNegosiasi(
         negosiasi_id,
@@ -210,21 +254,29 @@ class NegotiationController {
         penawaran_return,
         penawaran_nominal,
         catatan,
+        diajukan_oleh,
+        "pending",
+        trx,
       );
 
-      await Negosiasis.updateNegosiasi(negosiasi_id, "active", user_id);
+      await Negosiasis.updateNegosiasi(negosiasi_id, "active", user_id, trx);
+
+      await trx.commit();
+
       await notificationHelper.notifyReplyNegotiation(
         role_name === "investor"
-          ? negosiasi.investor.id
-          : negosiasi.bisnis_owner.id,
+          ? negosiasi.bisnis_owner.id
+          : negosiasi.investor.id,
         negosiasi_id,
         "reply",
         catatan,
       );
+
       return responseHelper.success(res, "Reply to negotiation successfully", {
         log_negosiasi,
       });
     } catch (error) {
+      await trx.rollback();
       logger.error("An error occurred while replying to negosiasi", { error });
       return responseHelper.serverError(
         res,
@@ -240,7 +292,7 @@ class NegotiationController {
       const { catatan } = req.body;
       const { id: user_id, role_name } = req.user;
 
-      const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id);
+      const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id, trx);
       if (!negosiasi || negosiasi.status !== "active") {
         await trx.rollback();
         return responseHelper.error(
@@ -258,42 +310,47 @@ class NegotiationController {
         return responseHelper.error(res, error.details[0].message, 400);
       }
 
-      const lastLog =
-        await log_negosiasis.getLastLogByNegosiasiId(negosiasi_id);
+      const lastLog = await LogNegosiasis.getLastLogByNegosiasiId(
+        negosiasi_id,
+        trx,
+      );
+      if (!lastLog) {
+        await trx.rollback();
+        return responseHelper.error(
+          res,
+          "Tidak ada penawaran yang bisa di-accept",
+          400,
+        );
+      }
+
+      await trx("log_negosiasis")
+        .where({ negosiasis_id: negosiasi_id, status: "pending" })
+        .update({ status: "accepted" });
 
       await Negosiasis.updateNegosiasi(negosiasi_id, "deal", user_id, trx);
 
+      await trx("pengajuans").where({ id: negosiasi.pengajuan.id }).update({
+        status: "funded",
+        locked_by_investor_id: null,
+        locked_at: null,
+        per_anual_return: lastLog.penawaran_return, // sesuaikan nama kolom dengan DB
+      });
+
+      // Buat invoice — kalkulasi PPN + biaya admin ada di dalam createInvoice
       const kodePembayaran = `PAY-${Date.now()}`;
       const deadline = new Date();
       deadline.setHours(
         deadline.getHours() + parseInt(process.env.INVOICE_EXPIRY_HOURS || 24),
       );
 
-      // createInvoice sekarang return raw row, jadi semua field langsung accessible
       const invoice = await invoices.createInvoice(
         negosiasi_id,
         negosiasi.pengajuan.id,
         negosiasi.investor.id,
         lastLog.penawaran_nominal,
+        lastLog.penawaran_return,
         kodePembayaran,
         deadline,
-        trx,
-      );
-
-      const investasi = await Investasi.createInvestasi(
-        {
-          investor_id: negosiasi.investor.id,
-          pengajuans_id: negosiasi.pengajuan.id,
-          negosiasi_id: negosiasi_id,
-          nominal_investasi: lastLog.penawaran_nominal,
-          return_investasi: lastLog.penawaran_return,
-        },
-        trx,
-      );
-
-      await pengajuans.updatePengajuanTotalPendanaan(
-        negosiasi.pengajuan.id,
-        lastLog.penawaran_nominal,
         trx,
       );
 
@@ -304,12 +361,12 @@ class NegotiationController {
         negosiasi.investor.nama,
         invoice,
         negosiasi,
-      ).catch((err) => console.error("Failed to send invoice email:", err));
+      ).catch((err) => logger.error("Failed to send invoice email", { err }));
 
       await notificationHelper.notifyReplyNegotiation(
         role_name === "investor"
-          ? negosiasi.investor.id
-          : negosiasi.bisnis_owner.id,
+          ? negosiasi.bisnis_owner.id
+          : negosiasi.investor.id,
         negosiasi_id,
         "deal",
         catatan,
@@ -317,8 +374,7 @@ class NegotiationController {
 
       return responseHelper.success(res, "Negotiation accepted successfully", {
         negosiasi: await Negosiasis.getNegosiasiById(negosiasi_id),
-        invoice: await invoices.getInvoiceById(invoice.id), 
-        investasi,
+        invoice: await invoices.getInvoiceById(invoice.id),
       });
     } catch (error) {
       await trx.rollback();
@@ -331,38 +387,52 @@ class NegotiationController {
   }
 
   async rejectNegotiation(req, res) {
+    const trx = await knex.transaction();
     try {
       const { id: negosiasi_id } = req.params;
       const { catatan } = req.body;
-      const { id: user_id } = req.user;
-      const { role_name } = req.user;
-      const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id);
+      const { id: user_id, role_name } = req.user;
+
+      const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id, trx);
       if (!negosiasi || negosiasi.status !== "active") {
+        await trx.rollback();
         return responseHelper.error(
           res,
           "Negosiasi not found or not active",
           404,
         );
       }
-      //   validation
+
       const { error } = NegotiationValidator.acceptRejectNegotiationValidation({
         catatan,
       });
       if (error) {
+        await trx.rollback();
         return responseHelper.error(res, error.details[0].message, 400);
       }
 
-      await Negosiasis.updateNegosiasi(negosiasi_id, "rejected", user_id);
+      await Negosiasis.updateNegosiasi(negosiasi_id, "rejected", user_id, trx);
+
+      await trx("pengajuans").where({ id: negosiasi.pengajuan.id }).update({
+        status: "published",
+        locked_by_investor_id: null,
+        locked_at: null,
+      });
+
+      await trx.commit();
+
       await notificationHelper.notifyReplyNegotiation(
         role_name === "investor"
-          ? negosiasi.investor.id
-          : negosiasi.bisnis_owner.id,
+          ? negosiasi.bisnis_owner.id
+          : negosiasi.investor.id,
         negosiasi_id,
         "rejected",
         catatan,
       );
+
       return responseHelper.success(res, "Negotiation rejected successfully");
     } catch (error) {
+      await trx.rollback();
       logger.error("An error occurred while rejecting negosiasi", { error });
       return responseHelper.serverError(
         res,

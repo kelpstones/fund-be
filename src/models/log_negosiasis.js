@@ -1,24 +1,30 @@
 const BaseModel = require("./base");
+
 class LogNegosiasis extends BaseModel {
   constructor() {
     super("log_negosiasis");
   }
 
   async createLogNegosiasi(
-    negosiasi_id,
+    negosiasis_id,
     pengirim_id,
     penawaran_return,
     penawaran_nominal,
     catatan,
+    diajukan_oleh = "investor",
+    status = "pending",
+    trx = this.knex,
   ) {
     try {
-      const log = await this.knex(this.tableName)
+      const [log] = await trx(this.tableName)
         .insert({
-          negosiasi_id,
+          negosiasis_id,
           pengirim_id,
           penawaran_return,
           penawaran_nominal,
           catatan,
+          diajukan_oleh,
+          status,
         })
         .returning("*");
       return log;
@@ -27,32 +33,32 @@ class LogNegosiasis extends BaseModel {
     }
   }
 
-  async getLastLogByNegosiasiId(negosiasi_id) {
+  async getLastLogByNegosiasiId(negosiasis_id, trx = this.knex) {
     try {
-      const log = await this.knex(this.tableName)
-        .where("negosiasi_id", negosiasi_id)
+      const log = await trx(this.tableName)
+        .where("negosiasis_id", negosiasis_id)
         .orderBy("created_at", "desc")
         .first();
-      return log;
-    } catch (error) {
-      throw error;
-    }F
-  }
-
-  async getLogNegosiasiByNegosiasiId(negosiasi_id) {
-    try {
-      const log = await this.knex(this.tableName)
-        .where("negosiasi_id", negosiasi_id)
-        .returning("*");
       return log;
     } catch (error) {
       throw error;
     }
   }
 
-  async deleteLogNegosiasi(id) {
+  async getLogNegosiasiByNegosiasiId(negosiasis_id, trx = this.knex) {
     try {
-      const data = await this.knex(this.tableName).where({ id }).del();
+      const log = await trx(this.tableName)
+        .where("negosiasis_id", negosiasis_id)
+        .select("*");
+      return log;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deleteLogNegosiasi(id, trx = this.knex) {
+    try {
+      const data = await trx(this.tableName).where({ id }).del();
       return data;
     } catch (error) {
       throw error;
