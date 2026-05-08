@@ -5,6 +5,7 @@ const BisnisRoutes = require("./bisnisRoutes");
 const { Auth, Role, RateLimiter } = require("../middlewares");
 const KelasRoutes = require("./kelasRoutes");
 const UserController = require("../controllers/userController");
+const InvestorRoutes = require("./investorRoutes");
 class UserRoutes {
   constructor() {
     this.router = router;
@@ -12,6 +13,7 @@ class UserRoutes {
     this.bisnisRoutes = new BisnisRoutes();
     this.kelasRoutes = new KelasRoutes();
     this.userController = new UserController();
+    this.investorRoutes = new InvestorRoutes();
   }
   routes() {
     this.router.post("/register", RateLimiter.authRateLimiter, (req, res) => {
@@ -20,6 +22,9 @@ class UserRoutes {
     this.router.post("/login", RateLimiter.authRateLimiter, (req, res) => {
       this.authController.login(req, res);
     });
+
+    // investor
+    this.router.use("/investor", this.investorRoutes.routes());
 
     this.router.get("/verify-email", (req, res) => {
       this.authController.verifyEmail(req, res);

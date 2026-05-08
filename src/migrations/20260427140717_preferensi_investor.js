@@ -11,7 +11,7 @@ exports.up = function (knex) {
       .references("id")
       .inTable("users")
       .onDelete("CASCADE");
-    table.decimal("kepuasan_investor", 10, 2).notNullable();
+    table.decimal("kepuasan_pelanggan", 10, 2).notNullable();
     table.decimal("digital_adoption_score", 10, 2).notNullable();
     table.decimal("net_profit_margin", 10, 2).notNullable();
     table.integer("year_revenue", 10).notNullable();

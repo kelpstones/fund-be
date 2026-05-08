@@ -1,3 +1,5 @@
+const BaseModel = require("./base");
+
 class Personalisasi extends BaseModel {
   constructor() {
     super("personalisasi");
