@@ -36,6 +36,17 @@ class BisnisProfiles extends BaseModel {
     };
   }
 
+  async getAll(trx = this.knex) {
+    try {
+      const data = await trx(this.tableName)
+        .select("bisnis_profiles.*", "bisnis.nama_bisnis")
+        .join("bisnis", "bisnis_profiles.bisnis_id", "bisnis.id");
+      return data.map((row) => this.#formatResponse(row));
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async upsertProfile(bisnis_id, data) {
     try {
       const existing = await this.knex(this.tableName)

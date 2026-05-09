@@ -75,14 +75,14 @@ class Pengajuan extends BaseModel {
     }
   }
 
-  async getAllPengajuans(page = 1, limit = 10, status) {
+  async getAllPengajuans(page = 1, limit = 10, status, trx = this.knex) {
     try {
-      const results = await this.#baseQuery()
+      const results = await this.#baseQuery(trx)
         .where("pengajuans.status", "like", `%${status || ""}%`)
         .orderBy("pengajuans.created_at", "desc")
         .limit(limit)
         .offset((page - 1) * limit);
-      return results.map((row) => this.#formatResponse(row));
+      return results.map((row) => this.#formatResponse(row, trx));
     } catch (error) {
       throw error;
     }
@@ -99,13 +99,21 @@ class Pengajuan extends BaseModel {
 
   async getPengajuanByBisnisId(bisnis_id, trx = this.knex) {
     try {
-      const row = await this.#baseQuery()
+      const row = await this.#baseQuery(trx)
         .where("pengajuans.bisnis_id", bisnis_id)
         .first();
-      return this.#formatResponse(row);
+      return this.#formatResponse(row, trx);
     } catch (error) {
       throw error;
     }
+  }
+
+  async lockPengajuan(pengajuans_id, investor_id, trx = this.knex) {
+    return trx("pengajuans").where({ id: pengajuans_id }).update({
+      status: "negotiating",
+      locked_by_investor_id: investor_id,
+      locked_at: new Date(),
+    });
   }
 
   async updatePengajuan(

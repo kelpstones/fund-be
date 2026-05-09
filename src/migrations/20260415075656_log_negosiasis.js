@@ -12,8 +12,16 @@ exports.up = function (knex) {
       .onDelete("CASCADE");
     table.integer("pengirim_id").unsigned().notNullable();
     table.foreign("pengirim_id").references("users.id").onDelete("CASCADE");
-    table.integer("penawaran_return").notNullable();
-    table.integer("penawaran_nominal").notNullable();
+    table.decimal("penawaran_return", 10, 2).unsigned().notNullable();
+    table.decimal("penawaran_nominal", 20, 2).unsigned().notNullable();
+    table
+      .enum("diajukan_oleh", ["investor", "umkm"])
+      .notNullable()
+      .defaultTo("investor");
+    table
+      .enum("status", ["pending", "accepted", "rejected"])
+      .defaultTo("pending")
+      .notNullable();
     table.text("catatan").nullable();
     table.timestamps(true, true);
   });
@@ -22,4 +30,6 @@ exports.up = function (knex) {
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.down = function (knex) {};
+exports.down = function (knex) {
+  return knex.schema.dropTableIfExists("log_negosiasis");
+};

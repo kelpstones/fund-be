@@ -18,7 +18,15 @@ exports.up = function (knex) {
     table.integer("investor_id").unsigned().notNullable();
     table.foreign("investor_id").references("users.id").onDelete("CASCADE");
     table.decimal("nominal_tagihan", 20, 2).unsigned().notNullable();
-    table.decimal("ppn", 5, 2).unsigned().defaultTo(11.00).notNullable();
+    table.decimal("ppn", 5, 2).unsigned().defaultTo(11.0).notNullable();
+    table.decimal("ppn_amount", 20, 2).unsigned().notNullable().defaultTo(0);
+    table.decimal("biaya_admin", 20, 2).unsigned().notNullable().defaultTo(0);
+    table.decimal("total_nominal", 20, 2).unsigned().notNullable().defaultTo(0);
+    table
+      .decimal("return_investasi", 5, 2)
+      .unsigned()
+      .notNullable()
+      .defaultTo(0);
     table.string("kode_pembayaran", 100).notNullable();
     table.timestamp("tenggat_waktu").notNullable();
     table

@@ -1,64 +1,235 @@
-const PreferensiInvestor = require("../models/preferensi_investor");
-const { ResponseHelper } = require("../utils/index");
-const {
-  validatePreferensiInvestor,
-} = require("../validations/preferensi_investor");
+const responseHelper = require("../utils/response");
+const preferensiInvestorModel = require("../models/preferensi_investor");
+const personalisasi = require("../models/personalisasi");
+const User = require("../models/users");
+const axios = require("axios");
 const logger = require("../utils/index").logger;
-const upsertPreferensi = async (req, res) => {
-  try {
-    const id_user = req.user.id;
-    const { error, value } = validatePreferensiInvestor(req.body);
-    if (error) {
-      logger.error("Validation error while upserting preferensi", { error: error.details[0].message });
-      return ResponseHelper.error(res, error.details[0].message, 400);
+const { PreferensiInvestorValidator } = require("../validation/index");
+class PreferensiInvestorController {
+  async submitPreferensi(req, res) {
+    try {
+      const investor_id = req.user.id;
+      const {
+        kepuasan_pelanggan,
+        digital_adoption_score,
+        net_profit_margin,
+        year_revenue,
+        business_tenure_years,
+      } = req.body;
+
+      // Validasi field wajib
+      const { error } =
+        PreferensiInvestorValidator.preferensiInvestorValidation({
+          kepuasan_pelanggan,
+          digital_adoption_score,
+          net_profit_margin,
+          year_revenue,
+          business_tenure_years,
+        });
+      if (error) {
+        return responseHelper.error(res, error.details[0].message, 400);
+      }
+
+      const savedPreferensi = await preferensiInvestorModel.upsert(
+        investor_id,
+        {
+          kepuasan_pelanggan,
+          digital_adoption_score,
+          net_profit_margin,
+          year_revenue,
+          business_tenure_years,
+        },
+      );
+
+      await User.updateUser(investor_id, { is_onboarded: 1 });
+
+      const modelUrl = process.env.ML_MODEL_URL;
+      let rekomendasi = [];
+
+      try {
+        const modelResponse = await axios.post(modelUrl, {
+          investor_id,
+          kepuasan_pelanggan,
+          digital_adoption_score,
+          net_profit_margin,
+          year_revenue,
+          business_tenure_years,
+        });
+
+        const results = modelResponse.data.results ?? [];
+
+        if (results.length > 0) {
+          rekomendasi = await personalisasi.upsertBatch(investor_id, results);
+        }
+      } catch (modelErr) {
+        logger.error("ML model tidak dapat dijangkau saat onboarding", {
+          error: modelErr.message,
+          investor_id,
+        });
+      }
+
+      return responseHelper.success(
+        res,
+        "Survey berhasil, rekomendasi UMKM siap",
+        {
+          preferensi: savedPreferensi,
+          rekomendasi,
+        },
+      );
+    } catch (error) {
+      logger.error("Error submitPreferensi", { error });
+      return responseHelper.serverError(res, error);
     }
-
-    const data = await PreferensiInvestor.upsertPreferensi(id_user, value);
-    return ResponseHelper.success(
-      res,
-      200,
-      "Preferensi berhasil disimpan",
-      data,
-    );
-  } catch (error) {
-    logger.error("An error occurred while upserting preferensi", { error });
-    return ResponseHelper.error(res, "An error occurred while upserting preferensi", 500);
   }
-};
 
-const getPreferensi = async (req, res) => {
-  try {
-    const id_user = req.user.id;
-
-    const data = await PreferensiInvestor.getByUserId(id_user);
-    if (!data) return ResponseHelper.error(res, 404, "Preferensi belum diisi");
-
-    return ResponseHelper.success(
-      res,
-      200,
-      "Berhasil mendapatkan preferensi",
-      data,
-    );
-  } catch (error) {
-    logger.error("An error occurred while fetching preferensi", { error });
-    return ResponseHelper.error(res, "An error occurred while fetching preferensi", 500);
+  async getPreferensi(req, res) {
+    try {
+      const investor_id = req.user.id;
+      const data = await preferensiInvestorModel.getByInvestorId(investor_id);
+      if (!data)
+        return responseHelper.error(res, "Preferensi belum diisi", 404);
+      return responseHelper.success(res, "Preferensi investor", data);
+    } catch (error) {
+      logger.error("Error getPreferensi", { error });
+      return responseHelper.serverError(res, error);
+    }
   }
-};
 
-const deletePreferensi = async (req, res) => {
-  try {
-    const id_user = req.user.id;
+  async getRekomendasi(req, res) {
+    try {
+      const investor_id = req.user.id;
 
-    const existing = await PreferensiInvestor.getByUserId(id_user);
-    if (!existing)
-      return ResponseHelper.error(res, 404, "Preferensi tidak ditemukan");
+      const prefData =
+        await preferensiInvestorModel.getByInvestorId(investor_id);
+      if (!prefData) {
+        return responseHelper.error(
+          res,
+          "Silakan lengkapi preferensi terlebih dahulu",
+          400,
+        );
+      }
 
-    await PreferensiInvestor.deleteByUserId(id_user);
-    return ResponseHelper.success(res, 200, "Preferensi berhasil dihapus");
-  } catch (error) {
-    logger.error("An error occurred while deleting preferensi", { error });
-    return ResponseHelper.error(res, "An error occurred while deleting preferensi", 500);
+      const data = await personalisasi.getByUserId(investor_id);
+
+      if (data.length === 0) {
+        return responseHelper.success(
+          res,
+          "Belum ada rekomendasi, coba refresh",
+          [],
+        );
+      }
+
+      return responseHelper.success(res, "Rekomendasi UMKM untuk kamu", {
+        investor_id,
+        total: data.length,
+        rekomendasi: data,
+      });
+    } catch (error) {
+      logger.error("Error getRekomendasi", { error });
+      return responseHelper.serverError(res, error);
+    }
   }
-};
 
-module.exports = { upsertPreferensi, getPreferensi, deletePreferensi };
+  async refreshRekomendasi(req, res) {
+    try {
+      const investor_id = req.user.id;
+
+      const prefData =
+        await preferensiInvestorModel.getByInvestorId(investor_id);
+      if (!prefData) {
+        return responseHelper.error(
+          res,
+          "Silakan lengkapi preferensi terlebih dahulu",
+          400,
+        );
+      }
+
+      const modelUrl = process.env.ML_MODEL_URL;
+
+      let modelResponse;
+      try {
+        modelResponse = await axios.post(
+          modelUrl,
+          {
+            investor_id,
+            kepuasan_pelanggan: prefData.kepuasan_pelanggan,
+            digital_adoption_score: prefData.digital_adoption_score,
+            net_profit_margin: prefData.net_profit_margin,
+            year_revenue: prefData.year_revenue,
+            business_tenure_years: prefData.business_tenure_years,
+          },
+          {
+            timeout: 10000,
+          },
+        );
+      } catch (modelErr) {
+        if (modelErr.code === "ECONNREFUSED" || modelErr.code === "ENOTFOUND") {
+          logger.error("ML model tidak dapat dijangkau", {
+            error: modelErr.message,
+            investor_id,
+          });
+          return responseHelper.error(
+            res,
+            "Layanan rekomendasi sedang tidak tersedia, coba beberapa saat lagi",
+            503,
+          );
+        }
+
+        // Model timeout
+        if (
+          modelErr.code === "ECONNABORTED" ||
+          modelErr.message?.includes("timeout")
+        ) {
+          logger.error("ML model timeout", {
+            error: modelErr.message,
+            investor_id,
+          });
+          return responseHelper.error(
+            res,
+            "Layanan rekomendasi membutuhkan waktu terlalu lama, coba beberapa saat lagi",
+            504,
+          );
+        }
+
+        // Model return error (4xx / 5xx dari sisi model)
+        if (modelErr.response) {
+          logger.error("ML model return error", {
+            status: modelErr.response.status,
+            data: modelErr.response.data,
+            investor_id,
+          });
+          return responseHelper.error(
+            res,
+            "Layanan rekomendasi mengalami masalah internal",
+            502,
+          );
+        }
+
+        // Error lain yang tidak dikenal
+        logger.error("ML model unknown error", {
+          error: modelErr.message,
+          investor_id,
+        });
+        return responseHelper.error(
+          res,
+          "Gagal menghubungi layanan rekomendasi",
+          502,
+        );
+      }
+
+      const results = modelResponse.data.results ?? [];
+      const saved = await personalisasi.upsertBatch(investor_id, results);
+
+      return responseHelper.success(
+        res,
+        "Rekomendasi berhasil diperbarui",
+        saved,
+      );
+    } catch (error) {
+      logger.error("Error refreshRekomendasi", { error });
+      return responseHelper.serverError(res, error);
+    }
+  }
+}
+
+module.exports = PreferensiInvestorController;

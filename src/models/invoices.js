@@ -5,29 +5,37 @@ class Invoices extends BaseModel {
     super("invoices");
   }
 
-  #formatResponse(row, trx = this.knex) {
+  #formatResponse(row) {
     if (!row) return null;
     return {
       id: row.id,
       kode_pembayaran: row.kode_pembayaran,
       nominal_tagihan: row.nominal_tagihan,
       ppn: row.ppn,
+      ppn_amount: row.ppn_amount,
+      biaya_admin: row.biaya_admin,
+      total_nominal: row.total_nominal,
+      return_investasi: row.return_investasi,
       status: row.status,
       tenggat_waktu: row.tenggat_waktu,
       created_at: row.created_at,
       updated_at: row.updated_at,
-      detail_pengajuan: {
-        id: row.pengajuan_id,
-        id_negosiasi: row.negosiasi_id,
-        nama_bisnis: row.nama_bisnis,
-        nama_pemilik: row.nama_pemilik,
-        per_annual: row.per_annual,
-        target_dana: row.target_dana,
-      },
-      investor: {
-        id: row.investor_id,
-        nama: row.nama_investor,
-      },
+      detail_pengajuan: row.pengajuan_id
+        ? {
+            id: row.pengajuan_id,
+            id_negosiasi: row.negosiasi_id,
+            nama_bisnis: row.nama_bisnis,
+            nama_pemilik: row.nama_pemilik,
+            per_annual: row.per_annual,
+            target_dana: row.target_dana,
+          }
+        : null,
+      investor: row.investor_id
+        ? {
+            id: row.investor_id,
+            nama: row.nama_investor,
+          }
+        : null,
     };
   }
 
@@ -55,23 +63,38 @@ class Invoices extends BaseModel {
     pengajuan_id,
     investor_id,
     nominal_tagihan,
+    return_investasi,
     kode_pembayaran,
     tenggat_waktu,
     trx = this.knex,
   ) {
     try {
+      const subtotal = parseFloat(nominal_tagihan); 
+      const adminRate = parseFloat(process.env.ADMIN_FEE_RATE || 1);
+      const ppnRate = parseFloat(process.env.PPN_RATE || 12); 
+
+      const biayaAdmin = subtotal * (adminRate / 100); 
+      const ppnAmount = biayaAdmin * (ppnRate / 100); 
+      const totalNominal = subtotal + biayaAdmin + ppnAmount; 
+
       const [row] = await trx(this.tableName)
         .insert({
           negosiasi_id: id_negosiasi,
           pengajuan_id,
           investor_id,
-          nominal_tagihan,
+          nominal_tagihan: subtotal,
+          ppn: ppnRate,
+          ppn_amount: ppnAmount,
+          biaya_admin: biayaAdmin,
+          total_nominal: totalNominal,
+          return_investasi,
           kode_pembayaran,
           tenggat_waktu,
           status: "pending",
         })
-        .returning("*");
-      return this.#formatResponse(row, trx);
+        .returning("id");
+
+      return await this.getInvoiceById(row.id, trx);
     } catch (error) {
       throw error;
     }
@@ -110,6 +133,17 @@ class Invoices extends BaseModel {
     }
   }
 
+  async getInvoiceByKodePembayaran(kode_pembayaran, trx = this.knex) {
+    try {
+      const row = await this.#baseQuery(trx)
+        .where("invoices.kode_pembayaran", kode_pembayaran)
+        .first();
+      return this.#formatResponse(row, trx);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getInvoicesByInvestor(
     investor_id,
     page = 1,
@@ -117,9 +151,13 @@ class Invoices extends BaseModel {
     status,
     startDate,
     endDate,
+    trx = this.knex,
   ) {
     try {
-      let query = this.#baseQuery().where("invoices.investor_id", investor_id);
+      let query = this.#baseQuery(trx).where(
+        "invoices.investor_id",
+        investor_id,
+      );
       if (startDate && endDate)
         query = query.whereBetween("invoices.created_at", [startDate, endDate]);
       if (status) query = query.where("invoices.status", status);
@@ -128,7 +166,7 @@ class Invoices extends BaseModel {
         .orderBy("invoices.created_at", "desc")
         .limit(limit)
         .offset((page - 1) * limit);
-      return results.map((row) => this.#formatResponse(row));
+      return results.map((row) => this.#formatResponse(row, trx));
     } catch (error) {
       throw error;
     }
@@ -140,7 +178,7 @@ class Invoices extends BaseModel {
         status,
         updated_at: trx.fn.now(),
       });
-      return await this.getInvoiceById(id);
+      return await this.getInvoiceById(id, trx);
     } catch (error) {
       throw error;
     }

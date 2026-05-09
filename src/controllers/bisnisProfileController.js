@@ -73,6 +73,26 @@ class BisnisProfileController {
     }
   }
 
+  async getAllProfilesForML(req, res) {
+    try {
+      const profiles = await BisnisProfiles.getAll();
+      logger.info("Fetched bisnis profiles for ML", { count: profiles.length });
+      return responseHelper.success(
+        res,
+        "Bisnis profiles fetched successfully",
+        profiles,
+      );
+    } catch (error) {
+      logger.error("An error occurred while fetching bisnis profiles", {
+        error,
+      });
+      return responseHelper.serverError(
+        res,
+        "An error occurred while fetching bisnis profiles",
+      );
+    }
+  }
+
   async getProfile(req, res) {
     try {
       const { id: bisnis_id } = req.params;
@@ -88,7 +108,9 @@ class BisnisProfileController {
         profile,
       );
     } catch (error) {
-      logger.error("An error occurred while fetching bisnis profile", { error });
+      logger.error("An error occurred while fetching bisnis profile", {
+        error,
+      });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching bisnis profile",

@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Auth } = require("../middlewares");
-const { Role } = require("../middlewares");
+const { Auth, Role, checkPengajuanLocked } = require("../middlewares");
 const NegotiationController = require("../controllers/negosiasiController");
 
 class NegotiationRoutes {
@@ -49,9 +48,14 @@ class NegotiationRoutes {
       },
     );
 
-    this.router.post("/start", Role.authorize("investor"), (req, res) => {
-      this.negotiationController.startNegotiation(req, res);
-    });
+    this.router.post(
+      "/start",
+      Role.authorize("investor"),
+      checkPengajuanLocked,
+      (req, res) => {
+        this.negotiationController.startNegotiation(req, res);
+      },
+    );
 
     this.router.post(
       "/reply/:id",

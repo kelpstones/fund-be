@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const logger = require("./index").logger;
+const logger = require("./logger");
 exports.hashPassword = async (password) => {
   try {
     const salt = await bcrypt.genSalt(10);

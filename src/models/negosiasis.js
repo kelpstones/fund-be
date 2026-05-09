@@ -70,11 +70,11 @@ class Negosiasis extends BaseModel {
       .join("users as bisnis_owner", "bisnis.user_id", "bisnis_owner.id")
       .join("users", "negosiasis.investor_id", "users.id")
       .leftJoin("log_negosiasis as l", function () {
-        this.on("negosiasis.id", "l.negosiasi_id").andOn(
+        this.on("negosiasis.id", "l.negosiasis_id").andOn(
           "l.created_at",
           "=",
           trx.raw(
-            "(SELECT MAX(created_at) FROM log_negosiasis WHERE negosiasi_id = negosiasis.id)",
+            "(SELECT MAX(created_at) FROM log_negosiasis WHERE negosiasis_id = negosiasis.id)", // fix: negosiasis_id
           ),
         );
       });
@@ -101,7 +101,6 @@ class Negosiasis extends BaseModel {
     try {
       const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    
       const dataQuery = this.#baseQuery()
         .where(function () {
           if (status) {
@@ -113,7 +112,6 @@ class Negosiasis extends BaseModel {
         .limit(parseInt(limit))
         .offset(offset);
 
-    
       const countQuery = this.knex("negosiasis")
         .where(function () {
           if (status) {
@@ -123,7 +121,6 @@ class Negosiasis extends BaseModel {
         .count("id as total")
         .first();
 
-     
       const [results, countResult] = await Promise.all([dataQuery, countQuery]);
 
       const total = parseInt(countResult.total);

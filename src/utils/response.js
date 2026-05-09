@@ -14,6 +14,7 @@ const responseHelper = {
     statusCode = 200,
   ) => {
     return res.status(statusCode).json({
+      statusCode: statusCode,
       status: "success",
       message,
       data,
@@ -23,6 +24,7 @@ const responseHelper = {
   successLogin: (res, message = "Login successful", data = null, token) => {
     return res.status(200).json({
       status: "success",
+      statusCode: 200,
       message,
       data,
       token,
@@ -38,6 +40,7 @@ const responseHelper = {
   ) => {
     return res.status(statusCode).json({
       status: "success",
+      statusCode,
       message,
       data,
       pagination: {
@@ -54,6 +57,7 @@ const responseHelper = {
   error: (res, message = "Something went wrong", statusCode = 400) => {
     return res.status(statusCode).json({
       status: "error",
+      statusCode,
       message,
     });
   },
@@ -62,6 +66,7 @@ const responseHelper = {
   unauthorized: (res, message = "Unauthorized access") => {
     return res.status(401).json({
       status: "fail",
+      statusCode: 401,
       message,
     });
   },
@@ -70,6 +75,7 @@ const responseHelper = {
   forbidden: (res, message = "Access forbidden") => {
     return res.status(403).json({
       status: "fail",
+      statusCode: 403,
       message,
     });
   },
@@ -79,6 +85,7 @@ const responseHelper = {
     console.error("Internal Server Error:", error);
     return res.status(500).json({
       status: "error",
+      statusCode: 500,
       message: "Internal server error",
       // Jangan tampilkan detail error di production demi keamanan
       error: process.env.NODE_ENV === "development" ? error.message : undefined,

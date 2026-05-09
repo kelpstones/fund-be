@@ -2,7 +2,7 @@ const express = require("express");
 const PengajuanController = require("../controllers/pengajuanController");
 const NegotiationRoutes = require("./negotiationRoutes");
 const PenjualanRoutes = require("./penjualanRoutes");
-const { Auth, Role, BisnisProfile } = require("../middlewares");
+const { Auth, Role, BisnisProfile, checkNegosiasiAktif } = require("../middlewares");
 class PengajuanRoutes {
   constructor() {
     this.router = express.Router({ mergeParams: true });
@@ -32,6 +32,7 @@ class PengajuanRoutes {
       "/",
       Role.authorize("umkm"),
       BisnisProfile.RequireBisnisProfile,
+      checkNegosiasiAktif,
       (req, res) => {
         this.pengajuanController.createPengajuan(req, res);
       },

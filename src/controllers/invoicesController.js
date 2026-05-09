@@ -94,15 +94,16 @@ class InvoicesController {
   }
 
   async payInvoice(req, res) {
+    const trx = await knex.transaction();
     try {
-      const trx = await knex.transaction();
-      const { id } = req.params;
-      const invoice = await Invoice.getInvoiceById(id);
+      const { id: kode_pembayaran } = req.params;
+      const invoice = await Invoice.getInvoiceByKodePembayaran(kode_pembayaran, trx);
       if (!invoice) {
         await trx.rollback();
         return ResponseHelper.error(res, "Invoice not found", 404);
       }
       if (invoice.status !== "pending") {
+        await trx.rollback();
         return ResponseHelper.error(
           res,
           "Only pending invoices can be paid",
@@ -111,8 +112,8 @@ class InvoicesController {
       }
 
       // await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      const updatedInvoice = await Invoice.updateStatus(id, "paid", trx);
+      console.log("Processing payment for invoice:", invoice);
+      const updatedInvoice = await Invoice.updateStatus(invoice.id, "paid", trx);
       await investasi.createInvestasi({
         investor_id: invoice.investor.id,
         pengajuans_id: invoice.detail_pengajuan.id,
@@ -125,6 +126,7 @@ class InvoicesController {
 
       const pengajuan = await pengajuans.getPengajuanById(
         invoice.detail_pengajuan.id,
+        trx,
       );
 
       const totalDanaBaru =
@@ -153,9 +155,10 @@ class InvoicesController {
           status: statusBaru,
         },
       };
-      logger.info("Invoice paid successfully", { invoiceId: id, data });
+      logger.info("Invoice paid successfully", { invoiceId: invoice.id, data });
       return ResponseHelper.success(res, "Invoice paid successfully", data);
     } catch (error) {
+      await trx.rollback();
       logger.error("An error occurred while processing the payment", { error });
       return ResponseHelper.serverError(
         res,

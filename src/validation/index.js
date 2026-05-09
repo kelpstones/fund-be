@@ -9,6 +9,7 @@ const PenjualanValidator = require("./penjualans");
 const BisnisProfileValidator = require("./bisnis_profiles");
 const UserValidator = require("./user");
 const PasswordResetValidator = require("./reset_passwords");
+const PreferensiInvestorValidator = require("./preferensi_investor");
 module.exports = {
   AuthValidator,
   BisnisValidator,
@@ -21,4 +22,5 @@ module.exports = {
   BisnisProfileValidator,
   UserValidator,
   PasswordResetValidator,
+  PreferensiInvestorValidator,
 };

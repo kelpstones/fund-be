@@ -1,4 +1,4 @@
-const { createLogger, format, transports } = require("winston");
+const { createLogger, format, transports, addColors } = require("winston");
 const DailyRotateFile = require("winston-daily-rotate-file");
 const path = require("path");
 
@@ -21,13 +21,33 @@ const customLevels = {
   },
 };
 
+addColors(customLevels.colors);
+
+
+const serializeMeta = (meta) => {
+  return JSON.stringify(meta, (key, value) => {
+    if (value instanceof Error) {
+      return {
+        message: value.message,
+        name: value.name,
+        stack: value.stack,
+        code: value.code,     
+        ...(value.response ? { response: value.response } : {}),
+      };
+    }
+    return value;
+  }, 2);
+};
+
+
 const logFormat = printf(({ level, message, timestamp, stack, ...meta }) => {
   const metaStr = Object.keys(meta).length
-    ? `\n${JSON.stringify(meta, null, 2)}`
+    ? `\n${serializeMeta(meta)}`
     : "";
 
   return `[${timestamp}] ${level.toUpperCase()}: ${stack || message}${metaStr}`;
 });
+
 
 const logger = createLogger({
   levels: customLevels.levels,

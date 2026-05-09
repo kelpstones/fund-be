@@ -19,7 +19,7 @@ exports.up = function (knex) {
       .onDelete("CASCADE");
 
     table.float("skor_kecocokan").notNullable();
-    table.string("matched_class").nullable(); // class bisnis saat matching
+    table.string("matched_class").nullable();
     table.timestamp("matched_at").defaultTo(knex.fn.now());
 
     table.unique(["investor_id", "bisnis_id"]);

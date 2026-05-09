@@ -15,6 +15,12 @@ class BisnisRoutes {
   }
 
   routes() {
+    // khusus ML
+    this.router.get("/ml", (req, res) => {
+      this.bisnisProfileController.getAllProfilesForML(req, res);
+    });
+
+
     this.router.use(Auth.verifyAnyToken);
 
     this.router.get(
