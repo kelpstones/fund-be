@@ -156,7 +156,7 @@ class PreferensiInvestorController {
       let modelResponse;
       try {
         modelResponse = await axios.post(
-          modelUrl,
+          `${modelUrl}/recommend`,
           {
             investor_id,
             kepuasan_pelanggan: prefData.kepuasan_pelanggan,
@@ -169,10 +169,15 @@ class PreferensiInvestorController {
             timeout: 10000,
           },
         );
+
+        logger.info("ML model response received on refresh", {
+          investor_id,
+          status: modelResponse.status,
+        });
       } catch (modelErr) {
         if (modelErr.code === "ECONNREFUSED" || modelErr.code === "ENOTFOUND") {
           logger.error("ML model tidak dapat dijangkau", {
-            error: modelErr.message,
+            error: modelErr,
             investor_id,
           });
           return responseHelper.error(
