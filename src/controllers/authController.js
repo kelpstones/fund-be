@@ -139,15 +139,11 @@ class AuthController {
       const token = crypto.randomBytes(32).toString("hex");
       await VerifyEmail.createToken(user.id, token, trx);
 
-      await sendVerificationEmail(
-        newUser.user.email,
-        newUser.user.nama,
-        newUser.token,
-      ).catch((err) =>
+      await trx.commit();
+
+      sendVerificationEmail(user.email, user.nama, token).catch((err) =>
         logger.error("Failed to send verification email", { err }),
       );
-
-      await trx.commit();
 
       return responseHelper.success(
         res,

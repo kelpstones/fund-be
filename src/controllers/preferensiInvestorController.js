@@ -47,7 +47,7 @@ class PreferensiInvestorController {
       let rekomendasi = [];
 
       try {
-        const modelResponse = await axios.post(modelUrl, {
+        const modelResponse = await axios.post(`${modelUrl}/recommend`, {
           investor_id,
           kepuasan_pelanggan,
           digital_adoption_score,
@@ -56,8 +56,15 @@ class PreferensiInvestorController {
           business_tenure_years,
         });
 
+        logger.info("ML model response received", {
+          investor_id,
+          status: modelResponse.status,
+        });
         const results = modelResponse.data.results ?? [];
-
+        logger.info("ML model returned results", {
+          investor_id,
+          resultCount: results.length,
+        });
         if (results.length > 0) {
           rekomendasi = await personalisasi.upsertBatch(investor_id, results);
         }

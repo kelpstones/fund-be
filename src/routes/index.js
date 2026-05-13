@@ -27,11 +27,17 @@ class Routes {
     this.router.use("/user", this.userRoutes.routes());
     this.router.use("/dashboard", this.dashboardRoutes.routes());
     this.router.use("/investasi", this.investasiRoutes.routes());
-    this.router.use("/profit-distributions", this.distribusiProfitRoutes.routes());
+    this.router.use(
+      "/profit-distributions",
+      this.distribusiProfitRoutes.routes(),
+    );
     this.router.use("/notifications", this.notificationRoutes.routes());
     this.router.use("/invoices", this.invoicesRoutes.routes());
     this.router.use("/admin", this.adminRoutes.routes());
 
+    this.router.get("/health", (req, res) => {
+      response.success(res, "API is healthy");
+    });
 
     this.router.get("/", (req, res) => {
       response.success(res, "Welcome to Fund API");
