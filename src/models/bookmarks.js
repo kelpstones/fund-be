@@ -30,8 +30,8 @@ class Bookmark extends BaseModel {
     };
   }
 
-  #baseQuery() {
-    return this.knex(this.tableName)
+  #baseQuery(trx = this.knex) {
+    return trx(this.tableName)
       .select(
         "bookmarks.id as bookmark_id",
         "bookmarks.created_at as saved_at",
@@ -76,7 +76,7 @@ class Bookmark extends BaseModel {
 
   async getBookmarksByInvestor(investor_id, page = 1, limit = 10) {
     try {
-      const rows = await this.#baseQuery()
+      const rows = await this.#baseQuery(this.knex)
         .where("bookmarks.investor_id", investor_id)
         .offset((page - 1) * limit)
         .limit(limit);
@@ -113,3 +113,5 @@ class Bookmark extends BaseModel {
     }
   }
 }
+
+module.exports = new Bookmark();
