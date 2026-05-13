@@ -33,13 +33,13 @@ exports.bisnisProfileValidation = (data) => {
       "any.required": "repeat_order_rate wajib diisi",
     }),
     digital_adoption_score: Joi.number()
-      .integer()
       .min(1)
       .max(10)
+      .precision(1)
       .required()
       .messages({
-        "number.min": "digital_adoption_score minimal 1",
-        "number.max": "digital_adoption_score maksimal 10",
+        "number.min": "digital_adoption_score minimal 1.0",
+        "number.max": "digital_adoption_score maksimal 10.0",
         "any.required": "digital_adoption_score wajib diisi",
       }),
     year_revenue: Joi.number().min(0).required().messages({

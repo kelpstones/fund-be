@@ -78,9 +78,7 @@ class BisnisRoutes {
       },
     );
 
-    this.router.put("/:id/profile/class", Role.authorize("umkm"), (req, res) => {
-      this.bisnisProfileController.updateClass(req, res);
-    });
+    
     return this.router;
   }
 }

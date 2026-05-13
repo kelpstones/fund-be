@@ -3,7 +3,7 @@ const BisnisProfiles = require("../models/bisnis_profiles");
 const Bisnis = require("../models/bisnis");
 const { BisnisProfileValidator } = require("../validation");
 const logger = require("../utils/index").logger;
-
+const axios = require("axios");
 class BisnisProfileController {
   async upsertProfile(req, res) {
     try {
@@ -45,10 +45,10 @@ class BisnisProfileController {
         req.user.role_name === "bisnis" &&
         bisnis.pemilik.id !== req.user.id
       ) {
-        return responseHelper.error(res, "Unauthorized", 403);
+        return responseHelper.forbidden(res, "Unauthorized");
       }
 
-      const profile = await BisnisProfiles.upsertProfile(bisnis_id, {
+      const profileData = {
         net_profit_margin,
         kepuasan_pelanggan,
         peak_hour_latency,
@@ -57,19 +57,48 @@ class BisnisProfileController {
         digital_adoption_score,
         year_revenue,
         business_tenure_years,
-      });
+      };
+
+      await BisnisProfiles.upsertProfile(bisnis_id, profileData);
+
+      let finalProfile;
+      try {
+        const modelUrl = process.env.ML_MODEL_URL;
+        const mlResponse = await axios.post(
+          `${modelUrl}/classify-umkm`,
+          profileData,
+        );
+
+        logger.info("ML model response received for classification", {
+          responseData: mlResponse.data,
+          status: mlResponse.status,
+          predicted_class: mlResponse.data.predicted_class_label,
+        });
+
+        finalProfile = await BisnisProfiles.updateClass(
+          bisnis_id,
+          mlResponse.data.predicted_class_id,
+        );
+      } catch (mlError) {
+        logger.error(
+          "ML model call failed, returning profile without class update",
+          {
+            bisnis_id,
+            error: mlError,
+          },
+        );
+
+        finalProfile = await BisnisProfiles.getProfileByBisnisId(bisnis_id);
+      }
 
       return responseHelper.success(
         res,
         "Bisnis profile saved successfully",
-        profile,
+        finalProfile,
       );
     } catch (error) {
       logger.error("An error occurred while saving bisnis profile", { error });
-      return responseHelper.serverError(
-        res,
-        "An error occurred while saving bisnis profile",
-      );
+      return responseHelper.serverError(res, error);
     }
   }
 
@@ -118,46 +147,7 @@ class BisnisProfileController {
     }
   }
 
-  async updateClass(req, res) {
-    try {
-      const { id: bisnis_id } = req.params;
-      const { class: classValue } = req.body;
-
-      if (classValue === undefined || classValue === null) {
-        return responseHelper.error(res, "class wajib diisi", 400);
-      }
-
-      if (![0, 1, 2, 3].includes(parseInt(classValue))) {
-        return responseHelper.error(
-          res,
-          "class harus 0 (Critical), 1 (Struggling), 2 (Growth), atau 3 (Elite)",
-          400,
-        );
-      }
-
-      const profile = await BisnisProfiles.getProfileByBisnisId(bisnis_id);
-      if (!profile) {
-        return responseHelper.error(res, "Bisnis profile not found", 404);
-      }
-
-      const updated = await BisnisProfiles.updateClass(
-        bisnis_id,
-        parseInt(classValue),
-      );
-
-      return responseHelper.success(
-        res,
-        "Bisnis class updated successfully",
-        updated,
-      );
-    } catch (error) {
-      logger.error("An error occurred while updating bisnis class", { error });
-      return responseHelper.serverError(
-        res,
-        "An error occurred while updating bisnis class",
-      );
-    }
-  }
+  
 }
 
 module.exports = BisnisProfileController;
