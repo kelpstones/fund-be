@@ -3,11 +3,13 @@ const router = express.Router();
 const { Auth, Role } = require("../middlewares");
 const PreferensiInvestorController = require("../controllers/preferensiInvestorController");
 const BookmarksController = require("../controllers/bookmarksController");
+const CompareOpportunitiesController = require("../controllers/compareOpportunitiesController");
 class InvestorRoutes {
   constructor() {
     this.router = router;
     this.preferensiInvestorController = new PreferensiInvestorController();
     this.bookmarkController = new BookmarksController();
+    this.compareOpportunitiesController = new CompareOpportunitiesController();
   }
 
   routes() {
@@ -35,6 +37,11 @@ class InvestorRoutes {
         this.preferensiInvestorController.refreshRekomendasi(req, res);
       },
     );
+
+    // compare
+    this.router.get("/compare", Role.authorize("investor"), (req, res) => {
+      this.compareOpportunitiesController.compare(req, res);
+    });
 
     // bookmark routes
     this.router.post("/bookmarks", Role.authorize("investor"), (req, res) => {
