@@ -41,6 +41,7 @@ app.use(
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(Key.validateApiKey);
+app.set('trust proxy', 1);
 app.use(RateLimiter.genRateLimiter);
 // Routes
 app.use("/api/v1", rootRouter.routes());
