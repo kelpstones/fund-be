@@ -238,7 +238,7 @@ class AuthController {
           403,
         );
 
-      const existingToken = await password_resets.findValidTokenByUserId(
+      const existingToken = await password_resets.existsValidTokenForUser(
         user.id,
       );
       if (existingToken) {
