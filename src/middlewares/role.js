@@ -1,3 +1,5 @@
+const logger = require("../utils/logger");
+
 const responseHelper = require("../utils/index").ResponseHelper;
 
 exports.authorize = (...allowedRoles) => {
