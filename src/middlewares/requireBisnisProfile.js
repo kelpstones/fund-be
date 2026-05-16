@@ -1,6 +1,7 @@
 const BisnisProfiles = require("../models/bisnis_profiles");
 const Bisnis = require("../models/bisnis");
 const responseHelper = require("../utils/response");
+const { logger } = require("../utils");
 
 exports.RequireBisnisProfile = async (req, res, next) => {
   try {

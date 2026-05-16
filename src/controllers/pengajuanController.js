@@ -19,10 +19,13 @@ class PengajuanController {
         return responseHelper.error(res, "Bisnis not found", 404);
       }
       //   check bisnis_id exist
-      const existingPengajuan =
-        await PengajuanValidator.checkBisnisIdExist(payload.bisnis_id);
+      const existingPengajuan = await PengajuanValidator.checkBisnisIdExist(
+        payload.bisnis_id,
+      );
       if (!existingPengajuan.status) {
-        logger.error(existingPengajuan.message, { bisnis_id: payload.bisnis_id });
+        logger.error(existingPengajuan.message, {
+          bisnis_id: payload.bisnis_id,
+        });
         return responseHelper.error(
           res,
           existingPengajuan.message,
@@ -67,7 +70,9 @@ class PengajuanController {
         final,
       );
     } catch (error) {
-      logger.error("An error occurred while creating pengajuan data", { error });
+      logger.error("An error occurred while creating pengajuan data", {
+        error,
+      });
       return responseHelper.serverError(
         res,
         "An error occurred while creating pengajuan data",
@@ -90,7 +95,9 @@ class PengajuanController {
         { page, limit, totalItems: pengajuanList.length },
       );
     } catch (error) {
-      logger.error("An error occurred while fetching pengajuan data", { error });
+      logger.error("An error occurred while fetching pengajuan data", {
+        error,
+      });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching pengajuan data",
@@ -102,7 +109,6 @@ class PengajuanController {
     try {
       const { bisnis_id } = req.params;
       const pengajuanList = await Pengajuan.getPengajuanByBisnisId(bisnis_id);
-      
 
       if (!pengajuanList) {
         return responseHelper.error(
@@ -117,7 +123,9 @@ class PengajuanController {
         pengajuanList,
       );
     } catch (error) {
-      logger.error("An error occurred while fetching pengajuan data", { error });
+      logger.error("An error occurred while fetching pengajuan data", {
+        error,
+      });
       return responseHelper.serverError(
         res,
         "An error occurred while fetching pengajuan data",
@@ -154,7 +162,9 @@ class PengajuanController {
         updatedPengajuan,
       );
     } catch (error) {
-      logger.error("An error occurred while updating pengajuan data", { error });
+      logger.error("An error occurred while updating pengajuan data", {
+        error,
+      });
       return responseHelper.serverError(
         res,
         "An error occurred while updating pengajuan data",
@@ -182,11 +192,26 @@ class PengajuanController {
         );
       }
 
-      if (status == "rejected") {
+      if (status === "rejected") {
         await Pengajuan.updatePengajuanStatus(
           existingApproval.pengajuans_id,
           "rejected",
         );
+
+        const updatedApproval = await Approvals.updateApproval(
+          existingApproval.id,
+          {
+            approver_id,
+            status,
+            catatan,
+          },
+        );
+
+        return responseHelper.success(
+          res,
+          "Pengajuan rejected",
+          updatedApproval,
+        ); 
       }
 
       const updatedApproval = await Approvals.updateApproval(
@@ -212,7 +237,9 @@ class PengajuanController {
         updatedApproval,
       );
     } catch (error) {
-      logger.error("An error occurred while updating approval status", { error });
+      logger.error("An error occurred while updating approval status", {
+        error,
+      });
       return responseHelper.serverError(
         res,
         "An error occurred while updating approval status",
@@ -231,7 +258,9 @@ class PengajuanController {
       await Pengajuan.deletePengajuan(id);
       return responseHelper.success(res, "Pengajuan deleted successfully");
     } catch (error) {
-      logger.error("An error occurred while deleting pengajuan data", { error });
+      logger.error("An error occurred while deleting pengajuan data", {
+        error,
+      });
       return responseHelper.serverError(
         res,
         "An error occurred while deleting pengajuan data",

@@ -21,18 +21,18 @@ class PenjualanRoutes {
     });
 
     this.router.get(
-      "/:id",
-      Role.authorize("umkm", "investor", "superadmin", "admin"),
-      (req, res) => {
-        this.penjualansController.getPenjualanById(req, res);
-      },
-    );
-
-    this.router.get(
       "/pengajuan",
       Role.authorize("umkm", "investor", "superadmin", "admin"),
       (req, res) => {
         this.penjualansController.getPenjualanByPengajuanId(req, res);
+      },
+    );
+
+    this.router.get(
+      "/:id",
+      Role.authorize("umkm", "investor", "superadmin", "admin"),
+      (req, res) => {
+        this.penjualansController.getPenjualanById(req, res);
       },
     );
 

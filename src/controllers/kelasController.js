@@ -80,9 +80,12 @@ class KelasController {
         );
       }
 
-      const kelas = await Kelas.updateKelas(id, data);
+      const kelas = await Kelas.updateKelas(id, {
+        nama_kelas: data.nama_kelas,
+        deskripsi: data.deskripsi,
+      });
       if (!kelas) {
-        return responseHelper.notFound(res, "Kelas not found");
+        return responseHelper.error(res, "Kelas not found", 404);
       }
       return responseHelper.success(
         res,
@@ -103,7 +106,7 @@ class KelasController {
       const { id } = req.params;
       const kelas = await Kelas.deleteKelas(id);
       if (!kelas) {
-        return responseHelper.notFound(res, "Kelas not found");
+        return responseHelper.error(res, "Kelas not found", 404);
       }
       return responseHelper.success(
         res,

@@ -41,12 +41,19 @@ class Kelas extends BaseModel {
     }
   }
 
-  async updateKelas(id, nama_kelas, deskripsi) {
+  async updateKelas(id, data) {
     try {
-      const data = await this.knex(this.tableName)
+      const [updatedKelas] = await this.knex(this.tableName)
         .where({ id })
-        .update(nama_kelas, deskripsi);
-      return data;
+        .update({
+          nama_kelas: data.nama_kelas,
+          deskripsi: data.deskripsi,
+          updated_at: this.knex.fn.now(),
+        })
+        .returning("*");
+
+      if (!updatedKelas) return null;
+      return this.getKelasById(updatedKelas.id);
     } catch (error) {
       throw error;
     }

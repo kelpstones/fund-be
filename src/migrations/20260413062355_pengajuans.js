@@ -11,7 +11,7 @@ exports.up = function (knex) {
     table.decimal("total_pendanaan", 20, 2).defaultTo(0);
     table.decimal("per_anual_return", 10, 2).unsigned().notNullable();
     table
-      .enum("status", ["draft", "published", "negotiating", "funded"])
+      .enum("status", ["draft", "published", "negotiating", "funded", "rejected"])
       .defaultTo("draft")
       .notNullable();
     table.integer("locked_by_investor_id").unsigned().nullable();
