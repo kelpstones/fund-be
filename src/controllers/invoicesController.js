@@ -97,7 +97,10 @@ class InvoicesController {
     const trx = await knex.transaction();
     try {
       const { id: kode_pembayaran } = req.params;
-      const invoice = await Invoice.getInvoiceByKodePembayaran(kode_pembayaran, trx);
+      const invoice = await Invoice.getInvoiceByKodePembayaran(
+        kode_pembayaran,
+        trx,
+      );
       if (!invoice) {
         await trx.rollback();
         return ResponseHelper.error(res, "Invoice not found", 404);
@@ -113,15 +116,21 @@ class InvoicesController {
 
       // await new Promise((resolve) => setTimeout(resolve, 2000));
       console.log("Processing payment for invoice:", invoice);
-      const updatedInvoice = await Invoice.updateStatus(invoice.id, "paid", trx);
-      await investasi.createInvestasi({
-        investor_id: invoice.investor.id,
-        pengajuans_id: invoice.detail_pengajuan.id,
-        negosiasi_id: invoice.detail_pengajuan.id_negosiasi,
-        nominal_investasi: invoice.nominal_tagihan,
-        return_investasi: invoice.detail_pengajuan.per_annual,
+      const updatedInvoice = await Invoice.updateStatus(
+        invoice.id,
+        "paid",
         trx,
-      });
+      );
+      await investasi.createInvestasi(
+        {
+          investor_id: invoice.investor.id,
+          pengajuans_id: invoice.detail_pengajuan.id,
+          negosiasi_id: invoice.detail_pengajuan.id_negosiasi,
+          nominal_investasi: invoice.nominal_tagihan,
+          return_investasi: invoice.detail_pengajuan.per_annual,
+        },
+        trx,
+      );
       // console.log("Updated Invoice:", updatedInvoice);
 
       const pengajuan = await pengajuans.getPengajuanById(
