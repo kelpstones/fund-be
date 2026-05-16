@@ -43,14 +43,14 @@ class Kelas extends BaseModel {
 
   async updateKelas(id, data) {
     try {
-      const data = await this.knex(this.tableName)
+      const [updatedKelas] = await this.knex(this.tableName)
         .where({ id })
         .update({
           nama_kelas: data.nama_kelas,
           deskripsi: data.deskripsi,
           updated_at: this.knex.fn.now(),
         });
-      return data;
+      return updatedKelas;
     } catch (error) {
       throw error;
     }
