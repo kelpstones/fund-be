@@ -1,5 +1,12 @@
 const BaseModel = require("./base");
 
+const CLASS_MAP = {
+  0: "Critical",
+  1: "Struggling",
+  2: "Growth",
+  3: "Elite",
+};
+
 class Bisnis extends BaseModel {
   constructor() {
     super("bisnis");
@@ -16,9 +23,17 @@ class Bisnis extends BaseModel {
       no_telp: row.no_telp,
       deskripsi: row.deskripsi,
       created_at: row.created_at,
+      class_label: CLASS_MAP[row.class] ?? "Critical",
       kelas: {
         id: row.kelas_id,
         nama_kelas: row.kelas,
+      },
+      profile: {
+        net_profit_margin: row.net_profit_margin,
+        kepuasan_pelanggan: row.kepuasan_pelanggan,
+        review_volatility: row.review_volatility,
+        repeat_order_rate: row.repeat_order_rate,
+        digital_adoption_score: row.digital_adoption_score,
       },
       pemilik: {
         id: row.user_id,
@@ -40,12 +55,19 @@ class Bisnis extends BaseModel {
         "bisnis.no_telp",
         "bisnis.deskripsi",
         "bisnis.created_at",
+        "bisnis_profiles.class as class",
+        "bisnis_profiles.net_profit_margin",
+        "bisnis_profiles.kepuasan_pelanggan",
+        "bisnis_profiles.review_volatility",
+        "bisnis_profiles.repeat_order_rate",
+        "bisnis_profiles.digital_adoption_score",
         "kelas.nama_kelas as kelas",
         "users.nama as pemilik",
         "users.email as email_pemilik",
         "users.id as user_id",
       )
       .leftJoin("kelas", "bisnis.kelas_id", "kelas.id")
+      .leftJoin("bisnis_profiles", "bisnis.id", "bisnis_profiles.bisnis_id")
       .leftJoin("users", "bisnis.user_id", "users.id");
   }
 
