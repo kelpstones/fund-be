@@ -108,7 +108,7 @@ class CompareOpportunities extends BaseModel {
 
       const rows = await this.#baseQuery()
         .whereIn("pengajuans.id", ids)
-        .where("pengajuans.status", "open");
+        .where("pengajuans.status", "published");
 
       if (!rows.length) {
         const err = new Error("Tidak ada pengajuan yang ditemukan");
