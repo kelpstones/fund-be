@@ -4,7 +4,7 @@ const logger = require("./logger");
 exports.generateToken = async (user) => {
   try {
     let bisnis_id = null;
-    if (user.role?.nama_role === "bisnis") {
+    if (user.role?.nama_role === "umkm") {
       const bisnis = await db("bisnis")
         .where({ user_id: user.id })
         .select("id")
