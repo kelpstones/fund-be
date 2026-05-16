@@ -1,5 +1,12 @@
 const BaseModel = require("./base");
 
+const CLASS_MAP = {
+  0: "Critical",
+  1: "Struggling",
+  2: "Growth",
+  3: "Elite",
+};
+
 class Bookmark extends BaseModel {
   constructor() {
     super("bookmarks");
@@ -18,7 +25,8 @@ class Bookmark extends BaseModel {
         alamat: row.alamat,
         no_telp: row.no_telp,
         email: row.email_bisnis,
-        kelas: {
+        class_label: CLASS_MAP[row.class] ?? "Critical",
+        kelas_usaha: {
           id: row.kelas_id,
           nama_kelas: row.nama_kelas,
         },
@@ -43,11 +51,18 @@ class Bookmark extends BaseModel {
         "bisnis.no_telp",
         "bisnis.email as email_bisnis",
         "bisnis.kelas_id",
+        "bisnis_profiles.net_profit_margin",
+        "bisnis_profiles.class",
+        "bisnis_profiles.kepuasan_pelanggan",
+        "bisnis_profiles.review_volatility",
+        "bisnis_profiles.repeat_order_rate",
+        "bisnis_profiles.digital_adoption_score",
         "kelas.nama_kelas",
         "users.id as user_id",
         "users.nama as nama_pemilik",
       )
       .leftJoin("bisnis", "bookmarks.bisnis_id", "bisnis.id")
+      .leftJoin("bisnis_profiles", "bisnis.id", "bisnis_profiles.bisnis_id")
       .leftJoin("kelas", "bisnis.kelas_id", "kelas.id")
       .leftJoin("users", "bisnis.user_id", "users.id");
   }
