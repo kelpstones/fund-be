@@ -51,6 +51,8 @@ class Kelas extends BaseModel {
           updated_at: this.knex.fn.now(),
         })
         .returning("*");
+
+      if (!updatedKelas) return null;
       return this.getKelasById(updatedKelas.id);
     } catch (error) {
       throw error;
