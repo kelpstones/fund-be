@@ -42,7 +42,7 @@ class BisnisProfileController {
 
       // Cek ownership
       if (
-        req.user.role_name === "bisnis" &&
+        req.user.role_name === "umkm" &&
         bisnis.pemilik.id !== req.user.id
       ) {
         return responseHelper.forbidden(res, "Unauthorized");
