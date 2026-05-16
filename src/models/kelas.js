@@ -49,8 +49,9 @@ class Kelas extends BaseModel {
           nama_kelas: data.nama_kelas,
           deskripsi: data.deskripsi,
           updated_at: this.knex.fn.now(),
-        });
-      return updatedKelas;
+        })
+        .returning("*");
+      return this.getKelasById(updatedKelas.id);
     } catch (error) {
       throw error;
     }
