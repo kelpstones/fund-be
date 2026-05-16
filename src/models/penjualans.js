@@ -5,7 +5,7 @@ class Penjualans extends BaseModel {
     super("penjualans");
   }
 
-  #formatResponse(row) {
+  #formatResponse(row, trx = this.knex) {
     if (!row) return null;
     return {
       id: row.id,
@@ -35,9 +35,9 @@ class Penjualans extends BaseModel {
           laba_kotor: data.laba_kotor,
           jumlah_transaksi: data.jumlah_transaksi,
         })
-        .returning("id");
+        .returning("*");
 
-      return this.#formatResponse(row);
+      return this.#formatResponse(row, trx);
     } catch (error) {
       throw error;
     }
