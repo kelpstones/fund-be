@@ -80,7 +80,10 @@ class KelasController {
         );
       }
 
-      const kelas = await Kelas.updateKelas(id, data);
+      const kelas = await Kelas.updateKelas(id, {
+        nama_kelas: data.nama_kelas,
+        deskripsi: data.deskripsi,
+      });
       if (!kelas) {
         return responseHelper.error(res, "Kelas not found", 404);
       }
