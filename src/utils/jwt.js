@@ -30,7 +30,7 @@ exports.generateToken = async (user) => {
 exports.refreshToken = async (data) => {
   try {
     let bisnis_id = null;
-    if (data.role?.nama_role === "bisnis") {
+    if (data.role?.nama_role === "umkm") {
       const bisnis = await db("bisnis")
         .where({ user_id: data.id })
         .select("id")
