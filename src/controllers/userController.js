@@ -138,6 +138,15 @@ class UserController {
   async getUserById(req, res) {
     try {
       const { id } = req.params;
+      if (
+        req.user.role_name !== "admin" &&
+        req.user.role_name !== "superadmin"
+      ) {
+        if (String(req.params.id) !== String(req.user.id)) {
+          return responseHelper.forbidden(res, "Access forbidden");
+        }
+      }
+
       const user = await User.getUserById(id);
       if (!user) {
         return responseHelper.error(res, "User not found", 404);
