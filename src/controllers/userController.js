@@ -38,7 +38,9 @@ class UserController {
         user,
       );
     } catch (error) {
-      logger.error("An error occurred while fetching investor profile", { error });
+      logger.error("An error occurred while fetching investor profile", {
+        error,
+      });
       return responseHelper.error(
         res,
         "An error occurred while fetching investor profile",
@@ -48,23 +50,27 @@ class UserController {
   }
 
   async updateUserProfile(req, res) {
+    const trx = await User.knex.transaction();
     try {
       const { id } = req.user;
       const { nama, email, no_telp } = req.body;
       const user = await User.getUserById(id);
       if (!user) {
+        await trx.rollback();
         return responseHelper.error(res, "User not found", 404);
       }
       //   validate email uniqueness
       if (email && email !== user.email) {
         const checkEmail = await User.getUserByEmail(email);
         if (checkEmail) {
+          await trx.rollback();
           return responseHelper.error(res, "Email already exists", 400);
         }
       }
 
       //   validate no_telp uniqueness
       if (no_telp && no_telp !== user.no_telp) {
+        await trx.rollback();
         const checkNoTelp = await User.getUserByNoTelp(no_telp);
         if (checkNoTelp) {
           return responseHelper.error(res, "Phone number already exists", 400);
@@ -78,25 +84,34 @@ class UserController {
         no_telp,
       });
       if (validate.error) {
+        await trx.rollback();
+
         return responseHelper.error(
           res,
           validate.error.details[0].message,
           400,
         );
       }
-      const updatedUser = await User.updateUser(id, nama, email, no_telp);
+      const updatedUser = await User.updateUser(
+        id,
+        { nama, email, no_telp },
+        trx,
+      );
       return responseHelper.success(
         res,
         "User profile updated successfully",
         updatedUser,
       );
     } catch (error) {
+      await trx.rollback();
       logger.error("An error occurred while updating user profile", { error });
       return responseHelper.error(
         res,
         "An error occurred while updating user profile",
         500,
       );
+    } finally {
+      await trx.commit();
     }
   }
 

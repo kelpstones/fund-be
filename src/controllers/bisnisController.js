@@ -174,7 +174,7 @@ class BisnisController {
       if (!existingBisnis) {
         return responseHelper.error(res, "Bisnis not found", 404);
       }
-      if (existingBisnis.user_id !== user.id) {
+      if (existingBisnis.pemilik.id !== user.id) {
         return responseHelper.error(
           res,
           "Unauthorized to delete this bisnis",
