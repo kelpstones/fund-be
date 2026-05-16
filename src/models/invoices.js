@@ -26,6 +26,7 @@ class Invoices extends BaseModel {
             id_negosiasi: row.negosiasi_id,
             nama_bisnis: row.nama_bisnis,
             nama_pemilik: row.nama_pemilik,
+            id_pemilik: row.pemilik_id,
             per_annual: row.per_annual,
             target_dana: row.target_dana,
           }
@@ -46,6 +47,7 @@ class Invoices extends BaseModel {
         "bisnis.nama_bisnis",
         "investor.nama as nama_investor",
         "pemilik.nama as nama_pemilik",
+        "pemilik.id as pemilik_id",
         "pengajuans.target_pendanaan as target_dana",
         "pengajuans.per_anual_return as per_annual",
         "pengajuans.id as pengajuan_id",

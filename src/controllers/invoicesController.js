@@ -45,6 +45,16 @@ class InvoicesController {
       if (!invoice) {
         return ResponseHelper.error(res, "Invoice not found", 404);
       }
+
+      const isAdmin = ["admin", "superadmin"].includes(req.user.role_name);
+      const isOwner =
+        invoice.investor?.id === req.user.id ||
+        invoice.detail_pengajuan?.id_pemilik === req.user.id;
+
+      if (!isAdmin && !isOwner) {
+        return ResponseHelper.forbidden(res, "Access forbidden");
+      }
+
       return ResponseHelper.success(
         res,
         "Invoice fetched successfully",
