@@ -12,6 +12,8 @@ class Pengajuan extends BaseModel {
       target_pendanaan: row.target_pendanaan,
       total_pendanaan: row.total_pendanaan,
       per_anual_return: row.per_anual_return,
+      deskripsi_peluang: row.deskripsi_peluang,
+      rencana_penggunaan_dana: row.rencana_penggunaan_dana,
       status: row.status,
       bisnis_id: row.bisnis_id,
       approval: row.approval_id
@@ -41,6 +43,8 @@ class Pengajuan extends BaseModel {
         "pengajuans.status",
         "pengajuans.total_pendanaan",
         "pengajuans.per_anual_return",
+        "pengajuans.deskripsi_peluang",
+        "pengajuans.rencana_penggunaan_dana",
         "approvals.id as approval_id",
         "approvals.approver_id",
         "approvals.status as approval_status",
@@ -58,6 +62,8 @@ class Pengajuan extends BaseModel {
     status,
     total_pendanaan,
     per_anual_return,
+    deskripsi_peluang = null, 
+    rencana_penggunaan_dana = null,
   ) {
     try {
       const [row] = await this.knex(this.tableName)
@@ -67,6 +73,8 @@ class Pengajuan extends BaseModel {
           status,
           total_pendanaan,
           per_anual_return,
+          deskripsi_peluang,
+          rencana_penggunaan_dana,
         })
         .returning("*");
       return this.#formatResponse(row);
@@ -122,6 +130,8 @@ class Pengajuan extends BaseModel {
     total_pendanaan,
     per_anual_return,
     status,
+    deskripsi_peluang = null,
+    rencana_penggunaan_dana = null,
     trx = this.knex,
   ) {
     try {
@@ -130,6 +140,8 @@ class Pengajuan extends BaseModel {
         total_pendanaan,
         per_anual_return,
         status,
+        deskripsi_peluang,
+        rencana_penggunaan_dana,
       });
       return await this.getPengajuanById(id, trx);
     } catch (error) {

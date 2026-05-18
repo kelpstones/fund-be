@@ -7,6 +7,15 @@ exports.pengajuanValidation = (data) => {
       bisnis_id: Joi.number().integer().required(),
       target_pendanaan: Joi.number().integer().required(),
       per_anual_return: Joi.number().integer().required(),
+      deskripsi_peluang: Joi.string().optional(),
+      rencana_penggunaan_dana: Joi.array()
+        .items(
+          Joi.object({
+            kategori: Joi.string().required(),
+            jumlah: Joi.number().integer().required(),
+          }),
+        )
+        .optional(),
     });
     return schema.validate(data);
   } catch (error) {
@@ -40,6 +49,18 @@ exports.updatePengajuanValidation = (data) => {
       target_pendanaan: Joi.number().integer().optional(),
       per_anual_return: Joi.number().integer().optional(),
       total_pendanaan: Joi.number().integer().optional(),
+      status: Joi.string()
+        .valid("draft", "published", "negotiating", "funded", "rejected")
+        .optional(),
+      deskripsi_peluang: Joi.string().optional(),
+      rencana_penggunaan_dana: Joi.array()
+        .items(
+          Joi.object({
+            kategori: Joi.string().required(),
+            jumlah: Joi.number().integer().required(),
+          }),
+        )
+        .optional(),
     });
     return schema.validate(data);
   } catch (error) {

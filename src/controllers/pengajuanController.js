@@ -136,7 +136,13 @@ class PengajuanController {
   async updatePengajuan(req, res) {
     try {
       const { id } = req.params;
-      const { target_pendanaan, per_anual_return, total_pendanaan } = req.body;
+      const {
+        target_pendanaan,
+        per_anual_return,
+        total_pendanaan,
+        deskripsi_peluang,
+        rencana_penggunaan_dana,
+      } = req.body;
 
       const existingPengajuan = await Pengajuan.getPengajuanById(id);
       if (!existingPengajuan) {
@@ -155,6 +161,9 @@ class PengajuanController {
         target_pendanaan,
         total_pendanaan,
         per_anual_return,
+        existingPengajuan.status,
+        deskripsi_peluang,
+        rencana_penggunaan_dana,
       );
       return responseHelper.success(
         res,
@@ -211,7 +220,7 @@ class PengajuanController {
           res,
           "Pengajuan rejected",
           updatedApproval,
-        ); 
+        );
       }
 
       const updatedApproval = await Approvals.updateApproval(
