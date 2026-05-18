@@ -9,7 +9,7 @@ class BisnisController {
   async getBisnis(req, res) {
     try {
       const { page, limit, search } = req.query;
-      const bisnisList = await Bisnis.getAllBisnis(page, limit, search);
+      const bisnisList = await Bisnis.getAllBisnisForInvestor(page, limit, search);
       return responseHelper.withPagination(
         res,
         "Bisnis data fetched successfully",

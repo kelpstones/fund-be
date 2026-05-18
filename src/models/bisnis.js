@@ -145,6 +145,20 @@ class Bisnis extends BaseModel {
     }
   }
 
+  async getAllBisnisForInvestor(page = 1, limit = 10, search = "") {
+    try {
+      const results = await this.#baseQuery()
+        .where("bisnis.nama_bisnis", "ilike", `%${search}%`)
+        .where("bisnis.is_verified", true)
+        .orderBy("bisnis.created_at", "desc")
+        .limit(limit)
+        .offset((page - 1) * limit);
+      return results.map((row) => this.#formatResponse(row));
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getBisnisById(id) {
     try {
       const row = await this.#baseQuery().where("bisnis.id", id).first();
