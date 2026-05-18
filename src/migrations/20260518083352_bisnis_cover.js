@@ -7,7 +7,7 @@ exports.up = function (knex) {
     table.increments("id").primary();
     table.integer("bisnis_id").unsigned().notNullable();
     table.foreign("bisnis_id").references("bisnis.id").onDelete("CASCADE");
-    table.string("image_url ").nullable();
+    table.string("image_url").nullable();
     table.integer("urutan").unsigned().notNullable().defaultTo(0);
     table.timestamps(true, true);
   });
