@@ -9,6 +9,8 @@ const InvoicesRoutes = require("./invoicesRoutes");
 const InvestasiRoutes = require("./investasiRoutes");
 const DistribusiProfitRoutes = require("./distribusiProfitRoutes");
 const DashboardRoutes = require("./dashboardRoutes");
+const BisnisCoverRoutes = require("./bisnisCoverRoutes");
+const BisnisDokumenRoutes = require("./bisnisDokumenRoutes");
 class Routes {
   constructor() {
     this.router = router;
@@ -20,11 +22,15 @@ class Routes {
     this.investasiRoutes = new InvestasiRoutes();
     this.distribusiProfitRoutes = new DistribusiProfitRoutes();
     this.dashboardRoutes = new DashboardRoutes();
+    this.bisnisCoverRoutes = new BisnisCoverRoutes();
+    this.bisnisDokumenRoutes = new BisnisDokumenRoutes();
   }
 
   routes() {
-    this.router.use("/businesses", this.bisnisRoutes.routes());
     this.router.use("/user", this.userRoutes.routes());
+    this.router.use("/businesses/covers", this.bisnisCoverRoutes.routes());
+    this.router.use("/businesses/documents", this.bisnisDokumenRoutes.routes());
+    this.router.use("/businesses", this.bisnisRoutes.routes());
     this.router.use("/dashboard", this.dashboardRoutes.routes());
     this.router.use("/investasi", this.investasiRoutes.routes());
     this.router.use(

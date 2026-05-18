@@ -15,6 +15,7 @@ exports.up = function (knex) {
     t.decimal("digital_adoption_score", 4, 1); // 1.0 - 10.0
     t.decimal("year_revenue", 15, 2); // total revenue per tahun
     t.decimal("business_tenure_years", 5, 2); // lama bisnis berjalan (tahun)
+    t.boolean("tim_operasional").defaultTo(false);
 
     t.integer("class").defaultTo(0).nullable(); // 0: Critical, 1: Struggling, 2: Growth, 3: Elite
 

@@ -8,8 +8,14 @@ exports.seed = async function (knex) {
   if (parseInt(existing.count) > 0) return;
 
   await knex("kelas").insert([
-    { nama_kelas: "mikro", deskripsi: "Deskripsi Kelas 1" },
-    { nama_kelas: "kecil", deskripsi: "Deskripsi Kelas 2" },
-    { nama_kelas: "menengah", deskripsi: "Deskripsi Kelas 3" },
+    { nama_kelas: "mikro", deskripsi: "Penjualan tahunan hingga Rp2 miliar" },
+    {
+      nama_kelas: "kecil",
+      deskripsi: "Penjualan tahunan Rp2 miliar - Rp15 miliar",
+    },
+    {
+      nama_kelas: "menengah",
+      deskripsi: "Penjualan tahunan Rp15 miliar - Rp50 miliar",
+    },
   ]);
 };

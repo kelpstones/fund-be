@@ -6,6 +6,7 @@ const VerifyEmail = require("./mailer");
 const Loader = require("./loadTemplate");
 const HelpersUtils = require("./helpers");
 const logger = require("./logger");
+const CloudinaryUtils = require("./cloudinary");
 
 module.exports = {
   BcryptUtils,
@@ -16,4 +17,5 @@ module.exports = {
   Loader,
   HelpersUtils,
   logger,
+  CloudinaryUtils,
 };

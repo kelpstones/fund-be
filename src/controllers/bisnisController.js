@@ -3,11 +3,13 @@ const Bisnis = require("../models/bisnis");
 const { BisnisValidator, PengajuanValidator } = require("../validation");
 const pengajuans = require("../models/pengajuans");
 const logger = require("../utils/index").logger;
+const { cloudinary } = require("../config/cloudinary");
+
 class BisnisController {
   async getBisnis(req, res) {
     try {
       const { page, limit, search } = req.query;
-      const bisnisList = await Bisnis.getAllBisnis(page, limit, search);
+      const bisnisList = await Bisnis.getAllBisnisForInvestor(page, limit, search);
       return responseHelper.withPagination(
         res,
         "Bisnis data fetched successfully",
@@ -162,6 +164,52 @@ class BisnisController {
       return responseHelper.serverError(
         res,
         "An error occurred while updating bisnis data",
+      );
+    }
+  }
+
+  async uploadCoverImage(req, res) {
+    try {
+      const user_id = req.user.id;
+
+      if (!req.file) {
+        return responseHelper.error(res, "File wajib diupload", 400);
+      }
+
+      const bisnis = await Bisnis.getBisnisByUserId(user_id);
+      if (!bisnis) {
+        return responseHelper.error(res, "Bisnis tidak ditemukan", 404);
+      }
+
+      
+      if (bisnis.cover_image_url) {
+        const parts = bisnis.cover_image_url.split("/");
+        const filename = parts[parts.length - 1].split(".")[0];
+        await cloudinary.uploader.destroy(
+          `fund-raise/cover-bisnis/${filename}`,
+        );
+      }
+
+      const result = await uploadToCloudinary(
+        req.file.buffer,
+        "fund-raise/cover-bisnis",
+      );
+
+      const updated = await Bisnis.updateCoverImage(
+        bisnis.id,
+        result.secure_url,
+      );
+
+      return responseHelper.success(
+        res,
+        "Cover image berhasil diupload",
+        updated,
+      );
+    } catch (error) {
+      logger.error("Error uploading cover image", { error });
+      return responseHelper.serverError(
+        res,
+        "An error occurred while uploading cover image",
       );
     }
   }

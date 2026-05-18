@@ -109,12 +109,15 @@ class AuthController {
           400,
         );
 
-      await User.updateUser(record.user_id, { email_verified: true });
+      const user = await User.updateUser(record.user_id, {
+        email_verified: true,
+      });
       await VerifyEmail.deleteByUserId(record.user_id);
-
+      const tokenJWT = await generateToken(user);
       return responseHelper.success(
         res,
         "Email has been verified successfully",
+        { token: tokenJWT },
       );
     } catch (error) {
       logger.error("An error occurred while verifying email", { error });
