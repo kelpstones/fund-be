@@ -159,6 +159,15 @@ class DokumenBisnis extends BaseModel {
       throw error;
     }
   }
+
+  async getById(id) {
+    try {
+      const row = await this.knex(this.tableName).where({ id }).first();
+      return this.#formatResponse(row);
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = new DokumenBisnis();
