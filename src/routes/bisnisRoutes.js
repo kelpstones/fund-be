@@ -3,8 +3,11 @@ const BisnisController = require("../controllers/bisnisController");
 const { Auth } = require("../middlewares");
 const { Role } = require("../middlewares");
 const KelasRoutes = require("./kelasRoutes");
+const multer = require("multer");
+const upload = multer({ storage: multer.memoryStorage() });
 const PengajuanRoutes = require("./pengajuanRoutes");
 const BisnisProfileController = require("../controllers/bisnisProfileController");
+const BisnisDokumenController = require("../controllers/dokumenBisnisController");
 class BisnisRoutes {
   constructor() {
     this.router = express.Router();
@@ -12,6 +15,7 @@ class BisnisRoutes {
     this.pengajuanRoutes = new PengajuanRoutes();
     this.kelasRoutes = new KelasRoutes();
     this.bisnisProfileController = new BisnisProfileController();
+    this.bisnisDokumenController = new BisnisDokumenController();
   }
 
   routes() {
@@ -19,7 +23,6 @@ class BisnisRoutes {
     this.router.get("/ml", (req, res) => {
       this.bisnisProfileController.getAllProfilesForML(req, res);
     });
-
 
     this.router.use(Auth.verifyAnyToken);
 
@@ -45,20 +48,59 @@ class BisnisRoutes {
       this.bisnisController.createBisnis(req, res);
     });
 
+    // dokumen for UMKM
+    this.router.get("/documents", Role.authorize("umkm"), (req, res) => {
+      this.bisnisDokumenController.getDokumenSaya(req, res);
+    });
+
+    this.router.post(
+      "/documents",
+      Role.authorize("umkm"),
+      upload.single("file"),
+      (req, res) => {
+        this.bisnisDokumenController.uploadDokumen(req, res);
+      },
+    );
+
+    // dokumen for ADMIN
     this.router.get(
-      "/:id",
+      "/documents/pending",
+      Role.authorize("admin", "superadmin"),
+      (req, res) => {
+        this.bisnisDokumenController.getDokumenPending(req, res);
+      },
+    );
+
+    this.router.patch(
+      "/documents/:id/review",
+      Role.authorize("admin", "superadmin"),
+      (req, res) => {
+        this.bisnisDokumenController.reviewDokumen(req, res);
+      },
+    );
+
+    this.router.patch(
+      "/documents/:bisnis_id/verify",
+      Role.authorize("admin", "superadmin"),
+      (req, res) => {
+        this.bisnisDokumenController.verifikasiBisnis(req, res);
+      },
+    );
+
+    this.router.get(
+      "/documents/:id",
       Role.authorize("umkm", "superadmin", "admin"),
       (req, res) => {
         this.bisnisController.getBisnisById(req, res);
       },
     );
 
-    this.router.put("/:id", Role.authorize("umkm"), (req, res) => {
+    this.router.put("/documents/:id", Role.authorize("umkm"), (req, res) => {
       this.bisnisController.updateBisnis(req, res);
     });
 
     this.router.delete(
-      "/:id",
+      "/documents/:id",
       Role.authorize("umkm", "superadmin"),
       (req, res) => {
         this.bisnisController.deleteBisnis(req, res);
@@ -78,7 +120,6 @@ class BisnisRoutes {
       },
     );
 
-    
     return this.router;
   }
 }

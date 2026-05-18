@@ -3,6 +3,7 @@ const logger = require('../utils/index').logger
 const BisnisCover = require('../models/bisnis_covers')
 const Bisnis = require('../models/bisnis')
 const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary')
+const { CloudinaryUtils } = require('../utils/index')
 
 const MAX_COVER = 5
 
@@ -21,7 +22,7 @@ class BisnisCoverController {
         return responseHelper.error(res, `Maksimal ${MAX_COVER} foto cover`, 400)
       }
 
-      const result = await uploadToCloudinary(req.file.buffer, 'fund-raise/cover-bisnis', 'image')
+      const result = await CloudinaryUtils.uploadToCloudinary(req.file.buffer, 'fundraise/cover-bisnis', 'image')
 
       const cover = await BisnisCover.insert(bisnis.id, result.secure_url, count)
 
@@ -60,7 +61,7 @@ class BisnisCoverController {
         return responseHelper.error(res, 'Unauthorized', 403)
       }
 
-      await deleteFromCloudinary(cover.image_url, 'fund-raise/cover-bisnis')
+      await CloudinaryUtils.deleteFromCloudinary(cover.image_url, 'fundraise/cover-bisnis')
       await BisnisCover.delete(id)
 
       return responseHelper.success(res, 'Cover berhasil dihapus', null)

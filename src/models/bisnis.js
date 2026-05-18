@@ -24,7 +24,7 @@ class Bisnis extends BaseModel {
       deskripsi: row.deskripsi,
       created_at: row.created_at,
       class_label: CLASS_MAP[row.class] ?? "Critical",
-      cover_image_url: row.cover_image_url,
+      covers: row.covers ?? [],
       is_verified: row.is_verified,
       verified_at: row.verified_at,
       kelas: {
@@ -75,6 +75,32 @@ class Bisnis extends BaseModel {
       .leftJoin("kelas", "bisnis.kelas_id", "kelas.id")
       .leftJoin("bisnis_profiles", "bisnis.id", "bisnis_profiles.bisnis_id")
       .leftJoin("users", "bisnis.user_id", "users.id");
+    this.knex
+      .raw(
+        `
+  COALESCE(
+    json_agg(
+      json_build_object('id', bisnis_covers.id, 'image_url', bisnis_covers.image_url, 'urutan', bisnis_covers.urutan)
+      ORDER BY bisnis_covers.urutan ASC
+    ) FILTER (WHERE bisnis_covers.id IS NOT NULL),
+    '[]'
+  ) as covers
+`,
+      )
+      .leftJoin("bisnis_covers", "bisnis.id", "bisnis_covers.bisnis_id")
+      .groupBy(
+        "bisnis.id",
+        "bisnis_profiles.class",
+        "bisnis_profiles.net_profit_margin",
+        "bisnis_profiles.kepuasan_pelanggan",
+        "bisnis_profiles.review_volatility",
+        "bisnis_profiles.repeat_order_rate",
+        "bisnis_profiles.digital_adoption_score",
+        "kelas.nama_kelas",
+        "users.nama",
+        "users.email",
+        "users.id",
+      );
   }
 
   async createBisnis(
@@ -189,17 +215,16 @@ class Bisnis extends BaseModel {
   }
 
   async updateCoverImage(id, cover_image_url) {
-  try {
-    await this.knex(this.tableName).where({ id }).update({
-      cover_image_url,
-      updated_at: this.knex.fn.now(),
-    })
-    return await this.getBisnisById(id)
-  } catch (error) {
-    throw error
+    try {
+      await this.knex(this.tableName).where({ id }).update({
+        cover_image_url,
+        updated_at: this.knex.fn.now(),
+      });
+      return await this.getBisnisById(id);
+    } catch (error) {
+      throw error;
+    }
   }
-}
-
 
   async deleteBisnis(id) {
     try {
