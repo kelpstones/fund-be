@@ -30,6 +30,41 @@ class DokumenBisnisController {
     try {
       const { jenis_dokumen } = req.body;
       let nama_list = req.body.nama_list;
+
+      // 1. validasi jenis_dokumen dulu
+      const validJenis = [
+        "legalitas_usaha",
+        "proposal_pendanaan",
+        "laporan_penjualan",
+      ];
+      if (!validJenis.includes(jenis_dokumen))
+        return responseHelper.error(res, "Jenis dokumen tidak valid", 400);
+
+      // 2. parse nama_list dulu SEBELUM validasi isi
+      if (typeof nama_list === "string") {
+        try {
+          nama_list = JSON.parse(nama_list);
+        } catch {
+          nama_list = [nama_list];
+        }
+      }
+
+      // 3. cek bisnis & files
+      const bisnis = await Bisnis.getBisnisByUserId(req.user.id);
+      if (!bisnis)
+        return responseHelper.error(res, "Bisnis tidak ditemukan", 404);
+      if (!req.files || req.files.length === 0)
+        return responseHelper.error(res, "File wajib diupload", 400);
+
+      // 4. cek jumlah
+      if (!nama_list || nama_list.length !== req.files.length)
+        return responseHelper.error(
+          res,
+          "Jumlah nama_list harus sama dengan jumlah file",
+          400,
+        );
+
+      // 5. baru validasi nama
       const docMap = NAMA_DOKUMEN_MAP[jenis_dokumen];
       const allValid = [...docMap.wajib, ...docMap.opsional];
       const invalidNama = nama_list.filter((n) => !allValid.includes(n));
@@ -44,44 +79,15 @@ class DokumenBisnisController {
         );
       }
 
-      const hasDuplicate = nama_list.length !== new Set(nama_list).size;
-      if (hasDuplicate) {
+      // 6. cek duplikat
+      if (nama_list.length !== new Set(nama_list).size)
         return responseHelper.error(
           res,
           "Nama dokumen tidak boleh duplikat",
           400,
         );
-      }
 
-      const bisnis = await Bisnis.getBisnisByUserId(req.user.id);
-
-      if (!bisnis)
-        return responseHelper.error(res, "Bisnis tidak ditemukan", 404);
-      if (!req.files || req.files.length === 0)
-        return responseHelper.error(res, "File wajib diupload", 400);
-
-      const validJenis = [
-        "legalitas_usaha",
-        "proposal_pendanaan",
-        "laporan_penjualan",
-      ];
-      if (!validJenis.includes(jenis_dokumen))
-        return responseHelper.error(res, "Jenis dokumen tidak valid", 400);
-
-      if (typeof nama_list === "string") {
-        try {
-          nama_list = JSON.parse(nama_list);
-        } catch {
-          nama_list = [nama_list];
-        }
-      }
-      if (!nama_list || nama_list.length !== req.files.length)
-        return responseHelper.error(
-          res,
-          "Jumlah nama_list harus sama dengan jumlah file",
-          400,
-        );
-
+      // 7. upload & insert
       const results = await Promise.all(
         req.files.map(async (file, i) => {
           const result = await CloudinaryUtils.uploadToCloudinary(
