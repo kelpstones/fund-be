@@ -1,6 +1,6 @@
 const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary')
-const multer = require('multer');
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const multer = require("multer");
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -9,13 +9,15 @@ cloudinary.config({
 });
 
 const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-      folder: 'fundraise/dokumen-bisnis',
-      allowed_formats: ['jpg', 'jpeg', 'png', 'pdf'],
-      resource_type: 'auto',
-    },
-})
+  cloudinary: cloudinary,
+  params: {
+    folder: "fundraise/dokumen-bisnis",
+    allowed_formats: ["jpg", "jpeg", "png", "pdf"],
+    resource_type: "auto",
+  },
+});
 
-
-const upload = multer({ storage: storage, limits: { fileSize: 8 * 1024 * 1024 } }); // limit 8MB
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 8 * 1024 * 1024 },
+}); // limit 8MB

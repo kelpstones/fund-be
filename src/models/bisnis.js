@@ -24,6 +24,8 @@ class Bisnis extends BaseModel {
       deskripsi: row.deskripsi,
       created_at: row.created_at,
       class_label: CLASS_MAP[row.class] ?? "Critical",
+      is_verified: row.is_verified,
+      verified_at: row.verified_at,
       kelas: {
         id: row.kelas_id,
         nama_kelas: row.kelas,
@@ -54,6 +56,8 @@ class Bisnis extends BaseModel {
         "bisnis.alamat",
         "bisnis.no_telp",
         "bisnis.deskripsi",
+        "bisnis.is_verified",
+        "bisnis.verified_at",
         "bisnis.created_at",
         "bisnis_profiles.class as class",
         "bisnis_profiles.net_profit_margin",
@@ -161,6 +165,19 @@ class Bisnis extends BaseModel {
         no_telp,
         email,
         deskripsi,
+        updated_at: this.knex.fn.now(),
+      });
+      return await this.getBisnisById(id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateVerifikasi(id) {
+    try {
+      await this.knex(this.tableName).where({ id }).update({
+        is_verified: true,
+        verified_at: this.knex.fn.now(),
         updated_at: this.knex.fn.now(),
       });
       return await this.getBisnisById(id);
