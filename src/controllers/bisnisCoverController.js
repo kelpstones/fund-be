@@ -76,7 +76,7 @@ class BisnisCoverController {
     try {
       const { orders } = req.body
       // orders = [{ id: 1, urutan: 0 }, { id: 2, urutan: 1 }]
-
+        // logger.info('Reorder bisnis covers', { orders })
       if (!Array.isArray(orders) || orders.length === 0) {
         return responseHelper.error(res, 'Orders tidak valid', 400)
       }

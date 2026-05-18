@@ -27,10 +27,10 @@ class Routes {
   }
 
   routes() {
-    this.router.use("/businesses", this.bisnisRoutes.routes());
     this.router.use("/user", this.userRoutes.routes());
     this.router.use("/businesses/covers", this.bisnisCoverRoutes.routes());
     this.router.use("/businesses/documents", this.bisnisDokumenRoutes.routes());
+    this.router.use("/businesses", this.bisnisRoutes.routes());
     this.router.use("/dashboard", this.dashboardRoutes.routes());
     this.router.use("/investasi", this.investasiRoutes.routes());
     this.router.use(

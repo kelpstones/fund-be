@@ -2,7 +2,7 @@ const BaseModel = require('./base')
 
 class BisnisCover extends BaseModel {
   constructor() {
-    super('bisnis_covers')
+    super('bisnis_cover')
   }
 
   #formatResponse(row) {

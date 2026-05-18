@@ -24,7 +24,7 @@ class Bisnis extends BaseModel {
       deskripsi: row.deskripsi,
       created_at: row.created_at,
       class_label: CLASS_MAP[row.class] ?? "Critical",
-      covers: row.covers ?? [],
+      covers: row.covers || [],
       is_verified: row.is_verified,
       verified_at: row.verified_at,
       kelas: {
@@ -37,6 +37,9 @@ class Bisnis extends BaseModel {
         review_volatility: row.review_volatility,
         repeat_order_rate: row.repeat_order_rate,
         digital_adoption_score: row.digital_adoption_score,
+        year_revenue: row.year_revenue,
+        business_tenure_years: row.business_tenure_years,
+        tim_operasional: row.tim_operasional,
       },
       pemilik: {
         id: row.user_id,
@@ -57,7 +60,6 @@ class Bisnis extends BaseModel {
         "bisnis.alamat",
         "bisnis.no_telp",
         "bisnis.deskripsi",
-        "bisnis.cover_image_url",
         "bisnis.is_verified",
         "bisnis.verified_at",
         "bisnis.created_at",
@@ -67,6 +69,22 @@ class Bisnis extends BaseModel {
         "bisnis_profiles.review_volatility",
         "bisnis_profiles.repeat_order_rate",
         "bisnis_profiles.digital_adoption_score",
+        "bisnis_profiles.year_revenue",
+        "bisnis_profiles.business_tenure_years",
+        "bisnis_profiles.tim_operasional",
+        "bisnis_profiles.updated_at as profile_updated_at",
+        this.knex.raw(`
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', bisnis_cover.id,
+              'image_url', bisnis_cover.image_url,
+              'urutan', bisnis_cover.urutan
+            ) ORDER BY bisnis_cover.urutan ASC
+          ) FILTER (WHERE bisnis_cover.id IS NOT NULL),
+          '[]'
+        ) as covers
+      `),
         "kelas.nama_kelas as kelas",
         "users.nama as pemilik",
         "users.email as email_pemilik",
@@ -74,20 +92,8 @@ class Bisnis extends BaseModel {
       )
       .leftJoin("kelas", "bisnis.kelas_id", "kelas.id")
       .leftJoin("bisnis_profiles", "bisnis.id", "bisnis_profiles.bisnis_id")
-      .leftJoin("users", "bisnis.user_id", "users.id");
-    this.knex
-      .raw(
-        `
-  COALESCE(
-    json_agg(
-      json_build_object('id', bisnis_covers.id, 'image_url', bisnis_covers.image_url, 'urutan', bisnis_covers.urutan)
-      ORDER BY bisnis_covers.urutan ASC
-    ) FILTER (WHERE bisnis_covers.id IS NOT NULL),
-    '[]'
-  ) as covers
-`,
-      )
-      .leftJoin("bisnis_covers", "bisnis.id", "bisnis_covers.bisnis_id")
+      .leftJoin("users", "bisnis.user_id", "users.id")
+      .leftJoin("bisnis_cover", "bisnis.id", "bisnis_cover.bisnis_id")
       .groupBy(
         "bisnis.id",
         "bisnis_profiles.class",
@@ -96,6 +102,10 @@ class Bisnis extends BaseModel {
         "bisnis_profiles.review_volatility",
         "bisnis_profiles.repeat_order_rate",
         "bisnis_profiles.digital_adoption_score",
+        "bisnis_profiles.year_revenue",
+        "bisnis_profiles.business_tenure_years",
+        "bisnis_profiles.tim_operasional",
+        "bisnis_profiles.updated_at",
         "kelas.nama_kelas",
         "users.nama",
         "users.email",

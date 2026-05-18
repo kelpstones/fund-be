@@ -21,3 +21,5 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 8 * 1024 * 1024 },
 }); // limit 8MB
+
+module.exports = { cloudinary, upload };
