@@ -5,60 +5,100 @@ const Bisnis = require("../models/bisnis");
 const { cloudinary } = require("../config/cloudinary");
 const { CloudinaryUtils } = require("../utils/index");
 
+const NAMA_DOKUMEN_MAP = {
+  legalitas_usaha: {
+    wajib: ["KTP Pemilik", "NIB"],
+    opsional: ["NPWP", "Akta Pendirian", "SIUP"],
+  },
+  proposal_pendanaan: {
+    wajib: [],
+    opsional: ["Proposal Bisnis", "Rencana Penggunaan Dana", "Pitch Deck"],
+  },
+  laporan_penjualan: {
+    wajib: [
+      "Laporan Keuangan",
+      "Laporan Omset Bulanan",
+      "Laporan Omset Tahunan",
+    ],
+    opsional: [],
+  },
+};
+
 class DokumenBisnisController {
   // UMKM: Upload / re-upload dokumen
   async uploadDokumen(req, res) {
     try {
       const { jenis_dokumen } = req.body;
+      let nama_list = req.body.nama_list;
+      const docMap = NAMA_DOKUMEN_MAP[jenis_dokumen];
+      const allValid = [...docMap.wajib, ...docMap.opsional];
+      const invalidNama = nama_list.filter((n) => !allValid.includes(n));
+      if (invalidNama.length > 0) {
+        return responseHelper.error(
+          res,
+          `Nama dokumen tidak valid: ${invalidNama.join(", ")}`,
+          400,
+          {
+            valid_options: allValid,
+          },
+        );
+      }
+
+      const hasDuplicate = nama_list.length !== new Set(nama_list).size;
+      if (hasDuplicate) {
+        return responseHelper.error(
+          res,
+          "Nama dokumen tidak boleh duplikat",
+          400,
+        );
+      }
+
       const bisnis = await Bisnis.getBisnisByUserId(req.user.id);
 
-      if (!bisnis) {
+      if (!bisnis)
         return responseHelper.error(res, "Bisnis tidak ditemukan", 404);
-      }
-
-      if (!req.file) {
+      if (!req.files || req.files.length === 0)
         return responseHelper.error(res, "File wajib diupload", 400);
-      }
 
       const validJenis = [
         "legalitas_usaha",
         "proposal_pendanaan",
         "laporan_penjualan",
       ];
-      if (!validJenis.includes(jenis_dokumen)) {
+      if (!validJenis.includes(jenis_dokumen))
         return responseHelper.error(res, "Jenis dokumen tidak valid", 400);
+
+      if (typeof nama_list === "string") {
+        try {
+          nama_list = JSON.parse(nama_list);
+        } catch {
+          nama_list = [nama_list];
+        }
       }
-
-      const existing = await DokumenBisnis.getByBisnisIdAndJenis(
-        bisnis.id,
-        jenis_dokumen,
-      );
-
-      const result = await CloudinaryUtils.uploadToCloudinary(
-        req.file.buffer,
-        `fundraise/dokumen-bisnis/${bisnis.id}-${jenis_dokumen}`,
-        "auto",
-      );
-
-      if (existing) {
-        await CloudinaryUtils.deleteFromCloudinary(
-          existing.file_url,
-          `fundraise/dokumen-bisnis/${bisnis.id}-${jenis_dokumen}`,
+      if (!nama_list || nama_list.length !== req.files.length)
+        return responseHelper.error(
+          res,
+          "Jumlah nama_list harus sama dengan jumlah file",
+          400,
         );
-        await DokumenBisnis.update(existing.id, {
-          file_url: result.secure_url,
-          status: "pending",
-          catatan: null,
-        });
-        return responseHelper.success(res, "Dokumen berhasil diperbarui", null);
-      }
 
-      const dokumen = await DokumenBisnis.insert(
-        bisnis.id,
-        jenis_dokumen,
-        result.secure_url,
+      const results = await Promise.all(
+        req.files.map(async (file, i) => {
+          const result = await CloudinaryUtils.uploadToCloudinary(
+            file.buffer,
+            `fundraise/dokumen-bisnis/${bisnis.id}-${jenis_dokumen}`,
+            "auto",
+          );
+          return DokumenBisnis.insert(
+            bisnis.id,
+            jenis_dokumen,
+            nama_list[i],
+            result.secure_url,
+          );
+        }),
       );
-      return responseHelper.created(res, "Dokumen berhasil diupload", dokumen);
+
+      return responseHelper.created(res, "Dokumen berhasil diupload", results);
     } catch (error) {
       logger.error("Error uploading dokumen bisnis", { error });
       return responseHelper.serverError(

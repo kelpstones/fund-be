@@ -22,7 +22,7 @@ class DokumenBisnisRoutes {
     this.router.post(
       "/",
       Role.authorize("umkm"),
-      upload.single("file"),
+      upload.array("files", 10),
       (req, res) => {
         this.controller.uploadDokumen(req, res);
       },

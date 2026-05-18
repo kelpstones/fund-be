@@ -14,6 +14,7 @@ exports.up = function (knex) {
         "laporan_penjualan",
       ])
       .notNullable();
+    table.string("nama_dokumen").notNullable();
     table.string("file_url").nullable();
     table
       .enum("status", ["belum_upload", "pending", "valid", "invalid"])

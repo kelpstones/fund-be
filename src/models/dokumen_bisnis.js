@@ -17,6 +17,7 @@ class DokumenBisnis extends BaseModel {
       id: row.id,
       bisnis_id: row.bisnis_id,
       jenis_dokumen: row.jenis_dokumen,
+      nama_dokumen: row.nama_dokumen,
       file_url: row.file_url,
       status: row.status,
       catatan: row.catatan,
@@ -46,26 +47,30 @@ class DokumenBisnis extends BaseModel {
   }
 
   async getKelengkapan(bisnis_id) {
-    try {
-      const uploaded = await this.knex(this.tableName)
-        .where({ bisnis_id })
-        .pluck("jenis_dokumen");
-      const belumUpload = JENIS_DOKUMEN.filter((j) => !uploaded.includes(j));
-      return {
-        total: JENIS_DOKUMEN.length,
-        sudah_upload: uploaded.length,
-        belum_upload: belumUpload,
-        persen: Math.round((uploaded.length / JENIS_DOKUMEN.length) * 100),
-      };
-    } catch (error) {
-      throw error;
-    }
+    const uploaded = await this.knex(this.tableName)
+      .where({ bisnis_id })
+      .distinct("jenis_dokumen")
+      .pluck("jenis_dokumen");
+
+    const belumUpload = JENIS_DOKUMEN.filter((j) => !uploaded.includes(j));
+    return {
+      total: JENIS_DOKUMEN.length,
+      sudah_upload: uploaded.length,
+      belum_upload: belumUpload,
+      persen: Math.round((uploaded.length / JENIS_DOKUMEN.length) * 100),
+    };
   }
 
-  async insert(bisnis_id, jenis_dokumen, file_url) {
+  async insert(bisnis_id, jenis_dokumen, nama_dokumen, file_url) {
     try {
       const [row] = await this.knex(this.tableName)
-        .insert({ bisnis_id, jenis_dokumen, file_url, status: "pending" })
+        .insert({
+          bisnis_id,
+          jenis_dokumen,
+          nama_dokumen,
+          file_url,
+          status: "pending",
+        })
         .returning("*");
       return this.#formatResponse(row);
     } catch (error) {
@@ -96,6 +101,7 @@ class DokumenBisnis extends BaseModel {
           "dokumen_bisnis.bisnis_id",
           "bisnis.nama_bisnis",
           "dokumen_bisnis.jenis_dokumen",
+          "dokumen_bisnis.nama_dokumen",
           "dokumen_bisnis.file_url",
           "dokumen_bisnis.status",
           "dokumen_bisnis.updated_at",
@@ -110,10 +116,33 @@ class DokumenBisnis extends BaseModel {
   // Cek apakah semua dokumen wajib sudah valid
   async isAllValid(bisnis_id) {
     try {
+      const WAJIB = {
+        legalitas_usaha: ["KTP Pemilik", "NIB"],
+        proposal_pendanaan: [],
+        laporan_penjualan: [
+          "Laporan Keuangan",
+          "Laporan Omset Bulanan",
+          "Laporan Omset Tahunan",
+        ],
+      };
+
       const validDocs = await this.knex(this.tableName)
         .where({ bisnis_id, status: "valid" })
-        .pluck("jenis_dokumen");
-      const belumValid = JENIS_DOKUMEN.filter((j) => !validDocs.includes(j));
+        .select("jenis_dokumen", "nama_dokumen");
+
+      const belumValid = [];
+
+      for (const [jenis, namaWajib] of Object.entries(WAJIB)) {
+        // cek jenis wajib ada minimal 1 valid
+        const jenisValid = validDocs.filter((d) => d.jenis_dokumen === jenis);
+        if (namaWajib.length === 0 && jenisValid.length === 0) continue; // opsional semua, skip
+
+        for (const nama of namaWajib) {
+          const ada = jenisValid.some((d) => d.nama_dokumen === nama);
+          if (!ada) belumValid.push(`${jenis} → ${nama}`);
+        }
+      }
+
       return { isValid: belumValid.length === 0, belumValid };
     } catch (error) {
       throw error;
