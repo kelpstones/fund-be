@@ -148,6 +148,17 @@ class DokumenBisnis extends BaseModel {
       throw error;
     }
   }
+
+  async getByBisnisIdAndNama(bisnis_id, nama_dokumen) {
+    try {
+      const row = await this.knex(this.tableName)
+        .where({ bisnis_id, nama_dokumen })
+        .first();
+      return this.#formatResponse(row);
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = new DokumenBisnis();

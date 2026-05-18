@@ -87,6 +87,28 @@ class DokumenBisnisController {
           400,
         );
 
+      const blocked = [];
+      await Promise.all(
+        nama_list.map(async (nama) => {
+          const existing = await DokumenBisnis.getByBisnisIdAndNama(
+            bisnis.id,
+            nama,
+          );
+          if (existing && ["pending", "valid"].includes(existing.status)) {
+            blocked.push({ nama, status: existing.status });
+          }
+        }),
+      );
+
+      if (blocked.length > 0) {
+        return responseHelper.error(
+          res,
+          "Beberapa dokumen tidak bisa diupload ulang",
+          400,
+          { blocked },
+        );
+      }
+
       // 7. upload & insert
       const results = await Promise.all(
         req.files.map(async (file, i) => {
@@ -95,6 +117,19 @@ class DokumenBisnisController {
             `fundraise/dokumen-bisnis/${bisnis.id}-${jenis_dokumen}`,
             "auto",
           );
+
+          const existing = await DokumenBisnis.getByBisnisIdAndNama(
+            bisnis.id,
+            nama_list[i],
+          );
+          if (existing) {
+            // status invalid → update
+            return DokumenBisnis.update(existing.id, {
+              file_url: result.secure_url,
+              status: "pending",
+              catatan: null,
+            });
+          }
           return DokumenBisnis.insert(
             bisnis.id,
             jenis_dokumen,
