@@ -29,7 +29,7 @@ exports.up = function (knex) {
     table.string("no_telp").notNullable();
     table.string("email").notNullable().unique();
     table.string("deskripsi").nullable();
-    table.string("cover_image_url").nullable();
+    // table.string("cover_image_url").nullable();
     table.boolean("is_verified").defaultTo(false);
     table.timestamp("verified_at").defaultTo(null);
     table.timestamps(true, true);

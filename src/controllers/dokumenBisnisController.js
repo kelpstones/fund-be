@@ -3,26 +3,7 @@ const logger = require("../utils/index").logger;
 const DokumenBisnis = require("../models/dokumen_bisnis");
 const Bisnis = require("../models/bisnis");
 const { cloudinary } = require("../config/cloudinary");
-
-const uploadToCloudinary = (buffer) => {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      { folder: "fundraise/dokumen-bisnis", resource_type: "auto" },
-      (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
-      },
-    );
-    stream.end(buffer);
-  });
-};
-
-const deleteFromCloudinary = async (file_url) => {
-  if (!file_url) return;
-  const parts = file_url.split("/");
-  const filename = parts[parts.length - 1].split(".")[0];
-  await cloudinary.uploader.destroy(`fundraise/dokumen-bisnis/${filename}`);
-};
+const { CloudinaryUtils } = require("../utils/index");
 
 class DokumenBisnisController {
   // UMKM: Upload / re-upload dokumen
@@ -53,10 +34,17 @@ class DokumenBisnisController {
         jenis_dokumen,
       );
 
-      const result = await uploadToCloudinary(req.file.buffer);
+      const result = await CloudinaryUtils.uploadToCloudinary(
+        req.file.buffer,
+        `fundraise/dokumen-bisnis/${bisnis.id}-${jenis_dokumen}`,
+        "auto",
+      );
 
       if (existing) {
-        await deleteFromCloudinary(existing.file_url);
+        await CloudinaryUtils.deleteFromCloudinary(
+          existing.file_url,
+          `fundraise/dokumen-bisnis/${bisnis.id}-${jenis_dokumen}`,
+        );
         await DokumenBisnis.update(existing.id, {
           file_url: result.secure_url,
           status: "pending",

@@ -24,6 +24,7 @@ class Bisnis extends BaseModel {
       deskripsi: row.deskripsi,
       created_at: row.created_at,
       class_label: CLASS_MAP[row.class] ?? "Critical",
+      cover_image_url: row.cover_image_url,
       is_verified: row.is_verified,
       verified_at: row.verified_at,
       kelas: {
@@ -56,6 +57,7 @@ class Bisnis extends BaseModel {
         "bisnis.alamat",
         "bisnis.no_telp",
         "bisnis.deskripsi",
+        "bisnis.cover_image_url",
         "bisnis.is_verified",
         "bisnis.verified_at",
         "bisnis.created_at",
@@ -185,6 +187,19 @@ class Bisnis extends BaseModel {
       throw error;
     }
   }
+
+  async updateCoverImage(id, cover_image_url) {
+  try {
+    await this.knex(this.tableName).where({ id }).update({
+      cover_image_url,
+      updated_at: this.knex.fn.now(),
+    })
+    return await this.getBisnisById(id)
+  } catch (error) {
+    throw error
+  }
+}
+
 
   async deleteBisnis(id) {
     try {
