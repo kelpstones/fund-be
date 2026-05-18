@@ -49,6 +49,8 @@ class PengajuanController {
         "draft",
         0,
         payload.per_anual_return,
+        payload.deskripsi_peluang,
+        payload.rencana_penggunaan_dana,
       );
       const approval = await Approvals.createApproval(
         pengajuan.id,

@@ -62,8 +62,8 @@ class Pengajuan extends BaseModel {
     status,
     total_pendanaan,
     per_anual_return,
-    deskripsi_peluang = null, 
-    rencana_penggunaan_dana = null,
+    deskripsi_peluang,
+    rencana_penggunaan_dana,
   ) {
     try {
       const [row] = await this.knex(this.tableName)
@@ -74,7 +74,9 @@ class Pengajuan extends BaseModel {
           total_pendanaan,
           per_anual_return,
           deskripsi_peluang,
-          rencana_penggunaan_dana,
+          rencana_penggunaan_dana: rencana_penggunaan_dana
+            ? JSON.stringify(rencana_penggunaan_dana)
+            : null,
         })
         .returning("*");
       return this.#formatResponse(row);
@@ -130,19 +132,23 @@ class Pengajuan extends BaseModel {
     total_pendanaan,
     per_anual_return,
     status,
-    deskripsi_peluang = null,
-    rencana_penggunaan_dana = null,
+    deskripsi_peluang,
+    rencana_penggunaan_dana,
     trx = this.knex,
   ) {
     try {
-      await trx(this.tableName).where({ id }).update({
-        target_pendanaan,
-        total_pendanaan,
-        per_anual_return,
-        status,
-        deskripsi_peluang,
-        rencana_penggunaan_dana,
-      });
+      await trx(this.tableName)
+        .where({ id })
+        .update({
+          target_pendanaan,
+          total_pendanaan,
+          per_anual_return,
+          status,
+          deskripsi_peluang,
+          rencana_penggunaan_dana: rencana_penggunaan_dana
+            ? JSON.stringify(rencana_penggunaan_dana) 
+            : null,
+        });
       return await this.getPengajuanById(id, trx);
     } catch (error) {
       throw error;
