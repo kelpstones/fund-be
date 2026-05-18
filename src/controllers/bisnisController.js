@@ -186,13 +186,13 @@ class BisnisController {
         const parts = bisnis.cover_image_url.split("/");
         const filename = parts[parts.length - 1].split(".")[0];
         await cloudinary.uploader.destroy(
-          `fund-raise/cover-bisnis/${filename}`,
+          `fundraise/cover-bisnis/${filename}`,
         );
       }
 
       const result = await uploadToCloudinary(
         req.file.buffer,
-        "fund-raise/cover-bisnis",
+        "fundraise/cover-bisnis",
       );
 
       const updated = await Bisnis.updateCoverImage(
