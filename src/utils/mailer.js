@@ -132,6 +132,7 @@ const sendNegotiationStartEmail = async (
       penawaran_return,
       catatan: catatan || "-",
       negosiasi_url,
+      companyName: process.env.SMTP_FROM_NAME || "Kelpstones",
     });
     const info = await transporter.sendMail({
       from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_USER}>`,
@@ -170,6 +171,7 @@ const sendNegotiationReplyEmail = async (
       catatan: catatan || "-",
       diajukan_oleh: pengirim,
       negosiasi_url,
+      companyName: process.env.SMTP_FROM_NAME || "Kelpstones",
     });
     const info = await transporter.sendMail({
       from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_USER}>`,
@@ -198,6 +200,7 @@ const sendNegotiationDealEmail = async (
       penawaran_nominal: formatRupiah(parseFloat(penawaran_nominal)),
       penawaran_return,
       negosiasi_url,
+      companyName: process.env.SMTP_FROM_NAME || "Kelpstones",
     });
     const info = await transporter.sendMail({
       from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_USER}>`,
@@ -225,6 +228,7 @@ const sendNegotiationRejectedEmail = async (
       bisnis_nama,
       catatan: catatan || "Tidak ada keterangan.",
       dashboard_url,
+      companyName: process.env.SMTP_FROM_NAME || "Kelpstones",
     });
     const info = await transporter.sendMail({
       from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_USER}>`,
