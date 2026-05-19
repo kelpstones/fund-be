@@ -2,8 +2,9 @@ const express = require("express");
 const DokumenBisnisController = require("../controllers/dokumenBisnisController");
 const { Auth, Role } = require("../middlewares");
 const multer = require("multer");
+const { upload } = require("../config/cloudinary");
 
-const upload = multer({ storage: multer.memoryStorage() });
+
 
 class DokumenBisnisRoutes {
   constructor() {
