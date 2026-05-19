@@ -8,7 +8,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage: storage,
