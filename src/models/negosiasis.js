@@ -32,6 +32,7 @@ class Negosiasis extends BaseModel {
       bisnis_owner: {
         id: row.bisnis_owner_id,
         nama: row.bisnis_owner_nama,
+        email: row.bisnis_owner_email,
       },
       negosiasi_terakhir: row.last_penawaran_return
         ? {
@@ -55,6 +56,7 @@ class Negosiasis extends BaseModel {
         "users.id as investor_id",
         "bisnis_owner.nama as bisnis_owner_nama",
         "bisnis_owner.id as bisnis_owner_id",
+        "bisnis_owner.email as bisnis_owner_email",
         "pengajuans.id as pengajuan_id",
         "pengajuans.target_pendanaan",
         "pengajuans.per_anual_return",
