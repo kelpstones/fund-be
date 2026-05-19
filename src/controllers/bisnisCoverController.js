@@ -2,7 +2,7 @@ const responseHelper = require('../utils/index').ResponseHelper
 const logger = require('../utils/index').logger
 const BisnisCover = require('../models/bisnis_covers')
 const Bisnis = require('../models/bisnis')
-const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary')
+
 const { CloudinaryUtils } = require('../utils/index')
 
 const MAX_COVER = 5
