@@ -9,11 +9,7 @@ class BisnisController {
   async getBisnis(req, res) {
     try {
       const { page, limit, search } = req.query;
-      const bisnisList = await Bisnis.getAllBisnis(
-        page,
-        limit,
-        search,
-      );
+      const bisnisList = await Bisnis.getAllBisnis(page, limit, search);
       return responseHelper.withPagination(
         res,
         "Bisnis data fetched successfully",
@@ -112,7 +108,8 @@ class BisnisController {
   async getBisnisById(req, res) {
     try {
       const { id } = req.params;
-      const bisnisList = await Bisnis.getBisnisById(id);
+      const role = req.user?.role_name !== undefined ? req.user.nama_role : req.admin.level;
+      const bisnisList = await Bisnis.getBisnisById(id, role);
       if (!bisnisList) {
         return responseHelper.error(res, "Bisnis not found", 404);
       }

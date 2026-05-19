@@ -182,7 +182,7 @@ class Bisnis extends BaseModel {
 
   async getAllBisnisForInvestor(page = 1, limit = 10, search = "") {
     try {
-      const results = await this.#baseQuery()
+      const results = await this.#baseQuery("investor")
         .where("bisnis.nama_bisnis", "ilike", `%${search}%`)
         .where("bisnis.is_verified", true)
         .orderBy("bisnis.created_at", "desc")
@@ -194,9 +194,9 @@ class Bisnis extends BaseModel {
     }
   }
 
-  async getBisnisById(id) {
+  async getBisnisById(id, role = null) {
     try {
-      const row = await this.#baseQuery().where("bisnis.id", id).first();
+      const row = await this.#baseQuery(role).where("bisnis.id", id).first();
       return this.#formatResponse(row);
     } catch (error) {
       throw error;
@@ -205,7 +205,7 @@ class Bisnis extends BaseModel {
 
   async getBisnisByIdForInvestor(id) {
     try {
-      const row = await this.#baseQuery()
+      const row = await this.#baseQuery("investor")
         .where("bisnis.id", id)
         .where("bisnis.is_verified", true)
         .first();
@@ -217,7 +217,7 @@ class Bisnis extends BaseModel {
 
   async getBisnisByUserId(user_id) {
     try {
-      const row = await this.#baseQuery()
+      const row = await this.#baseQuery("admin")
         .where("bisnis.user_id", user_id)
         .first();
       return this.#formatResponse(row);
