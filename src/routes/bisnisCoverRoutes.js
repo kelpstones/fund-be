@@ -2,8 +2,9 @@ const express = require("express");
 const BisnisCoverController = require("../controllers/bisnisCoverController");
 const { Auth, Role } = require("../middlewares");
 const multer = require("multer");
+const { upload } = require("../config/cloudinary");
 
-const upload = multer({ storage: multer.memoryStorage() });
+
 
 class BisnisCoverRoutes {
   constructor() {
