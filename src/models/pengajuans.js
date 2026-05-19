@@ -16,6 +16,8 @@ class Pengajuan extends BaseModel {
       rencana_penggunaan_dana: row.rencana_penggunaan_dana,
       status: row.status,
       bisnis_id: row.bisnis_id,
+      bisnis_nama: row.bisnis_nama,
+      bisnis_user_id: row.bisnis_user_id,
       approval: row.approval_id
         ? {
             id: row.approval_id,
@@ -51,9 +53,12 @@ class Pengajuan extends BaseModel {
         "approvals.catatan as approval_catatan",
         "admins.nama as approver_nama",
         "admins.email as approver_email",
+        "bisnis.nama_bisnis as bisnis_nama",
+        "bisnis.user_id as bisnis_user_id",
       )
       .leftJoin("approvals", "pengajuans.id", "approvals.pengajuans_id")
-      .leftJoin("admins", "approvals.approver_id", "admins.id");
+      .leftJoin("admins", "approvals.approver_id", "admins.id")
+      .leftJoin("bisnis", "pengajuans.bisnis_id", "bisnis.id");
   }
 
   async createPengajuan(

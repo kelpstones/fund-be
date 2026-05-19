@@ -32,6 +32,7 @@ class Negosiasis extends BaseModel {
       bisnis_owner: {
         id: row.bisnis_owner_id,
         nama: row.bisnis_owner_nama,
+        email: row.bisnis_owner_email,
       },
       negosiasi_terakhir: row.last_penawaran_return
         ? {
@@ -55,6 +56,7 @@ class Negosiasis extends BaseModel {
         "users.id as investor_id",
         "bisnis_owner.nama as bisnis_owner_nama",
         "bisnis_owner.id as bisnis_owner_id",
+        "bisnis_owner.email as bisnis_owner_email",
         "pengajuans.id as pengajuan_id",
         "pengajuans.target_pendanaan",
         "pengajuans.per_anual_return",
@@ -65,10 +67,10 @@ class Negosiasis extends BaseModel {
         trx.raw("l.catatan as last_catatan"),
         trx.raw("l.penawaran_nominal as last_penawaran_nominal"),
       )
-      .join("pengajuans", "negosiasis.pengajuans_id", "pengajuans.id")
-      .join("bisnis", "pengajuans.bisnis_id", "bisnis.id")
-      .join("users as bisnis_owner", "bisnis.user_id", "bisnis_owner.id")
-      .join("users", "negosiasis.investor_id", "users.id")
+      .leftJoin("pengajuans", "negosiasis.pengajuans_id", "pengajuans.id")
+      .leftJoin("bisnis", "pengajuans.bisnis_id", "bisnis.id")
+      .leftJoin("users as bisnis_owner", "bisnis.user_id", "bisnis_owner.id")
+      .leftJoin("users", "negosiasis.investor_id", "users.id")
       .leftJoin("log_negosiasis as l", function () {
         this.on("negosiasis.id", "l.negosiasis_id").andOn(
           "l.created_at",

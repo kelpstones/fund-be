@@ -7,7 +7,14 @@ const invoices = require("../models/invoices");
 const log_negosiasis = require("../models/log_negosiasis");
 const notificationHelper = require("../utils/index").NotificationHelper;
 const knex = require("../config/db");
-const { sendInvoiceEmail } = require("../utils/mailer");
+const {
+  sendInvoiceEmail,
+  sendNegotiationStartEmail,
+  sendNegotiationReplyEmail,
+  sendNegotiationDealEmail,
+  sendNegotiationRejectedEmail,
+} = require("../utils/mailer");
+const users = require("../models/users");
 const logger = require("../utils/index").logger;
 class NegotiationController {
   async getAllNegotiations(req, res) {
@@ -104,6 +111,20 @@ class NegotiationController {
       );
 
       await trx.commit();
+
+      const userUMKM = await users.getUserById(pengajuan.bisnis_user_id);
+
+      if (userUMKM?.email) {
+        sendNegotiationStartEmail(userUMKM.email, userUMKM.nama, {
+          bisnis_nama: pengajuan.bisnis_nama,
+          penawaran_nominal,
+          penawaran_return,
+          catatan,
+          negosiasi_id: negosiasi.id,
+        }).catch((err) =>
+          logger.error("Failed to send negotiation start email", { err }),
+        );
+      }
 
       await notificationHelper.notifyStartNegotiation(
         pengajuans_id,
@@ -263,6 +284,30 @@ class NegotiationController {
 
       await trx.commit();
 
+      const userToNotifyId =
+        role_name === "investor"
+          ? negosiasi.bisnis_owner.id
+          : negosiasi.investor.id;
+
+      sendNegotiationReplyEmail(
+        role_name === "investor"
+          ? negosiasi.bisnis_owner.email
+          : negosiasi.investor.email,
+        role_name === "investor"
+          ? negosiasi.bisnis_owner.nama
+          : negosiasi.investor.nama,
+        {
+          bisnis_nama: negosiasi.bisnis?.nama,
+          penawaran_nominal,
+          penawaran_return,
+          catatan,
+          negosiasi_id,
+          diajukan_oleh,
+        },
+      ).catch((err) =>
+        logger.error("Failed to send negotiation reply email", { err }),
+      );
+
       await notificationHelper.notifyReplyNegotiation(
         role_name === "investor"
           ? negosiasi.bisnis_owner.id
@@ -363,6 +408,36 @@ class NegotiationController {
         negosiasi,
       ).catch((err) => logger.error("Failed to send invoice email", { err }));
 
+      const umkmUserDeal = await knex("users")
+        .where({ id: negosiasi.bisnis_owner.id })
+        .select("email", "nama")
+        .first();
+
+      const dealPayload = {
+        bisnis_nama: negosiasi.bisnis?.nama,
+        penawaran_nominal: lastLog.penawaran_nominal,
+        penawaran_return: lastLog.penawaran_return,
+        negosiasi_id,
+      };
+
+      sendNegotiationDealEmail(
+        negosiasi.investor.email,
+        negosiasi.investor.nama,
+        dealPayload,
+      ).catch((err) =>
+        logger.error("Failed to send deal email to investor", { err }),
+      );
+
+      if (umkmUserDeal?.email) {
+        sendNegotiationDealEmail(
+          umkmUserDeal.email,
+          umkmUserDeal.nama,
+          dealPayload,
+        ).catch((err) =>
+          logger.error("Failed to send deal email to umkm", { err }),
+        );
+      }
+
       await notificationHelper.notifyReplyNegotiation(
         role_name === "investor"
           ? negosiasi.bisnis_owner.id
@@ -420,6 +495,29 @@ class NegotiationController {
       });
 
       await trx.commit();
+
+      let rejectedPenerimaEmail, rejectedPenerimaNama;
+      if (role_name === "investor") {
+        rejectedPenerimaEmail = negosiasi.bisnis_owner.email;
+        rejectedPenerimaNama = negosiasi.bisnis_owner.nama;
+      } else {
+        rejectedPenerimaEmail = negosiasi.investor.email;
+        rejectedPenerimaNama = negosiasi.investor.nama;
+      }
+
+      if (rejectedPenerimaEmail) {
+        sendNegotiationRejectedEmail(
+          rejectedPenerimaEmail,
+          rejectedPenerimaNama,
+          {
+            bisnis_nama: negosiasi.bisnis?.nama,
+            catatan,
+            negosiasi_id,
+          },
+        ).catch((err) =>
+          logger.error("Failed to send rejection email", { err }),
+        );
+      }
 
       await notificationHelper.notifyReplyNegotiation(
         role_name === "investor"
