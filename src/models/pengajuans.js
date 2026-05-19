@@ -53,7 +53,7 @@ class Pengajuan extends BaseModel {
         "approvals.catatan as approval_catatan",
         "admins.nama as approver_nama",
         "admins.email as approver_email",
-        "bisnis.nama as bisnis_nama",
+        "bisnis.nama_bisnis as bisnis_nama",
         "bisnis.user_id as bisnis_user_id",
       )
       .leftJoin("approvals", "pengajuans.id", "approvals.pengajuans_id")

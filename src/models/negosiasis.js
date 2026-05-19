@@ -67,10 +67,10 @@ class Negosiasis extends BaseModel {
         trx.raw("l.catatan as last_catatan"),
         trx.raw("l.penawaran_nominal as last_penawaran_nominal"),
       )
-      .join("pengajuans", "negosiasis.pengajuans_id", "pengajuans.id")
-      .join("bisnis", "pengajuans.bisnis_id", "bisnis.id")
-      .join("users as bisnis_owner", "bisnis.user_id", "bisnis_owner.id")
-      .join("users", "negosiasis.investor_id", "users.id")
+      .leftJoin("pengajuans", "negosiasis.pengajuans_id", "pengajuans.id")
+      .leftJoin("bisnis", "pengajuans.bisnis_id", "bisnis.id")
+      .leftJoin("users as bisnis_owner", "bisnis.user_id", "bisnis_owner.id")
+      .leftJoin("users", "negosiasis.investor_id", "users.id")
       .leftJoin("log_negosiasis as l", function () {
         this.on("negosiasis.id", "l.negosiasis_id").andOn(
           "l.created_at",
