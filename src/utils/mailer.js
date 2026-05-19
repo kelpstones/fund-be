@@ -161,8 +161,9 @@ const sendNegotiationReplyEmail = async (
   },
 ) => {
   try {
-    const negosiasi_url = `${process.env.FRONTEND_URL}/negosiasi/${negosiasi_id}`;
     const pengirim = diajukan_oleh === "investor" ? "Investor" : "UMKM";
+    const recipientPath = diajukan_oleh === "investor" ? "umkm" : "investor";
+    const negosiasi_url = `${process.env.FRONTEND_URL}/${recipientPath}/negosiasi/${negosiasi_id}`;
     const html = Loader.loadTemplate("negosiasiReply", {
       nama,
       bisnis_nama,
