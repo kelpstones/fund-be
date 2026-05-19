@@ -52,7 +52,7 @@ exports.checkBisnisNotVerified = async (bisnis_id) => {
       return {
         status: false,
         message: "Bisnis not found or not verified.",
-        code: 404,
+        code: 403,
         data: null,
       };
     }
