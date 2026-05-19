@@ -7,7 +7,13 @@ const invoices = require("../models/invoices");
 const log_negosiasis = require("../models/log_negosiasis");
 const notificationHelper = require("../utils/index").NotificationHelper;
 const knex = require("../config/db");
-const { sendInvoiceEmail } = require("../utils/mailer");
+const {
+  sendInvoiceEmail,
+  sendNegotiationStartEmail,
+  sendNegotiationReplyEmail,
+  sendNegotiationDealEmail,
+  sendNegotiationRejectedEmail,
+} = require("../utils/mailer");
 const logger = require("../utils/index").logger;
 class NegotiationController {
   async getAllNegotiations(req, res) {
@@ -104,6 +110,8 @@ class NegotiationController {
       );
 
       await trx.commit();
+
+     
 
       await notificationHelper.notifyStartNegotiation(
         pengajuans_id,
