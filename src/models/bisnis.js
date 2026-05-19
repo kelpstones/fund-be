@@ -178,6 +178,18 @@ class Bisnis extends BaseModel {
     }
   }
 
+  async getBisnisByIdForInvestor(id) {
+    try {
+      const row = await this.#baseQuery()
+        .where("bisnis.id", id)
+        .where("bisnis.is_verified", true)
+        .first();
+      return this.#formatResponse(row);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getBisnisByUserId(user_id) {
     try {
       const row = await this.#baseQuery()

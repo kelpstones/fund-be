@@ -1,5 +1,7 @@
 const Joi = require("joi");
 const pengajuans = require("../models/pengajuans");
+const { logger } = require("../utils");
+const bisnis = require("../models/bisnis");
 
 exports.pengajuanValidation = (data) => {
   try {
@@ -19,7 +21,7 @@ exports.pengajuanValidation = (data) => {
     });
     return schema.validate(data);
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     throw error;
   }
 };
@@ -38,10 +40,28 @@ exports.checkBisnisIdExist = async (bisnis_id) => {
     }
     return { status: true };
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     throw error;
   }
 };
+
+exports.checkBisnisNotVerified = async (bisnis_id) => {
+  try {
+    const bisnisExist = await bisnis.getBisnisByIdForInvestor(bisnis_id);
+    if (!bisnisExist) {
+      return {
+        status: false,
+        message: "Bisnis not found or not verified.",
+        code: 404,
+        data: null,
+      };
+    }
+    return { status: true };
+  } catch (error) {
+    logger.error(error);
+    throw error;
+  }
+}
 
 exports.updatePengajuanValidation = (data) => {
   try {
@@ -64,7 +84,7 @@ exports.updatePengajuanValidation = (data) => {
     });
     return schema.validate(data);
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     throw error;
   }
 };

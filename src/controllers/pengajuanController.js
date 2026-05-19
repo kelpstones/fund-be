@@ -33,6 +33,20 @@ class PengajuanController {
         );
       }
 
+      const bisnisVerified = await PengajuanValidator.checkBisnisNotVerified(
+        payload.bisnis_id,
+      );
+      if (!bisnisVerified.status) {
+        logger.error(bisnisVerified.message, {
+          bisnis_id: payload.bisnis_id,
+        });
+        return responseHelper.error(
+          res,
+          bisnisVerified.message,
+          bisnisVerified.code,
+        );
+      }
+
       const validate = PengajuanValidator.pengajuanValidation(payload);
       if (validate.error) {
         logger.error("Invalid pengajuan data", { error: validate.error });
