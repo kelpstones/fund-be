@@ -408,11 +408,8 @@ class NegotiationController {
         negosiasi,
       ).catch((err) => logger.error("Failed to send invoice email", { err }));
 
-      const umkmUserDeal = await knex("users")
-        .where({ id: negosiasi.bisnis_owner.id })
-        .select("email", "nama")
-        .first();
-
+      const umkmUserDeal = negosiasi.bisnis_owner;
+      
       const dealPayload = {
         bisnis_nama: negosiasi.bisnis?.nama,
         penawaran_nominal: lastLog.penawaran_nominal,

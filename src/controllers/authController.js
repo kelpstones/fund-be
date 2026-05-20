@@ -282,7 +282,7 @@ class AuthController {
         password_confirmation,
       });
       if (!validate.status) {
-        console.error("Validation error:", validate);
+        logger.error("Validation error:", validate);
         await trx.rollback();
         return responseHelper.error(
           res,
