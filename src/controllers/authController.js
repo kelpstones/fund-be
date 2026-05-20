@@ -343,9 +343,10 @@ class AuthController {
       const { email, password } = req.body;
       const validate = AuthValidator.loginValidation({ email, password });
 
-      if (!validate.status)
+      if (!validate.status) {
+        await trx.rollback();
         return responseHelper.error(res, validate.message, validate.code);
-
+      }
       const admin = await admins.getAdminByEmail(email, trx);
       if (!admin) {
         await trx.rollback();
