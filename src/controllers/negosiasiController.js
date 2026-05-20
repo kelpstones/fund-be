@@ -49,6 +49,18 @@ class NegotiationController {
         req.body;
       const { id: investor_id } = req.user;
 
+      const { error } = NegotiationValidator.negotiationValidation({
+        pengajuans_id,
+        penawaran_return,
+        penawaran_nominal,
+        catatan,
+      });
+      if (error) {
+        await trx.rollback();
+        logger.error("Validation error while starting negotiation", { error });
+        return responseHelper.error(res, error.details[0].message, 400);
+      }
+
       // Cek pengajuan
       const pengajuan = await pengajuans.getPengajuanById(pengajuans_id, trx);
       if (!pengajuan || pengajuan.status !== "published") {
@@ -78,17 +90,6 @@ class NegotiationController {
       }
 
       // Validation
-      const { error } = NegotiationValidator.negotiationValidation({
-        pengajuans_id,
-        penawaran_return,
-        penawaran_nominal,
-        catatan,
-      });
-      if (error) {
-        await trx.rollback();
-        logger.error("Validation error while starting negotiation", { error });
-        return responseHelper.error(res, error.details[0].message, 400);
-      }
 
       await pengajuans.lockPengajuan(pengajuans_id, investor_id, trx);
 
