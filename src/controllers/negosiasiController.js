@@ -61,8 +61,10 @@ class NegotiationController {
       }
 
       // Cek negosiasi aktif (double check)
-      const activeNegosiasi =
-        await Negosiasis.getNegosiasiByPengajuanId(pengajuans_id, trx);
+      const activeNegosiasi = await Negosiasis.getNegosiasiByPengajuanId(
+        pengajuans_id,
+        trx,
+      );
       if (
         activeNegosiasi.length !== 0 &&
         activeNegosiasi.some((n) => n.status === "active")
@@ -239,6 +241,18 @@ class NegotiationController {
           404,
         );
       }
+      const isInvolved =
+        negosiasi.investor.id === user_id ||
+        negosiasi.bisnis_owner.id === user_id;
+
+      if (!isInvolved) {
+        await trx.rollback();
+        return responseHelper.forbidden(
+          res,
+          "You are not involved in this negotiation",
+        );
+      }
+
       logger.info("Fetched negosiasi for reply", {
         isLastReplier:
           parseInt(negosiasi.id_terakhir_oleh) === parseInt(user_id),
@@ -344,6 +358,18 @@ class NegotiationController {
           res,
           "Negosiasi not found or not active",
           404,
+        );
+      }
+
+      const isInvolved =
+        negosiasi.investor.id === user_id ||
+        negosiasi.bisnis_owner.id === user_id;
+
+      if (!isInvolved) {
+        await trx.rollback();
+        return responseHelper.forbidden(
+          res,
+          "You are not involved in this negotiation",
         );
       }
 
@@ -472,6 +498,18 @@ class NegotiationController {
           res,
           "Negosiasi not found or not active",
           404,
+        );
+      }
+
+      const isInvolved =
+        negosiasi.investor.id === user_id ||
+        negosiasi.bisnis_owner.id === user_id;
+
+      if (!isInvolved) {
+        await trx.rollback();
+        return responseHelper.forbidden(
+          res,
+          "You are not involved in this negotiation",
         );
       }
 
