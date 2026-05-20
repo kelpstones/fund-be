@@ -21,13 +21,20 @@ const responseHelper = {
     });
   },
 
-  successLogin: (res, message = "Login successful", data = null, token) => {
+  successLogin: (
+    res,
+    message = "Login successful",
+    data = null,
+    accessToken,
+    refreshToken,
+  ) => {
     return res.status(200).json({
       status: "success",
       statusCode: 200,
       message,
       data,
-      token,
+      accessToken,
+      refreshToken,
     });
   },
 
@@ -48,7 +55,7 @@ const responseHelper = {
         total_pages: Math.ceil(pagination.totalItems / pagination.limit),
         current_page: parseInt(pagination.page),
         limit: parseInt(pagination.limit),
-        search: pagination.search || null
+        search: pagination.search || null,
       },
     });
   },

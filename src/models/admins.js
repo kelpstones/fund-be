@@ -42,9 +42,9 @@ class Admin extends BaseModel {
     }
   }
 
-  async getAdminByEmail(email) {
+  async getAdminByEmail(email, trx = this.knex) {
     try {
-      const admin = await this.knex(this.tableName)
+      const admin = await trx(this.tableName)
         .select(
           "admins.id",
           "admins.nama",

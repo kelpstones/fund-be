@@ -5,7 +5,7 @@ const responseHelper = require("../utils/response");
 const User = require("../models/users");
 const { AuthValidator, PasswordResetValidator } = require("../validation");
 const { hashPassword, comparePassword } = require("../utils/Bcrypt");
-const { generateToken, refreshToken, generateAdminToken, refreshAdminToken } =
+const { generateToken, generateAdminToken, verifyRefreshToken } =
   require("../utils/index").JwtUtils;
 const VerifyEmail = require("../models/verify_email");
 const {
@@ -15,6 +15,7 @@ const {
 const admins = require("../models/admins");
 const knex = require("../config/db");
 const password_resets = require("../models/password_resets");
+const refresh_tokens = require("../models/refresh_tokens");
 const logger = require("../utils/index").logger;
 class AuthController {
   async register(req, res) {
@@ -162,28 +163,39 @@ class AuthController {
   }
 
   async login(req, res) {
+    const trx = await knex.transaction();
     try {
       const { email, password } = req.body;
       const validate = AuthValidator.loginValidation({ email, password });
-      if (!validate.status)
+      if (!validate.status) {
+        await trx.rollback();
         return responseHelper.error(res, validate.message, validate.code);
-
-      const user = await User.getUserByEmail(email);
-      if (!user)
+      }
+      const user = await User.getUserByEmail(email, trx);
+      if (!user) {
+        await trx.rollback();
         return responseHelper.error(res, "Invalid email or password", 401);
-
-      if (!user.email_verified)
+      }
+      if (!user.email_verified) {
+        await trx.rollback();
         return responseHelper.error(
           res,
           "Email has not been verified, please verify your email first",
           403,
         );
-
+      }
       const isPasswordValid = await comparePassword(password, user.password);
-      if (!isPasswordValid)
+      if (!isPasswordValid) {
+        await trx.rollback();
         return responseHelper.error(res, "Invalid email or password", 401);
+      }
 
-      const token = await generateToken(user);
+      const accessToken = await generateToken(user);
+      const refreshToken = await refresh_tokens.createToken(
+        user.id,
+        "users",
+        trx,
+      );
       const data = {
         id: user.id,
         nama: user.nama,
@@ -194,7 +206,14 @@ class AuthController {
         updated_at: user.updated_at,
       };
 
-      return responseHelper.successLogin(res, "Login successful", data, token);
+      await trx.commit();
+      return responseHelper.successLogin(
+        res,
+        "Login successful",
+        data,
+        accessToken,
+        refreshToken,
+      );
     } catch (error) {
       logger.error("An error occurred while logging in", { error });
       responseHelper.serverError(res, error);
@@ -207,17 +226,24 @@ class AuthController {
       const user = await User.getUserById(id);
       if (!user) return responseHelper.error(res, "User not found", 404);
 
-      const refreshed = await refreshToken(user);
-      // logger.info("Token refreshed successfully for user", { refreshed });
-      return responseHelper.successLogin(
+      const data = {
+        id: user.id,
+        nama: user.nama,
+        email: user.email,
+        is_onboarded: user.is_onboarded,
+        role: { id: user.role.id, nama_role: user.role.nama_role },
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+      };
+
+      return responseHelper.success(
         res,
-        "Token refreshed",
-        user,
-        refreshed,
+        "User data retrieved successfully",
+        data,
       );
     } catch (error) {
       logger.error("An error occurred while retrieving user data", { error });
-      return responseHelper.serverError(res, "Failed to retrieve user data");
+      return responseHelper.serverError(res, error);
     }
   }
 
@@ -282,7 +308,7 @@ class AuthController {
         password_confirmation,
       });
       if (!validate.status) {
-        console.error("Validation error:", validate);
+        logger.error("Validation error:", validate);
         await trx.rollback();
         return responseHelper.error(
           res,
@@ -312,21 +338,32 @@ class AuthController {
   }
 
   async loginAdmin(req, res) {
+    const trx = await knex.transaction();
     try {
       const { email, password } = req.body;
       const validate = AuthValidator.loginValidation({ email, password });
-      if (!validate.status)
+
+      if (!validate.status) {
+        await trx.rollback();
         return responseHelper.error(res, validate.message, validate.code);
-
-      const admin = await admins.getAdminByEmail(email);
-      if (!admin)
+      }
+      const admin = await admins.getAdminByEmail(email, trx);
+      if (!admin) {
+        await trx.rollback();
         return responseHelper.error(res, "Invalid email or password", 401);
-
+      }
       const isPasswordValid = await comparePassword(password, admin.password);
-      if (!isPasswordValid)
+      if (!isPasswordValid) {
+        await trx.rollback();
         return responseHelper.error(res, "Invalid email or password", 401);
+      }
 
-      const token = await generateAdminToken(admin);
+      const accessToken = await generateAdminToken(admin);
+      const refreshToken = await refresh_tokens.createToken(
+        admin.id,
+        "admins",
+        trx,
+      );
       const adminData = {
         id: admin.id,
         nama: admin.nama,
@@ -336,14 +373,17 @@ class AuthController {
         created_at: admin.created_at,
       };
 
+      await trx.commit();
       return responseHelper.successLogin(
         res,
         "Login successful",
         adminData,
-        token,
+        accessToken,
+        refreshToken,
       );
     } catch (error) {
       logger.error("An error occurred while logging in as admin", { error });
+      await trx.rollback();
       responseHelper.serverError(res, error);
     }
   }
@@ -354,16 +394,141 @@ class AuthController {
       const admin = await admins.getAdminById(id);
       if (!admin) return responseHelper.error(res, "Admin not found", 404);
 
-      const refreshed = await refreshAdminToken(admin);
-      return responseHelper.successLogin(
+      const adminData = {
+        id: admin.id,
+        nama: admin.nama,
+        email: admin.email,
+        no_telp: admin.no_telp,
+        level: admin.level,
+        created_at: admin.created_at,
+      };
+
+      return responseHelper.success(
         res,
-        "Token refreshed",
-        admin,
-        refreshed,
+        "Admin data retrieved successfully",
+        adminData,
       );
     } catch (error) {
       logger.error("An error occurred while retrieving admin data", { error });
-      responseHelper.serverError(res, error);
+      return responseHelper.serverError(res, error);
+    }
+  }
+
+  async refresh(req, res) {
+    try {
+      const { refreshToken } = req.body;
+      if (!refreshToken) {
+        return responseHelper.error(res, "refreshToken is required", 400);
+      }
+
+      const record = await refresh_tokens.findValid(refreshToken);
+      if (!record) {
+        return responseHelper.unauthorized(
+          res,
+          "Invalid or expired refresh token",
+        );
+      }
+
+      let decoded;
+      try {
+        decoded = verifyRefreshToken(refreshToken);
+      } catch (err) {
+        logger.warn("Refresh token cryptographic verification failed", { err });
+        return responseHelper.unauthorized(
+          res,
+          "Invalid or expired refresh token",
+        );
+      }
+
+      let accessToken;
+      let newRefreshToken;
+      let responseData;
+
+      await knex.transaction(async (trx) => {
+        if (record.owner_type === "users") {
+          const user = await User.getUserById(record.owner_id, trx);
+          if (!user) {
+            throw new Error("User not found");
+          }
+
+          accessToken = await generateToken(user);
+          newRefreshToken = await refresh_tokens.createToken(
+            user.id,
+            "users",
+            trx,
+          );
+
+          responseData = {
+            id: user.id,
+            nama: user.nama,
+            email: user.email,
+            is_onboarded: user.is_onboarded,
+            role: { id: user.role.id, nama_role: user.role.nama_role },
+            created_at: user.created_at,
+            updated_at: user.updated_at,
+          };
+        } else if (record.owner_type === "admins") {
+          const adminObj = await admins.getAdminById(record.owner_id, trx);
+          if (!adminObj) {
+            throw new Error("Admin not found");
+          }
+
+          accessToken = await generateAdminToken(adminObj);
+          newRefreshToken = await refresh_tokens.createToken(
+            adminObj.id,
+            "admins",
+          );
+
+          responseData = {
+            id: adminObj.id,
+            nama: adminObj.nama,
+            email: adminObj.email,
+            no_telp: adminObj.no_telp,
+            level: adminObj.level,
+            created_at: adminObj.created_at,
+          };
+        } else {
+          throw new Error("Unknown token owner type");
+        }
+
+        await refresh_tokens.revokeToken(refreshToken, trx);
+      });
+
+      return responseHelper.successLogin(
+        res,
+        "Token refreshed successfully",
+        responseData,
+        accessToken,
+        newRefreshToken,
+      );
+    } catch (error) {
+      logger.error("An error occurred during token refresh", { error });
+      if (
+        error.message === "User not found" ||
+        error.message === "Admin not found"
+      ) {
+        return responseHelper.unauthorized(res, error.message);
+      }
+      return responseHelper.serverError(res, error);
+    }
+  }
+
+  async logout(req, res) {
+    try {
+      const { refreshToken } = req.body || {};
+      if (!refreshToken) {
+        return responseHelper.error(res, "Refresh token is required", 400);
+      }
+
+      const record = await refresh_tokens.findValid(refreshToken);
+      if (record) {
+        await refresh_tokens.revokeToken(refreshToken);
+      }
+
+      return responseHelper.success(res, "Logged out successfully");
+    } catch (error) {
+      logger.error("An error occurred during logout", { error });
+      return responseHelper.serverError(res, error);
     }
   }
 }

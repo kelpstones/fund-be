@@ -49,8 +49,20 @@ class NegotiationController {
         req.body;
       const { id: investor_id } = req.user;
 
+      const { error } = NegotiationValidator.negotiationValidation({
+        pengajuans_id,
+        penawaran_return,
+        penawaran_nominal,
+        catatan,
+      });
+      if (error) {
+        await trx.rollback();
+        logger.error("Validation error while starting negotiation", { error });
+        return responseHelper.error(res, error.details[0].message, 400);
+      }
+
       // Cek pengajuan
-      const pengajuan = await pengajuans.getPengajuanById(pengajuans_id);
+      const pengajuan = await pengajuans.getPengajuanById(pengajuans_id, trx);
       if (!pengajuan || pengajuan.status !== "published") {
         await trx.rollback();
         return responseHelper.error(
@@ -61,8 +73,10 @@ class NegotiationController {
       }
 
       // Cek negosiasi aktif (double check)
-      const activeNegosiasi =
-        await Negosiasis.getNegosiasiByPengajuanId(pengajuans_id);
+      const activeNegosiasi = await Negosiasis.getNegosiasiByPengajuanId(
+        pengajuans_id,
+        trx,
+      );
       if (
         activeNegosiasi.length !== 0 &&
         activeNegosiasi.some((n) => n.status === "active")
@@ -76,17 +90,6 @@ class NegotiationController {
       }
 
       // Validation
-      const { error } = NegotiationValidator.negotiationValidation({
-        pengajuans_id,
-        penawaran_return,
-        penawaran_nominal,
-        catatan,
-      });
-      if (error) {
-        await trx.rollback();
-        logger.error("Validation error while starting negotiation", { error });
-        return responseHelper.error(res, error.details[0].message, 400);
-      }
 
       await pengajuans.lockPengajuan(pengajuans_id, investor_id, trx);
 
@@ -239,6 +242,18 @@ class NegotiationController {
           404,
         );
       }
+      const isInvolved =
+        negosiasi.investor.id === user_id ||
+        negosiasi.bisnis_owner.id === user_id;
+
+      if (!isInvolved) {
+        await trx.rollback();
+        return responseHelper.forbidden(
+          res,
+          "You are not involved in this negotiation",
+        );
+      }
+
       logger.info("Fetched negosiasi for reply", {
         isLastReplier:
           parseInt(negosiasi.id_terakhir_oleh) === parseInt(user_id),
@@ -347,6 +362,18 @@ class NegotiationController {
         );
       }
 
+      const isInvolved =
+        negosiasi.investor.id === user_id ||
+        negosiasi.bisnis_owner.id === user_id;
+
+      if (!isInvolved) {
+        await trx.rollback();
+        return responseHelper.forbidden(
+          res,
+          "You are not involved in this negotiation",
+        );
+      }
+
       const { error } = NegotiationValidator.acceptRejectNegotiationValidation({
         catatan,
       });
@@ -408,10 +435,7 @@ class NegotiationController {
         negosiasi,
       ).catch((err) => logger.error("Failed to send invoice email", { err }));
 
-      const umkmUserDeal = await knex("users")
-        .where({ id: negosiasi.bisnis_owner.id })
-        .select("email", "nama")
-        .first();
+      const umkmUserDeal = negosiasi.bisnis_owner;
 
       const dealPayload = {
         bisnis_nama: negosiasi.bisnis?.nama,
@@ -448,8 +472,8 @@ class NegotiationController {
       );
 
       return responseHelper.success(res, "Negotiation accepted successfully", {
-        negosiasi: await Negosiasis.getNegosiasiById(negosiasi_id),
-        invoice: await invoices.getInvoiceById(invoice.id),
+        negosiasi: negosiasi,
+        invoice: invoice,
       });
     } catch (error) {
       await trx.rollback();
@@ -475,6 +499,18 @@ class NegotiationController {
           res,
           "Negosiasi not found or not active",
           404,
+        );
+      }
+
+      const isInvolved =
+        negosiasi.investor.id === user_id ||
+        negosiasi.bisnis_owner.id === user_id;
+
+      if (!isInvolved) {
+        await trx.rollback();
+        return responseHelper.forbidden(
+          res,
+          "You are not involved in this negotiation",
         );
       }
 
