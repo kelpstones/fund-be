@@ -416,7 +416,7 @@ class AuthController {
 
   async refresh(req, res) {
     try {
-      const { refreshToken } = req.body || {};
+      const { refreshToken } = req.body;
       if (!refreshToken) {
         return responseHelper.error(res, "refreshToken is required", 400);
       }
