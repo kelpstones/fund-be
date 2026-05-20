@@ -90,3 +90,31 @@ describe("POST /api/v1/user/forgot-password", () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe("POST /api/v1/user/refresh", () => {
+  it("400 jika refreshToken tidak disertakan", async () => {
+    const res = await request(app)
+      .post("/api/v1/user/refresh")
+      .set("x-api-key", API_KEY)
+      .send({});
+    expect(res.status).toBe(400);
+  });
+
+  it("401 jika refreshToken tidak valid atau tidak terdaftar", async () => {
+    const res = await request(app)
+      .post("/api/v1/user/refresh")
+      .set("x-api-key", API_KEY)
+      .send({ refreshToken: "token-tidak-valid" });
+    expect(res.status).toBe(401);
+  });
+});
+
+describe("POST /api/v1/user/logout", () => {
+  it("400 jika refreshToken tidak disertakan", async () => {
+    const res = await request(app)
+      .post("/api/v1/user/logout")
+      .set("x-api-key", API_KEY)
+      .send({});
+    expect(res.status).toBe(400);
+  });
+});

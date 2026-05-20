@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const db = require("../config/db");
 const logger = require("./logger");
+const { randomUUID } = require("crypto");
 exports.generateToken = async (user) => {
   try {
     let bisnis_id = null;
@@ -17,6 +18,7 @@ exports.generateToken = async (user) => {
       email: user.email,
       role_name: user.role.nama_role,
       bisnis_id: bisnis_id,
+      jti: randomUUID(),
     };
     return jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN || "1h",
@@ -43,6 +45,7 @@ exports.refreshToken = async (data) => {
         email: data.email,
         role_name: data.role.nama_role,
         bisnis_id: bisnis_id,
+        jti: randomUUID(),
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },
@@ -63,6 +66,20 @@ exports.decodeToken = (token) => {
     return null;
   }
 };
+
+exports.generateRefreshToken = (ownerId, ownerType = "users") => {
+  return jwt.sign(
+    { id: ownerId, owner_type: ownerType, type: "refresh", jti: randomUUID() },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "7d" }
+  );
+};
+
+exports.verifyRefreshToken = (token) => {
+  return jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+};
+
+
 
 // admin
 exports.generateAdminToken = (admin) => {

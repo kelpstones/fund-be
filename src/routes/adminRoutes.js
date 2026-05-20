@@ -15,6 +15,14 @@ class AdminRoutes {
       this.authController.loginAdmin(req, res);
     });
 
+    this.router.post("/refresh", (req, res) => {
+      this.authController.refresh(req, res);
+    });
+
+    this.router.post("/logout", (req, res) => {
+      this.authController.logout(req, res);
+    });
+
     this.router.use(Auth.verifyAnyToken);
     this.router.post(
       "/me",

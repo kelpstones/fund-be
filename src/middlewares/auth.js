@@ -14,6 +14,7 @@ exports.verifyAnyToken = (req, res, next) => {
   jwt.verify(token, process.env.JWT_SECRET, (err, decodedUser) => {
     if (!err) {
       req.user = decodedUser;
+      
       return next();
     }
 

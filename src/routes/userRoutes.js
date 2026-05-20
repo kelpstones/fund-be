@@ -50,8 +50,22 @@ class UserRoutes {
       this.authController.resetPassword(req, res);
     });
 
+    this.router.post("/refresh", (req, res) => {
+      this.authController.refresh(req, res);
+    });
+
+    this.router.post("/logout", (req, res) => {
+      this.authController.logout(req, res);
+    });
+
     this.router.use(Auth.verifyAnyToken);
+    this.router.get("/me", Role.authorize("umkm", "investor"), (req, res) => {
+      this.authController.authMe(req, res);
+    });
     this.router.post("/me", Role.authorize("umkm", "investor"), (req, res) => {
+      this.authController.authMe(req, res);
+    });
+    this.router.get("/auth-me", Role.authorize("umkm", "investor"), (req, res) => {
       this.authController.authMe(req, res);
     });
 
