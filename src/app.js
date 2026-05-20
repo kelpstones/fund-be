@@ -1,4 +1,6 @@
-require("dotenv").config();
+require("dotenv").config({
+  path: process.env.NODE_ENV === "test" ? ".env.test" : ".env",
+});
 const express = require("express");
 const cors = require("cors");
 const { Key, RateLimiter } = require("./middlewares");
@@ -41,7 +43,7 @@ app.use(
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(Key.validateApiKey);
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 app.use(RateLimiter.genRateLimiter);
 // Routes
 app.use("/api/v1", rootRouter.routes());
