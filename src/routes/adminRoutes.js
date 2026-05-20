@@ -1,7 +1,7 @@
 const express = require("express");
 const AuthController = require("../controllers/authController");
 const router = express.Router();
-const { Auth, Role } = require("../middlewares");
+const { Auth, Role, RateLimiter } = require("../middlewares");
 const AdminController = require("../controllers/adminController");
 class AdminRoutes {
   constructor() {
@@ -11,7 +11,7 @@ class AdminRoutes {
   }
 
   routes() {
-    this.router.post("/login", (req, res) => {
+    this.router.post("/login", RateLimiter.authRateLimiter,(req, res) => {
       this.authController.loginAdmin(req, res);
     });
 

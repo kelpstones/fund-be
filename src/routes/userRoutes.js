@@ -46,7 +46,7 @@ class UserRoutes {
       },
     );
 
-    this.router.post("/reset-password", (req, res) => {
+    this.router.post("/reset-password", RateLimiter.emailRateLimiter, (req, res) => {
       this.authController.resetPassword(req, res);
     });
 
