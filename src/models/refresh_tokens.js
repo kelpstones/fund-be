@@ -7,12 +7,12 @@ class RefreshTokens extends BaseModel {
     super("refresh_tokens");
   }
 
-  async createToken(ownerId, ownerType = "users") {
+  async createToken(ownerId, ownerType = "users", trx = this.knex) {
     try {
       const token = generateRefreshToken(ownerId, ownerType);
       const decoded = decodeToken(token);
       const expiresAt = new Date(decoded.exp * 1000);
-      await this.knex(this.tableName).insert({
+      await trx(this.tableName).insert({
         token,
         owner_id: ownerId,
         owner_type: ownerType,
@@ -24,11 +24,11 @@ class RefreshTokens extends BaseModel {
     }
   }
 
-  async findValid(token) {
+  async findValid(token, trx = this.knex) {
     try {
-      const record = await this.knex(this.tableName)
+      const record = await trx(this.tableName)
         .where({ token, is_revoked: false })
-        .andWhere("expires_at", ">", this.knex.fn.now())
+        .andWhere("expires_at", ">", trx.fn.now())
         .first();
       return record || null;
     } catch (error) {
@@ -36,7 +36,7 @@ class RefreshTokens extends BaseModel {
     }
   }
 
-  async revokeToken(token, trx = null) {
+  async revokeToken(token, trx = this.knex) {
     try {
       const query = (trx || this.knex)(this.tableName)
         .where({ token })
@@ -50,13 +50,13 @@ class RefreshTokens extends BaseModel {
     }
   }
 
-  async revokeAllForOwner(ownerId, ownerType, trx = null) {
+  async revokeAllForOwner(ownerId, ownerType, trx = this.knex) {
     try {
-      const query = (trx || this.knex)(this.tableName)
+      const query = trx(this.tableName)
         .where({ owner_id: ownerId, owner_type: ownerType })
         .update({
           is_revoked: true,
-          updated_at: (trx || this.knex).fn.now(),
+          updated_at: trx.fn.now(),
         });
       return await query;
     } catch (error) {
