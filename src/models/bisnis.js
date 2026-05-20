@@ -41,6 +41,7 @@ class Bisnis extends BaseModel {
         business_tenure_years: row.business_tenure_years,
         tim_operasional: row.tim_operasional,
       },
+      docs: row.docs || [],
       pemilik: {
         id: row.user_id,
         nama: row.pemilik,
@@ -49,7 +50,12 @@ class Bisnis extends BaseModel {
     };
   }
 
-  #baseQuery() {
+  #baseQuery(role = null) {
+    const allowedDocs =
+      role === "superadmin" || role === "admin"
+        ? "('proposal_pendanaan', 'laporan_penjualan', 'legalitas_usaha')"
+        : "('proposal_pendanaan', 'laporan_penjualan')";
+
     return this.knex(this.tableName)
       .select(
         "bisnis.id",
@@ -85,6 +91,24 @@ class Bisnis extends BaseModel {
           '[]'
         ) as covers
       `),
+        this.knex.raw(`
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', dokumen_bisnis.id,
+              'jenis_dokumen', dokumen_bisnis.jenis_dokumen,
+              'nama_dokumen', dokumen_bisnis.nama_dokumen,
+              'file_url', dokumen_bisnis.file_url,
+              'created_at', dokumen_bisnis.created_at
+            ) ORDER BY dokumen_bisnis.created_at ASC
+          ) FILTER (
+            WHERE dokumen_bisnis.id IS NOT NULL
+            AND dokumen_bisnis.jenis_dokumen IN ${allowedDocs}
+          ),
+          '[]'
+        ) as docs
+      `),
+
         "kelas.nama_kelas as kelas",
         "users.nama as pemilik",
         "users.email as email_pemilik",
@@ -94,6 +118,7 @@ class Bisnis extends BaseModel {
       .leftJoin("bisnis_profiles", "bisnis.id", "bisnis_profiles.bisnis_id")
       .leftJoin("users", "bisnis.user_id", "users.id")
       .leftJoin("bisnis_cover", "bisnis.id", "bisnis_cover.bisnis_id")
+      .leftJoin("dokumen_bisnis", "bisnis.id", "dokumen_bisnis.bisnis_id")
       .groupBy(
         "bisnis.id",
         "bisnis_profiles.class",
@@ -144,7 +169,7 @@ class Bisnis extends BaseModel {
 
   async getAllBisnis(page = 1, limit = 10, search = "") {
     try {
-      const results = await this.#baseQuery()
+      const results = await this.#baseQuery("admin")
         .where("bisnis.nama_bisnis", "ilike", `%${search}%`)
         .orderBy("bisnis.created_at", "desc")
         .limit(limit)
@@ -157,7 +182,7 @@ class Bisnis extends BaseModel {
 
   async getAllBisnisForInvestor(page = 1, limit = 10, search = "") {
     try {
-      const results = await this.#baseQuery()
+      const results = await this.#baseQuery("investor")
         .where("bisnis.nama_bisnis", "ilike", `%${search}%`)
         .where("bisnis.is_verified", true)
         .orderBy("bisnis.created_at", "desc")
@@ -169,9 +194,21 @@ class Bisnis extends BaseModel {
     }
   }
 
-  async getBisnisById(id) {
+  async getBisnisById(id, role = null) {
     try {
-      const row = await this.#baseQuery().where("bisnis.id", id).first();
+      const row = await this.#baseQuery(role).where("bisnis.id", id).first();
+      return this.#formatResponse(row);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getBisnisByIdForInvestor(id) {
+    try {
+      const row = await this.#baseQuery("investor")
+        .where("bisnis.id", id)
+        .where("bisnis.is_verified", true)
+        .first();
       return this.#formatResponse(row);
     } catch (error) {
       throw error;
@@ -180,7 +217,7 @@ class Bisnis extends BaseModel {
 
   async getBisnisByUserId(user_id) {
     try {
-      const row = await this.#baseQuery()
+      const row = await this.#baseQuery("admin")
         .where("bisnis.user_id", user_id)
         .first();
       return this.#formatResponse(row);

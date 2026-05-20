@@ -20,17 +20,23 @@ class BisnisRoutes {
       this.bisnisProfileController.getAllProfilesForML(req, res);
     });
 
-
     this.router.use(Auth.verifyAnyToken);
 
     this.router.get(
       "/",
       Role.authorize("umkm", "investor", "superadmin", "admin"),
       (req, res) => {
-        this.bisnisController.getBisnis(req, res);
+        this.bisnisController.getBisnisForInvestor(req, res);
       },
     );
 
+    this.router.get(
+      "/all",
+      Role.authorize("superadmin", "admin"),
+      (req, res) => {
+        this.bisnisController.getBisnis(req, res);
+      },
+    );
     // pengajuan routes
     this.router.use("/proposals", this.pengajuanRoutes.routes());
 
@@ -78,7 +84,6 @@ class BisnisRoutes {
       },
     );
 
-    
     return this.router;
   }
 }

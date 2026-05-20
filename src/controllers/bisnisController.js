@@ -9,7 +9,7 @@ class BisnisController {
   async getBisnis(req, res) {
     try {
       const { page, limit, search } = req.query;
-      const bisnisList = await Bisnis.getAllBisnisForInvestor(page, limit, search);
+      const bisnisList = await Bisnis.getAllBisnis(page, limit, search);
       return responseHelper.withPagination(
         res,
         "Bisnis data fetched successfully",
@@ -21,6 +21,32 @@ class BisnisController {
       return responseHelper.serverError(
         res,
         "An error occurred while fetching bisnis data",
+      );
+    }
+  }
+
+  async getBisnisForInvestor(req, res) {
+    try {
+      const { page, limit, search } = req.query;
+      const bisnisList = await Bisnis.getAllBisnisForInvestor(
+        page,
+        limit,
+        search,
+      );
+      return responseHelper.withPagination(
+        res,
+        "Bisnis data fetched successfully",
+        bisnisList,
+        { page, limit, totalItems: bisnisList.length, search },
+      );
+    } catch (error) {
+      logger.error(
+        "An error occurred while fetching bisnis data for investor",
+        { error },
+      );
+      return responseHelper.serverError(
+        res,
+        "An error occurred while fetching bisnis data for investor",
       );
     }
   }
@@ -82,7 +108,8 @@ class BisnisController {
   async getBisnisById(req, res) {
     try {
       const { id } = req.params;
-      const bisnisList = await Bisnis.getBisnisById(id);
+      const role = req.user?.role_name !== undefined ? req.user.nama_role : req.admin.level;
+      const bisnisList = await Bisnis.getBisnisById(id, role);
       if (!bisnisList) {
         return responseHelper.error(res, "Bisnis not found", 404);
       }
@@ -181,13 +208,10 @@ class BisnisController {
         return responseHelper.error(res, "Bisnis tidak ditemukan", 404);
       }
 
-      
       if (bisnis.cover_image_url) {
         const parts = bisnis.cover_image_url.split("/");
         const filename = parts[parts.length - 1].split(".")[0];
-        await cloudinary.uploader.destroy(
-          `fundraise/cover-bisnis/${filename}`,
-        );
+        await cloudinary.uploader.destroy(`fundraise/cover-bisnis/${filename}`);
       }
 
       const result = await uploadToCloudinary(
