@@ -471,8 +471,8 @@ class NegotiationController {
       );
 
       return responseHelper.success(res, "Negotiation accepted successfully", {
-        negosiasi: await Negosiasis.getNegosiasiById(negosiasi_id),
-        invoice: await invoices.getInvoiceById(invoice.id),
+        negosiasi: negosiasi,
+        invoice: invoice,
       });
     } catch (error) {
       await trx.rollback();
