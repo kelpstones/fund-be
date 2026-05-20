@@ -2,6 +2,7 @@ require("dotenv").config({
   path: process.env.NODE_ENV === "test" ? ".env.test" : ".env",
 });
 const express = require("express");
+const helmet = require("helmet");
 const cors = require("cors");
 const { Key, RateLimiter } = require("./middlewares");
 const morgan = require("morgan");
@@ -37,6 +38,13 @@ app.use(
       write: (message) => logger.http(message.trim()),
     },
     skip: () => process.env.NODE_ENV === "test",
+  }),
+);
+
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: false,
   }),
 );
 
