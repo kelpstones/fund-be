@@ -9,6 +9,15 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      DB_HOST: localhost
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: fund_test
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      API_KEY: ${{ secrets.API_KEY }}
+
     services:
       postgres:
         image: postgres:15
@@ -17,20 +26,27 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: fund_test
         ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
+
       - run: npm ci
-      - run: npm run test:unit
-      - run: npm run test:integration
-        env:
-          NODE_ENV: test
-          DB_HOST: localhost
-          DB_USER: postgres
-          DB_PASSWORD: postgres
-          DB_NAME: fund_test
-          API_KEY: ${{ secrets.API_KEY }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Run DB migrations
+        run: npx knex migrate:latest
+
+      - name: Run integration tests
+        run: npm run test:integration
