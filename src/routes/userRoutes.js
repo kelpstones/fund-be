@@ -62,12 +62,6 @@ class UserRoutes {
     this.router.get("/me", Role.authorize("umkm", "investor"), (req, res) => {
       this.authController.authMe(req, res);
     });
-    this.router.post("/me", Role.authorize("umkm", "investor"), (req, res) => {
-      this.authController.authMe(req, res);
-    });
-    this.router.get("/auth-me", Role.authorize("umkm", "investor"), (req, res) => {
-      this.authController.authMe(req, res);
-    });
 
     this.router.get(
       "/profile",

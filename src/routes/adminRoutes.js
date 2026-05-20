@@ -24,7 +24,7 @@ class AdminRoutes {
     });
 
     this.router.use(Auth.verifyAnyToken);
-    this.router.post(
+    this.router.get(
       "/me",
       Role.authorize("admin", "superadmin"),
       (req, res) => {
