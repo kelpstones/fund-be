@@ -50,7 +50,7 @@ class NegotiationController {
       const { id: investor_id } = req.user;
 
       // Cek pengajuan
-      const pengajuan = await pengajuans.getPengajuanById(pengajuans_id);
+      const pengajuan = await pengajuans.getPengajuanById(pengajuans_id, trx);
       if (!pengajuan || pengajuan.status !== "published") {
         await trx.rollback();
         return responseHelper.error(
@@ -62,7 +62,7 @@ class NegotiationController {
 
       // Cek negosiasi aktif (double check)
       const activeNegosiasi =
-        await Negosiasis.getNegosiasiByPengajuanId(pengajuans_id);
+        await Negosiasis.getNegosiasiByPengajuanId(pengajuans_id, trx);
       if (
         activeNegosiasi.length !== 0 &&
         activeNegosiasi.some((n) => n.status === "active")
@@ -409,7 +409,7 @@ class NegotiationController {
       ).catch((err) => logger.error("Failed to send invoice email", { err }));
 
       const umkmUserDeal = negosiasi.bisnis_owner;
-      
+
       const dealPayload = {
         bisnis_nama: negosiasi.bisnis?.nama,
         penawaran_nominal: lastLog.penawaran_nominal,

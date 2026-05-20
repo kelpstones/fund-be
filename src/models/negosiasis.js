@@ -150,9 +150,9 @@ class Negosiasis extends BaseModel {
     }
   }
 
-  async getNegosiasiByPengajuanId(pengajuans_id) {
+  async getNegosiasiByPengajuanId(pengajuans_id, trx = this.knex) {
     try {
-      const results = await this.#baseQuery().where(
+      const results = await this.#baseQuery(trx).where(
         "negosiasis.pengajuans_id",
         pengajuans_id,
       );
