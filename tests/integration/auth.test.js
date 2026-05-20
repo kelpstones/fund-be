@@ -56,17 +56,17 @@ describe("POST /api/v1/user/login", () => {
   });
 });
 
-describe("GET /api/v1/user/auth-me", () => {
+describe("GET /api/v1/user/me", () => {
   it("401 tanpa Authorization header", async () => {
     const res = await request(app)
-      .get("/api/v1/user/auth-me")
+      .get("/api/v1/user/me")
       .set("x-api-key", API_KEY);
     expect(res.status).toBe(401);
   });
 
   it("401 jika token tidak valid", async () => {
     const res = await request(app)
-      .get("/api/v1/user/auth-me")
+      .get("/api/v1/user/me")
       .set("x-api-key", API_KEY)
       .set("Authorization", "Bearer token.palsu.ini");
     expect(res.status).toBe(401);
