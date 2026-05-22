@@ -2,7 +2,12 @@ const express = require("express");
 const PengajuanController = require("../controllers/pengajuanController");
 const NegotiationRoutes = require("./negotiationRoutes");
 const PenjualanRoutes = require("./penjualanRoutes");
-const { Auth, Role, BisnisProfile, checkNegosiasiAktif } = require("../middlewares");
+const {
+  Auth,
+  Role,
+  BisnisProfile,
+  checkNegosiasiAktif,
+} = require("../middlewares");
 class PengajuanRoutes {
   constructor() {
     this.router = express.Router({ mergeParams: true });
@@ -43,6 +48,14 @@ class PengajuanRoutes {
       Role.authorize("umkm", "investor", "superadmin", "admin"),
       (req, res) => {
         this.pengajuanController.getPengajuanByBisnisId(req, res);
+      },
+    );
+
+    this.router.get(
+      "/:id",
+      Role.authorize("umkm", "investor", "superadmin", "admin"),
+      (req, res) => {
+        this.pengajuanController.getPengajuanById(req, res);
       },
     );
 
