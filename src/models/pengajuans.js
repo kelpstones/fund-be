@@ -12,7 +12,7 @@ class Pengajuan extends BaseModel {
       target_pendanaan: row.target_pendanaan,
       total_pendanaan: row.total_pendanaan,
       per_anual_return: row.per_anual_return,
-      deskripsi_peluang: row.deskripsi_peluang,
+      deskripsi_peluang: row.deskripsi_peluang || row.deskrispsi_peluang,
       rencana_penggunaan_dana: row.rencana_penggunaan_dana,
       status: row.status,
       bisnis_id: row.bisnis_id,
@@ -51,7 +51,7 @@ class Pengajuan extends BaseModel {
         "pengajuans.status",
         "pengajuans.total_pendanaan",
         "pengajuans.per_anual_return",
-        "pengajuans.deskripsi_peluang",
+        "pengajuans.deskrispsi_peluang as deskripsi_peluang",
         "pengajuans.rencana_penggunaan_dana",
         "approvals.id as approval_id",
         "approvals.approver_id",
@@ -91,7 +91,7 @@ class Pengajuan extends BaseModel {
           status,
           total_pendanaan,
           per_anual_return,
-          deskripsi_peluang,
+          deskrispsi_peluang: deskripsi_peluang,
           rencana_penggunaan_dana: rencana_penggunaan_dana
             ? JSON.stringify(rencana_penggunaan_dana)
             : null,
@@ -162,7 +162,7 @@ class Pengajuan extends BaseModel {
           total_pendanaan,
           per_anual_return,
           status,
-          deskripsi_peluang,
+          deskrispsi_peluang: deskripsi_peluang,
           rencana_penggunaan_dana: rencana_penggunaan_dana
             ? JSON.stringify(rencana_penggunaan_dana)
             : null,

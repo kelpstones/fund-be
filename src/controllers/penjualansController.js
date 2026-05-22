@@ -62,16 +62,39 @@ class PenjualansController {
         investor_id: investasi.investor.id,
         nominal_profit: (laba_bersih * investasi.return_investasi) / 100,
         periode: periode,
-        status: "pending",
+        status: "distributed",
       }));
-      // console.log("laba_bersih:", result.laba_bersih);
-      // console.log("Distribution Promises:", distributionPromises);
+      
       let distribusiList = [];
       if (distributionPromises.length > 0) {
         distribusiList = await distribusi_profits.bulkCreate(
           distributionPromises,
           trx,
         );
+      }
+
+      for (const inv of investasiList) {
+        const profitNominal = (laba_bersih * inv.return_investasi) / 100;
+        
+        // Fetch current investor's wallet balance
+        const user = await trx("users").where({ id: inv.investor.id }).select("saldo").first();
+        const currentSaldo = parseFloat(user.saldo || 0);
+        const newSaldo = currentSaldo + profitNominal;
+        
+        // Update user saldo in DB
+        await trx("users").where({ id: inv.investor.id }).update({ saldo: newSaldo });
+        
+        // Record log in transaksis table
+        await trx("transaksis").insert({
+          user_id: inv.investor.id,
+          external_id: `profit-${result.id}-${inv.investor.id}`,
+          tipe: "bagi_hasil",
+          jumlah: profitNominal,
+          status: "completed",
+          deskripsi: `Bagi hasil proyek ${pengajuan.bisnis_nama} periode ${periode}`,
+          created_at: trx.fn.now(),
+          updated_at: trx.fn.now()
+        });
       }
 
       await trx.commit();

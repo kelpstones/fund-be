@@ -11,6 +11,7 @@ const DistribusiProfitRoutes = require("./distribusiProfitRoutes");
 const DashboardRoutes = require("./dashboardRoutes");
 const BisnisCoverRoutes = require("./bisnisCoverRoutes");
 const BisnisDokumenRoutes = require("./bisnisDokumenRoutes");
+const WalletRoutes = require("./walletRoutes");
 class Routes {
   constructor() {
     this.router = router;
@@ -24,6 +25,7 @@ class Routes {
     this.dashboardRoutes = new DashboardRoutes();
     this.bisnisCoverRoutes = new BisnisCoverRoutes();
     this.bisnisDokumenRoutes = new BisnisDokumenRoutes();
+    this.walletRoutes = new WalletRoutes();
   }
 
   routes() {
@@ -40,6 +42,7 @@ class Routes {
     this.router.use("/notifications", this.notificationRoutes.routes());
     this.router.use("/invoices", this.invoicesRoutes.routes());
     this.router.use("/admin", this.adminRoutes.routes());
+    this.router.use("/wallet", this.walletRoutes.routes());
 
     this.router.get("/health", (req, res) => {
       response.success(res, "API is healthy");

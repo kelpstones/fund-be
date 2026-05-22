@@ -231,6 +231,7 @@ class AuthController {
         nama: user.nama,
         email: user.email,
         is_onboarded: user.is_onboarded,
+        saldo: user.saldo,
         role: { id: user.role.id, nama_role: user.role.nama_role },
         created_at: user.created_at,
         updated_at: user.updated_at,

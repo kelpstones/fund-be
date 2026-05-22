@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Top Up Berhasil</title>
+  </head>
+  <body
+    style="margin: 0; padding: 0; background: #f4f4f4; font-family: sans-serif"
+  >
+    <table
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      style="background: #f4f4f4; padding: 40px 0"
+    >
+      <tr>
+        <td align="center">
+          <table
+            width="500"
+            cellpadding="0"
+            cellspacing="0"
+            style="
+              background: #ffffff;
+              border-radius: 8px;
+              overflow: hidden;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            "
+          >
+            <!-- Header -->
+            <tr>
+              <td style="background: #01696f; padding: 32px 40px">
+                <h1 style="margin: 0; color: #ffffff; font-size: 22px">
+                  {{companyName}}
+                </h1>
+                <p style="margin: 4px 0 0; color: rgba(255, 255, 255, 0.65); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase;">
+                  Top Up Sukses
+                </p>
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+              <td style="padding: 40px">
+                <!-- Success Icon & Message -->
+                <div style="text-align: center; margin-bottom: 24px;">
+                  <span style="display: inline-block; background: #e6f4ea; color: #137333; padding: 12px 20px; border-radius: 999px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">
+                    Berhasil
+                  </span>
+                </div>
+
+                <h2 style="margin: 0 0 12px; color: #1a1a1a; font-size: 18px; text-align: center;">
+                  Top Up Saldo Berhasil!
+                </h2>
+                <p
+                  style="
+                    margin: 0 0 24px;
+                    color: #555;
+                    font-size: 14px;
+                    line-height: 1.6;
+                    text-align: center;
+                  "
+                >
+                  Halo <strong>{{nama}}</strong>, pembayaran top up Anda telah diterima. Saldo Anda telah ditambahkan ke dompet virtual.
+                </p>
+
+                <!-- Details Card -->
+                <table
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="
+                    background: #f7f6f2;
+                    border-radius: 8px;
+                    padding: 20px;
+                    margin-bottom: 24px;
+                    border: 1px solid #e8e6e0;
+                  "
+                >
+                  <tr>
+                    <td style="padding-bottom: 10px; width: 50%;">
+                      <span style="font-size: 11px; color: #aaa; text-transform: uppercase; font-weight: 600;">ID Transaksi</span><br/>
+                      <strong style="font-size: 13px; color: #1a1a1a; font-family: monospace;">{{externalId}}</strong>
+                    </td>
+                    <td style="padding-bottom: 10px; width: 50%;">
+                      <span style="font-size: 11px; color: #aaa; text-transform: uppercase; font-weight: 600;">Tanggal Proses</span><br/>
+                      <span style="font-size: 13px; color: #1a1a1a;">{{tanggal}}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="border-top: 1px solid #e8e6e0; padding-top: 10px;">
+                      <span style="font-size: 11px; color: #aaa; text-transform: uppercase; font-weight: 600;">Nominal Masuk</span><br/>
+                      <strong style="font-size: 16px; color: #137333;">+{{nominal}}</strong>
+                    </td>
+                    <td style="border-top: 1px solid #e8e6e0; padding-top: 10px;">
+                      <span style="font-size: 11px; color: #aaa; text-transform: uppercase; font-weight: 600;">Saldo Dompet Saat Ini</span><br/>
+                      <strong style="font-size: 16px; color: #01696f;">{{saldoSaatIni}}</strong>
+                    </td>
+                  </tr>
+                </table>
+
+                <p
+                  style="
+                    margin: 0;
+                    color: #555;
+                    font-size: 14px;
+                    line-height: 1.6;
+                    text-align: center;
+                  "
+                >
+                  Sekarang Anda dapat menggunakan saldo Anda untuk melakukan investasi ke UMKM pilihan Anda.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="padding: 24px 40px; border-top: 1px solid #eee; background: #fafafa;">
+                <p
+                  style="
+                    margin: 0;
+                    color: #bbb;
+                    font-size: 11px;
+                    line-height: 1.6;
+                    text-align: center;
+                  "
+                >
+                  Email ini diterbitkan otomatis oleh sistem {{companyName}}.<br />
+                  Hubungi <a href="mailto:{{emailSupport}}" style="color: #01696f; text-decoration: none;">{{emailSupport}}</a> jika Anda memiliki pertanyaan.<br/>
+                  <small>{{alamatPerusahaan}}</small>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
