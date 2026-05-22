@@ -1,9 +1,15 @@
+if (process.env.NODE_ENV === "test") {
+  if (!process.env.JWT_SECRET) process.env.JWT_SECRET = "test-jwt-secret";
+  if (!process.env.JWT_SECRET_ADMIN) process.env.JWT_SECRET_ADMIN = "test-jwt-secret-admin";
+  if (!process.env.API_KEY) process.env.API_KEY = "test-api-key";
+}
+
 const request = require("supertest");
 const jwt = require("jsonwebtoken");
 const app = require("../../src/app");
 const knex = require("../../src/config/db");
 
-const API_KEY = process.env.API_KEY || "test-api-key";
+const API_KEY = process.env.API_KEY;
 const CALLBACK_TOKEN = "xendit-test-callback-token";
 
 jest.mock("../../src/utils/xendit", () => {

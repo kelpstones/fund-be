@@ -1,6 +1,12 @@
 require("dotenv").config({
   path: process.env.NODE_ENV === "test" ? ".env.test" : ".env",
 });
+
+if (process.env.NODE_ENV === "test") {
+  if (!process.env.JWT_SECRET) process.env.JWT_SECRET = "test-jwt-secret";
+  if (!process.env.JWT_SECRET_ADMIN) process.env.JWT_SECRET_ADMIN = "test-jwt-secret-admin";
+  if (!process.env.API_KEY) process.env.API_KEY = "test-api-key";
+}
 const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
