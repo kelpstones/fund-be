@@ -18,6 +18,12 @@ class Pengajuan extends BaseModel {
       bisnis_id: row.bisnis_id,
       bisnis_nama: row.bisnis_nama,
       bisnis_user_id: row.bisnis_user_id,
+      locked_by: row.locked_by_investor_id
+        ? {
+            id: row.locked_by_investor_id,
+            name: row.locked_by_investor_nama,
+          }
+        : null,
       approval: row.approval_id
         ? {
             id: row.approval_id,
@@ -55,10 +61,17 @@ class Pengajuan extends BaseModel {
         "admins.email as approver_email",
         "bisnis.nama_bisnis as bisnis_nama",
         "bisnis.user_id as bisnis_user_id",
+        "pengajuans.locked_by_investor_id",
+        "investors.nama as locked_by_investor_nama",
       )
       .leftJoin("approvals", "pengajuans.id", "approvals.pengajuans_id")
       .leftJoin("admins", "approvals.approver_id", "admins.id")
-      .leftJoin("bisnis", "pengajuans.bisnis_id", "bisnis.id");
+      .leftJoin("bisnis", "pengajuans.bisnis_id", "bisnis.id")
+      .leftJoin(
+        "users as investors",
+        "pengajuans.locked_by_investor_id",
+        "investors.id",
+      );
   }
 
   async createPengajuan(
@@ -151,7 +164,7 @@ class Pengajuan extends BaseModel {
           status,
           deskripsi_peluang,
           rencana_penggunaan_dana: rencana_penggunaan_dana
-            ? JSON.stringify(rencana_penggunaan_dana) 
+            ? JSON.stringify(rencana_penggunaan_dana)
             : null,
         });
       return await this.getPengajuanById(id, trx);
