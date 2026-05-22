@@ -3,6 +3,7 @@ const Pengajuan = require("../models/pengajuans");
 const { PengajuanValidator } = require("../validation");
 const bisnis = require("../models/bisnis");
 const Approvals = require("../models/approvals");
+const dokumen_bisnis = require("../models/dokumen_bisnis");
 const notificationHelper = require("../utils/index").NotificationHelper;
 const logger = require("../utils/index").logger;
 class PengajuanController {
@@ -137,6 +138,32 @@ class PengajuanController {
         res,
         "Pengajuan data fetched successfully",
         pengajuanList,
+      );
+    } catch (error) {
+      logger.error("An error occurred while fetching pengajuan data", {
+        error,
+      });
+      return responseHelper.serverError(
+        res,
+        "An error occurred while fetching pengajuan data",
+      );
+    }
+  }
+
+  async getPengajuanById(req, res) {
+    try {
+      const { id } = req.params;
+      const pengajuan = await Pengajuan.getPengajuanById(id);
+      if (!pengajuan) {
+        return responseHelper.error(res, "Pengajuan not found", 404);
+      }
+
+      const dokumen = await dokumen_bisnis.getByBisnisIdAndJenis(pengajuan.bisnis_id, "proposal_pendanaan");
+      
+      return responseHelper.success(
+        res,
+        "Pengajuan data fetched successfully",
+        { ...pengajuan, dokumen },
       );
     } catch (error) {
       logger.error("An error occurred while fetching pengajuan data", {

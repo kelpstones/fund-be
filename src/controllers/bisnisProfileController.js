@@ -45,7 +45,7 @@ class BisnisProfileController {
         req.user.role_name === "umkm" &&
         bisnis.pemilik.id !== req.user.id
       ) {
-        return responseHelper.forbidden(res, "Unauthorized");
+        return responseHelper.forbidden(res, "You don't have permission to update this bisnis profile");
       }
 
       const profileData = {
