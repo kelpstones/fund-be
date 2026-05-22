@@ -61,7 +61,32 @@ describe("Wallet & Xendit Callback Integration Tests", () => {
       "TRUNCATE TABLE users, bisnis, pengajuans, invoices, transaksis, investasis RESTART IDENTITY CASCADE"
     );
 
-    // Get role IDs
+   
+    const existingRoles = await knex("roles").count("id as count").first();
+    if (parseInt(existingRoles.count) === 0) {
+      await knex("roles").insert([
+        { nama: "umkm" },
+        { nama: "investor" }
+      ]);
+    }
+
+  
+    const existingKelas = await knex("kelas").count("id as count").first();
+    if (parseInt(existingKelas.count) === 0) {
+      await knex("kelas").insert([
+        { nama_kelas: "mikro", deskripsi: "Penjualan tahunan hingga Rp2 miliar" },
+        {
+          nama_kelas: "kecil",
+          deskripsi: "Penjualan tahunan Rp2 miliar - Rp15 miliar",
+        },
+        {
+          nama_kelas: "menengah",
+          deskripsi: "Penjualan tahunan Rp15 miliar - Rp50 miliar",
+        },
+      ]);
+    }
+
+    
     const investorRole = await knex("roles").where({ nama: "investor" }).first();
     const umkmRole = await knex("roles").where({ nama: "umkm" }).first();
 
@@ -172,7 +197,6 @@ describe("Wallet & Xendit Callback Integration Tests", () => {
   });
 
   afterAll(async () => {
-    // Clean up connections
     await knex.destroy();
   });
 
