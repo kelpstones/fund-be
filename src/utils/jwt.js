@@ -16,6 +16,7 @@ exports.generateToken = async (user) => {
     const payload = {
       id: user.id,
       email: user.email,
+      nama: user.nama,
       role_name: user.role.nama_role,
       bisnis_id: bisnis_id,
       jti: randomUUID(),
@@ -43,6 +44,7 @@ exports.refreshToken = async (data) => {
       {
         id: data.id,
         email: data.email,
+        nama: data.nama,
         role_name: data.role.nama_role,
         bisnis_id: bisnis_id,
         jti: randomUUID(),
@@ -87,6 +89,7 @@ exports.generateAdminToken = (admin) => {
     const payload = {
       id: admin.id,
       email: admin.email,
+      nama: admin.nama,
       level: admin.level, // Assuming 'level' represents the admin's role
     };
     return jwt.sign(payload, process.env.JWT_SECRET_ADMIN, {
@@ -104,6 +107,7 @@ exports.refreshAdminToken = async (data) => {
       {
         id: data.id,
         email: data.email,
+        nama: data.nama,
         level: data.level,
       },
       process.env.JWT_SECRET_ADMIN,

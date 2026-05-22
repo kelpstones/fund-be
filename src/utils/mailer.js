@@ -245,6 +245,145 @@ const sendNegotiationRejectedEmail = async (
   }
 };
 
+const sendTopUpPendingEmail = async (to, nama, { nominal, paymentUrl, externalId, tanggal }) => {
+  try {
+    const html = Loader.loadTemplate("topUpPending", {
+      nama,
+      nominal: formatRupiah(parseFloat(nominal)),
+      paymentUrl,
+      externalId,
+      tanggal: formatDate(tanggal),
+      companyName: process.env.SMTP_FROM_NAME || "Kelpstones",
+      emailSupport: process.env.SUPPORT_EMAIL || "support@kelpstones.id",
+      alamatPerusahaan: process.env.COMPANY_ADDRESS || "Jakarta, Indonesia",
+    });
+
+    const info = await transporter.sendMail({
+      from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_USER}>`,
+      to,
+      subject: `[PENDING] Tagihan Top Up Saldo — ${externalId}`,
+      html,
+    });
+
+    logger.info(`Top up pending email sent: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    logger.error("Error sending top up pending email:", { error });
+    throw error;
+  }
+};
+
+const sendTopUpSuccessEmail = async (to, nama, { nominal, saldoSaatIni, externalId, tanggal }) => {
+  try {
+    const html = Loader.loadTemplate("topUpSuccess", {
+      nama,
+      nominal: formatRupiah(parseFloat(nominal)),
+      saldoSaatIni: formatRupiah(parseFloat(saldoSaatIni)),
+      externalId,
+      tanggal: formatDate(tanggal),
+      companyName: process.env.SMTP_FROM_NAME || "Kelpstones",
+      emailSupport: process.env.SUPPORT_EMAIL || "support@kelpstones.id",
+      alamatPerusahaan: process.env.COMPANY_ADDRESS || "Jakarta, Indonesia",
+    });
+
+    const info = await transporter.sendMail({
+      from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_USER}>`,
+      to,
+      subject: `[SUKSES] Top Up Saldo Berhasil — ${externalId}`,
+      html,
+    });
+
+    logger.info(`Top up success email sent: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    logger.error("Error sending top up success email:", { error });
+    throw error;
+  }
+};
+
+const sendWithdrawalPendingEmail = async (to, nama, { nominal, externalId, tanggal }) => {
+  try {
+    const html = Loader.loadTemplate("withdrawalPending", {
+      nama,
+      nominal: formatRupiah(parseFloat(nominal)),
+      externalId,
+      tanggal: formatDate(tanggal),
+      companyName: process.env.SMTP_FROM_NAME || "Kelpstones",
+      emailSupport: process.env.SUPPORT_EMAIL || "support@kelpstones.id",
+      alamatPerusahaan: process.env.COMPANY_ADDRESS || "Jakarta, Indonesia",
+    });
+
+    const info = await transporter.sendMail({
+      from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_USER}>`,
+      to,
+      subject: `[PROSES] Permintaan Penarikan Dana — ${externalId}`,
+      html,
+    });
+
+    logger.info(`Withdrawal pending email sent: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    logger.error("Error sending withdrawal pending email:", { error });
+    throw error;
+  }
+};
+
+const sendWithdrawalSuccessEmail = async (to, nama, { nominal, externalId, tanggal }) => {
+  try {
+    const html = Loader.loadTemplate("withdrawalSuccess", {
+      nama,
+      nominal: formatRupiah(parseFloat(nominal)),
+      externalId,
+      tanggal: formatDate(tanggal),
+      companyName: process.env.SMTP_FROM_NAME || "Kelpstones",
+      emailSupport: process.env.SUPPORT_EMAIL || "support@kelpstones.id",
+      alamatPerusahaan: process.env.COMPANY_ADDRESS || "Jakarta, Indonesia",
+    });
+
+    const info = await transporter.sendMail({
+      from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_USER}>`,
+      to,
+      subject: `[SUKSES] Penarikan Dana Berhasil — ${externalId}`,
+      html,
+    });
+
+    logger.info(`Withdrawal success email sent: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    logger.error("Error sending withdrawal success email:", { error });
+    throw error;
+  }
+};
+
+const sendWithdrawalFailedEmail = async (to, nama, { nominal, saldoSaatIni, externalId, tanggal, alasan }) => {
+  try {
+    const html = Loader.loadTemplate("withdrawalFailed", {
+      nama,
+      nominal: formatRupiah(parseFloat(nominal)),
+      saldoSaatIni: formatRupiah(parseFloat(saldoSaatIni)),
+      externalId,
+      tanggal: formatDate(tanggal),
+      alasan: alasan || "Tidak ada alasan spesifik.",
+      companyName: process.env.SMTP_FROM_NAME || "Kelpstones",
+      emailSupport: process.env.SUPPORT_EMAIL || "support@kelpstones.id",
+      alamatPerusahaan: process.env.COMPANY_ADDRESS || "Jakarta, Indonesia",
+    });
+
+    const info = await transporter.sendMail({
+      from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_USER}>`,
+      to,
+      subject: `[DITOLAK] Penarikan Dana Gagal/Ditolak — ${externalId}`,
+      html,
+    });
+
+    logger.info(`Withdrawal failed email sent: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    logger.error("Error sending withdrawal failed email:", { error });
+    throw error;
+  }
+};
+
 module.exports = {
   sendVerificationEmail,
   sendPasswordResetEmail,
@@ -253,4 +392,9 @@ module.exports = {
   sendNegotiationReplyEmail,
   sendNegotiationDealEmail,
   sendNegotiationRejectedEmail,
+  sendTopUpPendingEmail,
+  sendTopUpSuccessEmail,
+  sendWithdrawalPendingEmail,
+  sendWithdrawalSuccessEmail,
+  sendWithdrawalFailedEmail,
 };

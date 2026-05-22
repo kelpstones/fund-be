@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Permintaan Penarikan Dana Diproses</title>
+  </head>
+  <body
+    style="margin: 0; padding: 0; background: #f4f4f4; font-family: sans-serif"
+  >
+    <table
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      style="background: #f4f4f4; padding: 40px 0"
+    >
+      <tr>
+        <td align="center">
+          <table
+            width="500"
+            cellpadding="0"
+            cellspacing="0"
+            style="
+              background: #ffffff;
+              border-radius: 8px;
+              overflow: hidden;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            "
+          >
+            <!-- Header -->
+            <tr>
+              <td style="background: #01696f; padding: 32px 40px">
+                <h1 style="margin: 0; color: #ffffff; font-size: 22px">
+                  {{companyName}}
+                </h1>
+                <p style="margin: 4px 0 0; color: rgba(255, 255, 255, 0.65); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase;">
+                  Pemberitahuan Penarikan Dana
+                </p>
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+              <td style="padding: 40px">
+                <h2 style="margin: 0 0 12px; color: #1a1a1a; font-size: 18px">
+                  Halo, {{nama}}!
+                </h2>
+                <p
+                  style="
+                    margin: 0 0 24px;
+                    color: #555;
+                    font-size: 14px;
+                    line-height: 1.6;
+                  "
+                >
+                  Kami telah menerima permintaan penarikan dana (Withdrawal) dari dompet virtual Anda. Saat ini, tim Admin kami sedang melakukan verifikasi dan memproses penarikan Anda.
+                </p>
+
+                <!-- Details Card -->
+                <table
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="
+                    background: #f7f6f2;
+                    border-radius: 8px;
+                    padding: 20px;
+                    margin-bottom: 24px;
+                    border: 1px solid #e8e6e0;
+                  "
+                >
+                  <tr>
+                    <td style="padding-bottom: 10px;">
+                      <span style="font-size: 11px; color: #aaa; text-transform: uppercase; font-weight: 600;">ID Transaksi</span><br/>
+                      <strong style="font-size: 14px; color: #1a1a1a; font-family: monospace;">{{externalId}}</strong>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding-bottom: 10px;">
+                      <span style="font-size: 11px; color: #aaa; text-transform: uppercase; font-weight: 600;">Nominal Penarikan</span><br/>
+                      <strong style="font-size: 16px; color: #964219;">{{nominal}}</strong>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding-bottom: 10px;">
+                      <span style="font-size: 11px; color: #aaa; text-transform: uppercase; font-weight: 600;">Tanggal Pengajuan</span><br/>
+                      <span style="font-size: 14px; color: #1a1a1a;">{{tanggal}}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span style="font-size: 11px; color: #aaa; text-transform: uppercase; font-weight: 600;">Status</span><br/>
+                      <span style="display: inline-block; background: #fef3c7; color: #92400e; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; text-transform: uppercase;">
+                        Menunggu Persetujuan Admin
+                      </span>
+                    </td>
+                  </tr>
+                </table>
+
+                <p
+                  style="
+                    margin: 0;
+                    color: #555;
+                    font-size: 14px;
+                    line-height: 1.6;
+                  "
+                >
+                  Proses verifikasi ini biasanya memakan waktu maksimal 1x24 jam hari kerja. Kami akan mengirimkan email notifikasi lain setelah permintaan Anda disetujui atau diproses.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="padding: 24px 40px; border-top: 1px solid #eee; background: #fafafa;">
+                <p
+                  style="
+                    margin: 0;
+                    color: #bbb;
+                    font-size: 11px;
+                    line-height: 1.6;
+                    text-align: center;
+                  "
+                >
+                  Email ini diterbitkan otomatis oleh sistem {{companyName}}.<br />
+                  Hubungi <a href="mailto:{{emailSupport}}" style="color: #01696f; text-decoration: none;">{{emailSupport}}</a> jika Anda butuh bantuan.<br/>
+                  <small>{{alamatPerusahaan}}</small>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
