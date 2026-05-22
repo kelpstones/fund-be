@@ -2,7 +2,7 @@ const responseHelper = require("../utils/index").ResponseHelper;
 const logger = require("../utils/index").logger;
 exports.validateApiKey = (req, res, next) => {
   const ourKey = process.env.API_KEY;
-  const apiKey = req.headers["x-api-key"];
+  const apiKey = req.headers["x-api-key"] || req.query.api_key;
 
   if (!apiKey) {
     logger.warn("Missing API Key", {

@@ -52,7 +52,7 @@ class PaymentCallbackController {
         await Transaksi.updateStatus(transaksi.id, "completed", trx);
 
         const user = await User.getUserById(transaksi.user_id, trx);
-        const updatedSaldo = parseFloat(user.saldo) + parseFloat(amount);
+        const updatedSaldo = parseFloat(user.saldo) + parseFloat(transaksi.jumlah);
         await User.updateUser(transaksi.user_id, { saldo: updatedSaldo }, trx);
 
         await trx.commit();
@@ -64,7 +64,7 @@ class PaymentCallbackController {
 
         if (user.email) {
           sendTopUpSuccessEmail(user.email, user.nama, {
-            nominal: amount,
+            nominal: transaksi.jumlah,
             saldoSaatIni: updatedSaldo,
             externalId: external_id,
             tanggal: new Date(),
