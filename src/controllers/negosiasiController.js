@@ -61,7 +61,11 @@ class NegotiationController {
         return responseHelper.error(res, error.details[0].message, 400);
       }
 
-      // Cek pengajuan
+      await trx("pengajuans")
+        .where({ id: pengajuans_id })
+        .forUpdate()
+        .first();
+
       const pengajuan = await pengajuans.getPengajuanById(pengajuans_id, trx);
       if (!pengajuan || pengajuan.status !== "published") {
         await trx.rollback();
@@ -72,7 +76,6 @@ class NegotiationController {
         );
       }
 
-      // Cek negosiasi aktif (double check)
       const activeNegosiasi = await Negosiasis.getNegosiasiByPengajuanId(
         pengajuans_id,
         trx,
@@ -233,6 +236,11 @@ class NegotiationController {
       const { penawaran_return, penawaran_nominal, catatan } = req.body;
       const { id: user_id, role_name } = req.user;
 
+      await trx("negosiasis")
+        .where({ id: negosiasi_id })
+        .forUpdate()
+        .first();
+
       const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id, trx);
       if (!negosiasi || negosiasi.status !== "active") {
         await trx.rollback();
@@ -352,6 +360,11 @@ class NegotiationController {
       const { catatan } = req.body;
       const { id: user_id, role_name } = req.user;
 
+      await trx("negosiasis")
+        .where({ id: negosiasi_id })
+        .forUpdate()
+        .first();
+
       const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id, trx);
       if (!negosiasi || negosiasi.status !== "active") {
         await trx.rollback();
@@ -361,6 +374,11 @@ class NegotiationController {
           404,
         );
       }
+
+      await trx("pengajuans")
+        .where({ id: negosiasi.pengajuan.id })
+        .forUpdate()
+        .first();
 
       const isInvolved =
         negosiasi.investor.id === user_id ||
@@ -492,6 +510,11 @@ class NegotiationController {
       const { catatan } = req.body;
       const { id: user_id, role_name } = req.user;
 
+      await trx("negosiasis")
+        .where({ id: negosiasi_id })
+        .forUpdate()
+        .first();
+
       const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id, trx);
       if (!negosiasi || negosiasi.status !== "active") {
         await trx.rollback();
@@ -501,6 +524,11 @@ class NegotiationController {
           404,
         );
       }
+
+      await trx("pengajuans")
+        .where({ id: negosiasi.pengajuan.id })
+        .forUpdate()
+        .first();
 
       const isInvolved =
         negosiasi.investor.id === user_id ||

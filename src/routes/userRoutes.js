@@ -6,6 +6,7 @@ const { Auth, Role, RateLimiter } = require("../middlewares");
 const KelasRoutes = require("./kelasRoutes");
 const UserController = require("../controllers/userController");
 const InvestorRoutes = require("./investorRoutes");
+const UserBankAccountController = require("../controllers/userBankAccountController");
 class UserRoutes {
   constructor() {
     this.router = router;
@@ -14,6 +15,7 @@ class UserRoutes {
     this.kelasRoutes = new KelasRoutes();
     this.userController = new UserController();
     this.investorRoutes = new InvestorRoutes();
+    this.userBankAccountController = new UserBankAccountController();
   }
   routes() {
     this.router.post("/register", RateLimiter.authRateLimiter, (req, res) => {
@@ -84,6 +86,38 @@ class UserRoutes {
       Role.authorize("umkm", "investor"),
       (req, res) => {
         this.userController.updateUserProfile(req, res);
+      },
+    );
+
+    this.router.post(
+      "/profile/bank-accounts",
+      Role.authorize("investor"),
+      (req, res) => {
+        this.userBankAccountController.addBankAccount(req, res);
+      },
+    );
+
+    this.router.get(
+      "/profile/bank-accounts",
+      Role.authorize("investor"),
+      (req, res) => {
+        this.userBankAccountController.getBankAccounts(req, res);
+      },
+    );
+
+    this.router.delete(
+      "/profile/bank-accounts/:id",
+      Role.authorize("investor"),
+      (req, res) => {
+        this.userBankAccountController.deleteBankAccount(req, res);
+      },
+    );
+
+    this.router.put(
+      "/profile/bank-accounts/:id/primary",
+      Role.authorize("investor"),
+      (req, res) => {
+        this.userBankAccountController.setPrimaryBankAccount(req, res);
       },
     );
     this.router.get(

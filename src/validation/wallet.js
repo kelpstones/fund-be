@@ -20,6 +20,9 @@ exports.withdrawValidation = (data) => {
       "number.min": "Minimal penarikan dana adalah Rp 50.000",
       "any.required": "Jumlah wajib diisi",
     }),
+    user_bank_account_id: Joi.number().integer().positive().optional().messages({
+      "number.base": "ID rekening bank harus berupa angka",
+    }),
   });
   return schema.validate(data);
 };

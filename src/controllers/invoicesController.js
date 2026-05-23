@@ -2,6 +2,7 @@ const knex = require("../config/db");
 const investasi = require("../models/investasi");
 const Invoice = require("../models/invoices");
 const pengajuans = require("../models/pengajuans");
+const Transaksi = require("../models/transaksis");
 const { ResponseHelper } = require("../utils/index");
 const { invoiceValidation } = require("../validation/invoices");
 const logger = require("../utils/index").logger;
@@ -107,6 +108,11 @@ class InvoicesController {
     const trx = await knex.transaction();
     try {
       const { id: kode_pembayaran } = req.params;
+      await trx("invoices")
+        .where({ kode_pembayaran })
+        .forUpdate()
+        .first();
+
       const invoice = await Invoice.getInvoiceByKodePembayaran(
         kode_pembayaran,
         trx,
@@ -124,7 +130,6 @@ class InvoicesController {
         );
       }
 
-      // await new Promise((resolve) => setTimeout(resolve, 2000));
       console.log("Processing payment for invoice:", invoice);
       const updatedInvoice = await Invoice.updateStatus(
         invoice.id,
@@ -141,7 +146,11 @@ class InvoicesController {
         },
         trx,
       );
-      // console.log("Updated Invoice:", updatedInvoice);
+
+      await trx("pengajuans")
+        .where({ id: invoice.detail_pengajuan.id })
+        .forUpdate()
+        .first();
 
       const pengajuan = await pengajuans.getPengajuanById(
         invoice.detail_pengajuan.id,
@@ -162,8 +171,24 @@ class InvoicesController {
         totalDanaBaru,
         pengajuan.per_anual_return,
         statusBaru,
+        pengajuan.deskripsi_peluang,
+        pengajuan.rencana_penggunaan_dana,
         trx,
       );
+
+      const external_id = `invest-${invoice.kode_pembayaran}`;
+      await Transaksi.createTransaksi(
+        {
+          user_id: invoice.investor.id,
+          external_id,
+          tipe: "investasi",
+          jumlah: invoice.total_nominal,
+          status: "completed",
+          deskripsi: `Manual Payment Investasi untuk bisnis: ${invoice.detail_pengajuan.nama_bisnis}`,
+        },
+        trx,
+      );
+
       await trx.commit();
 
       const data = {
