@@ -1,59 +1,70 @@
 const responseHelper = require("../utils/index").ResponseHelper;
 const Bisnis = require("../models/bisnis");
 const Pengajuan = require("../models/pengajuans");
-const Investasi = require("../models/investasi");
 const DistribusiProfit = require("../models/distribusi_profits");
-const Users = require("../models/users");
 const Penjualan = require("../models/penjualans");
 const logger = require("../utils/index").logger;
+const knex = require("../config/db");
 
 class DashboardController {
   async getAdminDashboard(req, res) {
     try {
       const [
-        bisnisList,
-        userList,
-        pengajuanList,
-        investasiList,
-        distribusiList,
+        bisnisCountResult,
+        usersCountResult,
+        pengajuanCountResult,
+        pengajuanStatusResult,
+        investasiSumResult,
+        profitStatusResult,
+        recentPengajuan,
       ] = await Promise.all([
-        Bisnis.getAllBisnis(1, 9999),
-        Users.getAllUsers(1, 9999),
-        Pengajuan.getAllPengajuans(1, 9999),
-        Investasi.getAllInvestasi(1, 9999),
-        DistribusiProfit.getAll(1, 9999),
+        knex("bisnis").count("id as total").first(),
+        knex("users").count("id as total").first(),
+        knex("pengajuans").count("id as total").first(),
+        knex("pengajuans")
+          .select("status")
+          .count("id as total")
+          .groupBy("status"),
+        knex("investasis").sum("nominal_investasi as total").first(),
+        knex("distribusi_profits")
+          .select("status")
+          .count("id as jumlah")
+          .sum("nominal_profit as total_nominal")
+          .groupBy("status"),
+        Pengajuan.getAllPengajuans(1, 5),
       ]);
-      const pengajuanByStatus = pengajuanList.reduce((acc, p) => {
-        acc[p.status] = (acc[p.status] || 0) + 1;
+
+      const totalBisnis = parseInt(bisnisCountResult?.total || 0, 10);
+      const totalUsers = parseInt(usersCountResult?.total || 0, 10);
+      const totalPengajuan = parseInt(pengajuanCountResult?.total || 0, 10);
+
+      const pengajuanByStatus = pengajuanStatusResult.reduce((acc, row) => {
+        acc[row.status] = parseInt(row.total || 0, 10);
         return acc;
       }, {});
 
-      const totalNominalInvestasi = investasiList.reduce(
-        (sum, i) => sum + parseFloat(i.nominal_investasi || 0),
-        0,
-      );
+      const totalNominalInvestasi = parseFloat(investasiSumResult?.total || 0);
 
-      const distribusiByStatus = distribusiList.reduce((acc, d) => {
-        if (!acc[d.status]) acc[d.status] = { jumlah: 0, total_nominal: 0 };
-        acc[d.status].jumlah += 1;
-        acc[d.status].total_nominal += parseFloat(d.nominal_profit || 0);
+      const distribusiByStatus = profitStatusResult.reduce((acc, row) => {
+        acc[row.status] = {
+          jumlah: parseInt(row.jumlah || 0, 10),
+          total_nominal: parseFloat(row.total_nominal || 0),
+        };
         return acc;
       }, {});
-
-      const recentPengajuan = pengajuanList.slice(0, 5);
 
       return responseHelper.success(
         res,
         "Admin dashboard fetched successfully",
         {
           bisnis: {
-            total: bisnisList.length,
+            total: totalBisnis,
           },
           users: {
-            total: userList.data.length,
+            total: totalUsers,
           },
           pengajuan: {
-            total: pengajuanList.length,
+            total: totalPengajuan,
             by_status: pengajuanByStatus,
           },
           investasi: {
@@ -77,27 +88,39 @@ class DashboardController {
   async getInvestorDashboard(req, res) {
     try {
       const { id: investor_id } = req.user;
-      const [investasiList, distribusiList] = await Promise.all([
-        Investasi.getInvestasiByUserId(investor_id, "investor", 1, 9999),
-        DistribusiProfit.getByInvestorId(investor_id, 1, 9999),
+      const [
+        investasiSumResult,
+        investasiCountResult,
+        profitStatusResult,
+        recentDistribusi,
+      ] = await Promise.all([
+        knex("investasis")
+          .where({ investor_id })
+          .sum("nominal_investasi as total")
+          .first(),
+        knex("investasis")
+          .where({ investor_id })
+          .count("id as total")
+          .first(),
+        knex("distribusi_profits")
+          .where({ investor_id })
+          .select("status")
+          .count("id as jumlah")
+          .sum("nominal_profit as total_nominal")
+          .groupBy("status"),
+        DistribusiProfit.getByInvestorId(investor_id, 1, 5),
       ]);
 
-      // Total nominal investasi
-      const totalNominalInvestasi = investasiList.reduce(
-        (sum, i) => sum + parseFloat(i.nominal_investasi || 0),
-        0,
-      );
+      const totalNominalInvestasi = parseFloat(investasiSumResult?.total || 0);
+      const jumlahAktif = parseInt(investasiCountResult?.total || 0, 10);
 
-      // Breakdown distribusi profit per status
-      const distribusiByStatus = distribusiList.reduce((acc, d) => {
-        if (!acc[d.status]) acc[d.status] = { jumlah: 0, total_nominal: 0 };
-        acc[d.status].jumlah += 1;
-        acc[d.status].total_nominal += parseFloat(d.nominal_profit || 0);
+      const distribusiByStatus = profitStatusResult.reduce((acc, row) => {
+        acc[row.status] = {
+          jumlah: parseInt(row.jumlah || 0, 10),
+          total_nominal: parseFloat(row.total_nominal || 0),
+        };
         return acc;
       }, {});
-
-      // 5 distribusi terbaru
-      const recentDistribusi = distribusiList.slice(0, 5);
 
       return responseHelper.success(
         res,
@@ -105,7 +128,7 @@ class DashboardController {
         {
           investasi: {
             total_nominal: totalNominalInvestasi,
-            jumlah_aktif: investasiList.length,
+            jumlah_aktif: jumlahAktif,
           },
           profit: {
             total_diterima: distribusiByStatus?.distributed?.total_nominal || 0,
@@ -133,9 +156,14 @@ class DashboardController {
         return responseHelper.error(res, "Bisnis not found", 404);
       }
 
-      const [pengajuanResult, investasiList] = await Promise.all([
+      const [pengajuanResult, investorCountResult] = await Promise.all([
         Pengajuan.getPengajuanByBisnisId(bisnis.id),
-        Investasi.getInvestasiByUserId(user_id, "bisnis", 1, 9999),
+        knex("investasis")
+          .join("pengajuans", "investasis.pengajuans_id", "pengajuans.id")
+          .join("bisnis", "pengajuans.bisnis_id", "bisnis.id")
+          .where("bisnis.user_id", user_id)
+          .countDistinct("investasis.investor_id as total")
+          .first(),
       ]);
 
       const pengajuanTerbaru = Array.isArray(pengajuanResult)
@@ -146,9 +174,7 @@ class DashboardController {
         ? await Penjualan.getPenjualanByPengajuanId(pengajuanTerbaru.id)
         : [];
 
-      const uniqueInvestorIds = [
-        ...new Set(investasiList.map((i) => i.investor.id)),
-      ];
+      const totalInvestors = parseInt(investorCountResult?.total || 0, 10);
 
       return responseHelper.success(
         res,
@@ -175,7 +201,7 @@ class DashboardController {
               }
             : null,
           investor: {
-            total: uniqueInvestorIds.length,
+            total: totalInvestors,
           },
           penjualan_chart: Array.isArray(penjualanChart)
             ? penjualanChart.slice(0, 6).reverse()

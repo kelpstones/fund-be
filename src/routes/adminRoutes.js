@@ -3,15 +3,17 @@ const AuthController = require("../controllers/authController");
 const router = express.Router();
 const { Auth, Role, RateLimiter } = require("../middlewares");
 const AdminController = require("../controllers/adminController");
+const SupportedBankController = require("../controllers/supportedBankController");
 class AdminRoutes {
   constructor() {
     this.router = router;
     this.authController = new AuthController();
     this.adminController = new AdminController();
+    this.supportedBankController = new SupportedBankController();
   }
 
   routes() {
-    this.router.post("/login", RateLimiter.authRateLimiter,(req, res) => {
+    this.router.post("/login", RateLimiter.authRateLimiter, (req, res) => {
       this.authController.loginAdmin(req, res);
     });
 
@@ -40,6 +42,38 @@ class AdminRoutes {
     this.router.post("/", Role.authorize("superadmin"), (req, res) => {
       this.adminController.createAdmin(req, res);
     });
+
+    this.router.get(
+      "/banks",
+      Role.authorize("admin", "superadmin"),
+      (req, res) => {
+        this.supportedBankController.getBanksForAdmin(req, res);
+      },
+    );
+
+    this.router.post(
+      "/banks",
+      Role.authorize("admin", "superadmin"),
+      (req, res) => {
+        this.supportedBankController.createBank(req, res);
+      },
+    );
+
+    this.router.put(
+      "/banks/:id",
+      Role.authorize("admin", "superadmin"),
+      (req, res) => {
+        this.supportedBankController.updateBank(req, res);
+      },
+    );
+
+    this.router.delete(
+      "/banks/:id",
+      Role.authorize("admin", "superadmin"),
+      (req, res) => {
+        this.supportedBankController.deleteBank(req, res);
+      },
+    );
 
     this.router.get(
       "/:id",

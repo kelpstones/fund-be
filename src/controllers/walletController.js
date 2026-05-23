@@ -94,10 +94,50 @@ class WalletController {
         return ResponseHelper.error(res, error.details[0].message, 400);
       }
 
-      const { jumlah } = req.body || {};
+      const { jumlah, user_bank_account_id } = req.body || {};
       const { id: user_id } = req.user;
 
-      const user = await User.getUserById(user_id, trx);
+      let bankAccount;
+      if (user_bank_account_id) {
+        bankAccount = await trx("user_bank_accounts")
+          .select(
+            "user_bank_accounts.*",
+            "supported_banks.name as bank_name"
+          )
+          .leftJoin("supported_banks", "user_bank_accounts.bank_id", "supported_banks.id")
+          .where({ "user_bank_accounts.id": user_bank_account_id, "user_bank_accounts.user_id": user_id })
+          .first();
+      } else {
+        bankAccount = await trx("user_bank_accounts")
+          .select(
+            "user_bank_accounts.*",
+            "supported_banks.name as bank_name"
+          )
+          .leftJoin("supported_banks", "user_bank_accounts.bank_id", "supported_banks.id")
+          .where({ "user_bank_accounts.user_id": user_id, "user_bank_accounts.is_primary": true })
+          .first();
+        if (!bankAccount) {
+          bankAccount = await trx("user_bank_accounts")
+            .select(
+              "user_bank_accounts.*",
+              "supported_banks.name as bank_name"
+            )
+            .leftJoin("supported_banks", "user_bank_accounts.bank_id", "supported_banks.id")
+            .where({ "user_bank_accounts.user_id": user_id })
+            .first();
+        }
+      }
+
+      if (!bankAccount) {
+        await trx.rollback();
+        return ResponseHelper.error(
+          res,
+          "Silakan daftarkan rekening bank terlebih dahulu di profil Anda",
+          400,
+        );
+      }
+
+      const user = await trx("users").where({ id: user_id }).forUpdate().first();
       if (!user) {
         await trx.rollback();
         return ResponseHelper.error(res, "User not found", 404);
@@ -113,7 +153,7 @@ class WalletController {
       }
 
       const updatedSaldo = parseFloat(user.saldo) - parseFloat(jumlah);
-      await User.updateUser(user_id, { saldo: updatedSaldo }, trx);
+      await trx("users").where({ id: user_id }).update({ saldo: updatedSaldo, updated_at: trx.fn.now() });
 
       const external_id = `withdraw-${Date.now()}-${user_id}`;
 
@@ -124,7 +164,10 @@ class WalletController {
           tipe: "penarikan",
           jumlah,
           status: "pending",
-          deskripsi: "Penarikan saldo dompet virtual ke rekening bank",
+          deskripsi: `Penarikan saldo ke rekening ${bankAccount.bank_name} (${bankAccount.bank_account_number}) a.n. ${bankAccount.bank_account_holder}`,
+          bank_name: bankAccount.bank_name,
+          bank_account_number: bankAccount.bank_account_number,
+          bank_account_holder: bankAccount.bank_account_holder,
         },
         trx,
       );
@@ -162,8 +205,20 @@ class WalletController {
   async payInvoiceViaWallet(req, res) {
     const trx = await knex.transaction();
     try {
+      await Invoice.checkAndCancelExpiredInvoices(trx);
       const { invoice_id } = req.params;
       const { id: user_id } = req.user;
+
+      await trx("invoices")
+        .modify((qb) => {
+          if (isNaN(invoice_id)) {
+            qb.where({ kode_pembayaran: invoice_id });
+          } else {
+            qb.where({ id: Number(invoice_id) });
+          }
+        })
+        .forUpdate()
+        .first();
 
       let invoice;
       if (isNaN(invoice_id)) {
@@ -194,7 +249,12 @@ class WalletController {
         );
       }
 
-      const user = await User.getUserById(user_id, trx);
+      const user = await trx("users").where({ id: user_id }).forUpdate().first();
+      if (!user) {
+        await trx.rollback();
+        return ResponseHelper.error(res, "User tidak ditemukan", 404);
+      }
+
       if (parseFloat(user.saldo) < parseFloat(invoice.total_nominal)) {
         await trx.rollback();
         return ResponseHelper.error(
@@ -206,7 +266,7 @@ class WalletController {
 
       const updatedSaldo =
         parseFloat(user.saldo) - parseFloat(invoice.total_nominal);
-      await User.updateUser(user_id, { saldo: updatedSaldo }, trx);
+      await trx("users").where({ id: user_id }).update({ saldo: updatedSaldo, updated_at: trx.fn.now() });
 
       const updatedInvoice = await Invoice.updateStatus(
         invoice.id,
@@ -225,6 +285,11 @@ class WalletController {
         trx,
       );
 
+      await trx("pengajuans")
+        .where({ id: invoice.detail_pengajuan.id })
+        .forUpdate()
+        .first();
+
       const pengajuan = await pengajuans.getPengajuanById(
         invoice.detail_pengajuan.id,
         trx,
@@ -234,7 +299,7 @@ class WalletController {
         Number(pengajuan.total_pendanaan) + Number(invoice.nominal_tagihan);
 
       let statusBaru = pengajuan.status;
-      if (totalDanaBaru >= pengajuan.target_pendanaan) {
+      if (pengajuan.status === "waiting_payment" || totalDanaBaru >= pengajuan.target_pendanaan) {
         statusBaru = "funded";
       }
 
@@ -430,7 +495,7 @@ class WalletController {
 
       const { status } = req.body;
 
-      const transaction = await Transaksi.getTransaksiById(id, trx);
+      const transaction = await trx("transaksis").where({ id }).forUpdate().first();
       if (!transaction) {
         await trx.rollback();
         return ResponseHelper.error(res, "Transaksi tidak ditemukan", 404);
@@ -454,7 +519,7 @@ class WalletController {
         );
       }
 
-      const user = await User.getUserById(transaction.user_id, trx);
+      const user = await trx("users").where({ id: transaction.user_id }).forUpdate().first();
       if (!user) {
         await trx.rollback();
         return ResponseHelper.error(
@@ -468,11 +533,7 @@ class WalletController {
       if (status === "failed") {
         const refundedSaldo =
           parseFloat(user.saldo) + parseFloat(transaction.jumlah);
-        await User.updateUser(
-          transaction.user_id,
-          { saldo: refundedSaldo },
-          trx,
-        );
+        await trx("users").where({ id: transaction.user_id }).update({ saldo: refundedSaldo, updated_at: trx.fn.now() });
 
         updatedTransaction = await Transaksi.updateStatus(id, "failed", trx);
       } else {

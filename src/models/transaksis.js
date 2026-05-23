@@ -15,6 +15,9 @@ class Transaksi extends BaseModel {
       jumlah: parseFloat(row.jumlah || 0),
       status: row.status,
       deskripsi: row.deskripsi,
+      bank_name: row.bank_name || null,
+      bank_account_number: row.bank_account_number || null,
+      bank_account_holder: row.bank_account_holder || null,
       created_at: row.created_at,
       updated_at: row.updated_at,
       user: row.nama_user
@@ -47,6 +50,9 @@ class Transaksi extends BaseModel {
           jumlah: data.jumlah,
           status: data.status || "pending",
           deskripsi: data.deskripsi,
+          bank_name: data.bank_name || null,
+          bank_account_number: data.bank_account_number || null,
+          bank_account_holder: data.bank_account_holder || null,
         })
         .returning("id");
 

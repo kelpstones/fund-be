@@ -12,10 +12,11 @@ class PaymentCallbackController {
   async xenditCallback(req, res) {
     const trx = await knex.transaction();
     try {
+      await Invoice.checkAndCancelExpiredInvoices(trx);
       const callbackToken = req.headers["x-callback-token"];
       const expectedToken = process.env.XENDIT_CALLBACK_TOKEN;
 
-      if (expectedToken && callbackToken !== expectedToken) {
+      if (!expectedToken || callbackToken !== expectedToken) {
         logger.warn("Unauthorized Xendit callback token received", {
           received: callbackToken,
         });
@@ -37,7 +38,10 @@ class PaymentCallbackController {
       }
 
       if (external_id.startsWith("topup-")) {
-        const transaksi = await Transaksi.getTransaksiByExternalId(external_id, trx);
+        const transaksi = await trx("transaksis")
+          .where({ external_id })
+          .forUpdate()
+          .first();
         if (!transaksi) {
           logger.warn("Transaction not found for top-up callback", { external_id });
           await trx.rollback();
@@ -51,9 +55,19 @@ class PaymentCallbackController {
 
         await Transaksi.updateStatus(transaksi.id, "completed", trx);
 
-        const user = await User.getUserById(transaksi.user_id, trx);
+        const user = await trx("users")
+          .where({ id: transaksi.user_id })
+          .forUpdate()
+          .first();
+        if (!user) {
+          logger.warn("User not found for top-up callback", { userId: transaksi.user_id });
+          await trx.rollback();
+          return ResponseHelper.error(res, "User not found", 404);
+        }
         const updatedSaldo = parseFloat(user.saldo) + parseFloat(transaksi.jumlah);
-        await User.updateUser(transaksi.user_id, { saldo: updatedSaldo }, trx);
+        await trx("users")
+          .where({ id: transaksi.user_id })
+          .update({ saldo: updatedSaldo, updated_at: trx.fn.now() });
 
         await trx.commit();
         logger.info("Top-up transaction completed via Xendit callback", {
@@ -78,6 +92,12 @@ class PaymentCallbackController {
 
       if (external_id.startsWith("invoice-")) {
         const kodePembayaran = external_id.replace("invoice-", "");
+        
+        await trx("invoices")
+          .where({ kode_pembayaran: kodePembayaran })
+          .forUpdate()
+          .first();
+
         const invoice = await Invoice.getInvoiceByKodePembayaran(kodePembayaran, trx);
         if (!invoice) {
           logger.warn("Invoice not found for callback", { external_id });
@@ -103,6 +123,11 @@ class PaymentCallbackController {
           trx
         );
 
+        await trx("pengajuans")
+          .where({ id: invoice.detail_pengajuan.id })
+          .forUpdate()
+          .first();
+
         const pengajuan = await pengajuans.getPengajuanById(
           invoice.detail_pengajuan.id,
           trx
@@ -112,7 +137,7 @@ class PaymentCallbackController {
           Number(pengajuan.total_pendanaan) + Number(invoice.nominal_tagihan);
 
         let statusBaru = pengajuan.status;
-        if (totalDanaBaru >= pengajuan.target_pendanaan) {
+        if (pengajuan.status === "waiting_payment" || totalDanaBaru >= pengajuan.target_pendanaan) {
           statusBaru = "funded";
         }
 

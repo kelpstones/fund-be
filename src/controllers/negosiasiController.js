@@ -61,7 +61,11 @@ class NegotiationController {
         return responseHelper.error(res, error.details[0].message, 400);
       }
 
-      // Cek pengajuan
+      await trx("pengajuans")
+        .where({ id: pengajuans_id })
+        .forUpdate()
+        .first();
+
       const pengajuan = await pengajuans.getPengajuanById(pengajuans_id, trx);
       if (!pengajuan || pengajuan.status !== "published") {
         await trx.rollback();
@@ -72,7 +76,6 @@ class NegotiationController {
         );
       }
 
-      // Cek negosiasi aktif (double check)
       const activeNegosiasi = await Negosiasis.getNegosiasiByPengajuanId(
         pengajuans_id,
         trx,
@@ -233,6 +236,11 @@ class NegotiationController {
       const { penawaran_return, penawaran_nominal, catatan } = req.body;
       const { id: user_id, role_name } = req.user;
 
+      await trx("negosiasis")
+        .where({ id: negosiasi_id })
+        .forUpdate()
+        .first();
+
       const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id, trx);
       if (!negosiasi || negosiasi.status !== "active") {
         await trx.rollback();
@@ -352,6 +360,11 @@ class NegotiationController {
       const { catatan } = req.body;
       const { id: user_id, role_name } = req.user;
 
+      await trx("negosiasis")
+        .where({ id: negosiasi_id })
+        .forUpdate()
+        .first();
+
       const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id, trx);
       if (!negosiasi || negosiasi.status !== "active") {
         await trx.rollback();
@@ -361,6 +374,11 @@ class NegotiationController {
           404,
         );
       }
+
+      await trx("pengajuans")
+        .where({ id: negosiasi.pengajuan.id })
+        .forUpdate()
+        .first();
 
       const isInvolved =
         negosiasi.investor.id === user_id ||
@@ -402,10 +420,10 @@ class NegotiationController {
       await Negosiasis.updateNegosiasi(negosiasi_id, "deal", user_id, trx);
 
       await trx("pengajuans").where({ id: negosiasi.pengajuan.id }).update({
-        status: "funded",
+        status: "waiting_payment",
         locked_by_investor_id: null,
         locked_at: null,
-        per_anual_return: lastLog.penawaran_return, // sesuaikan nama kolom dengan DB
+        per_anual_return: lastLog.penawaran_return,
       });
 
       // Buat invoice — kalkulasi PPN + biaya admin ada di dalam createInvoice
@@ -492,6 +510,11 @@ class NegotiationController {
       const { catatan } = req.body;
       const { id: user_id, role_name } = req.user;
 
+      await trx("negosiasis")
+        .where({ id: negosiasi_id })
+        .forUpdate()
+        .first();
+
       const negosiasi = await Negosiasis.getNegosiasiById(negosiasi_id, trx);
       if (!negosiasi || negosiasi.status !== "active") {
         await trx.rollback();
@@ -501,6 +524,11 @@ class NegotiationController {
           404,
         );
       }
+
+      await trx("pengajuans")
+        .where({ id: negosiasi.pengajuan.id })
+        .forUpdate()
+        .first();
 
       const isInvolved =
         negosiasi.investor.id === user_id ||
