@@ -100,15 +100,30 @@ class WalletController {
       let bankAccount;
       if (user_bank_account_id) {
         bankAccount = await trx("user_bank_accounts")
-          .where({ id: user_bank_account_id, user_id })
+          .select(
+            "user_bank_accounts.*",
+            "supported_banks.name as bank_name"
+          )
+          .leftJoin("supported_banks", "user_bank_accounts.bank_id", "supported_banks.id")
+          .where({ "user_bank_accounts.id": user_bank_account_id, "user_bank_accounts.user_id": user_id })
           .first();
       } else {
         bankAccount = await trx("user_bank_accounts")
-          .where({ user_id, is_primary: true })
+          .select(
+            "user_bank_accounts.*",
+            "supported_banks.name as bank_name"
+          )
+          .leftJoin("supported_banks", "user_bank_accounts.bank_id", "supported_banks.id")
+          .where({ "user_bank_accounts.user_id": user_id, "user_bank_accounts.is_primary": true })
           .first();
         if (!bankAccount) {
           bankAccount = await trx("user_bank_accounts")
-            .where({ user_id })
+            .select(
+              "user_bank_accounts.*",
+              "supported_banks.name as bank_name"
+            )
+            .leftJoin("supported_banks", "user_bank_accounts.bank_id", "supported_banks.id")
+            .where({ "user_bank_accounts.user_id": user_id })
             .first();
         }
       }
@@ -149,8 +164,8 @@ class WalletController {
           tipe: "penarikan",
           jumlah,
           status: "pending",
-          deskripsi: `Penarikan saldo ke rekening ${bankAccount.name} (${bankAccount.bank_account_number}) a.n. ${bankAccount.bank_account_holder}`,
-          bank_name: bankAccount.name,
+          deskripsi: `Penarikan saldo ke rekening ${bankAccount.bank_name} (${bankAccount.bank_account_number}) a.n. ${bankAccount.bank_account_holder}`,
+          bank_name: bankAccount.bank_name,
           bank_account_number: bankAccount.bank_account_number,
           bank_account_holder: bankAccount.bank_account_holder,
         },

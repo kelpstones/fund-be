@@ -64,7 +64,7 @@ describe("Wallet & Xendit Callback Integration Tests", () => {
 
    
     await knex.raw(
-      "TRUNCATE TABLE users, bisnis, pengajuans, invoices, transaksis, investasis RESTART IDENTITY CASCADE"
+      "TRUNCATE TABLE users, bisnis, pengajuans, invoices, transaksis, investasis, supported_banks, user_bank_accounts RESTART IDENTITY CASCADE"
     );
 
    
@@ -112,6 +112,23 @@ describe("Wallet & Xendit Callback Integration Tests", () => {
         email_verified: true,
       })
       .returning("*");
+
+    const [bank] = await knex("supported_banks")
+      .insert({
+        code: "BCA",
+        name: "Bank Central Asia",
+        type: "bank",
+        is_active: true,
+      })
+      .returning("*");
+
+    await knex("user_bank_accounts").insert({
+      user_id: investorUser.id,
+      bank_id: bank.id,
+      bank_account_number: "1234567890",
+      bank_account_holder: "Investor Budi",
+      is_primary: true,
+    });
 
   
     investorToken = jwt.sign(
