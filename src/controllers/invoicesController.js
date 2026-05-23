@@ -8,7 +8,9 @@ const { invoiceValidation } = require("../validation/invoices");
 const logger = require("../utils/index").logger;
 class InvoicesController {
   async getAllInvoices(req, res) {
+    const trx = await knex.transaction();
     try {
+      await Invoice.checkAndCancelExpiredInvoices(trx);
       const { page = 1, limit = 10, startDate, endDate, status } = req.query;
       const invoices = await Invoice.getAllInvoices(
         page,
@@ -16,7 +18,9 @@ class InvoicesController {
         startDate,
         endDate,
         status,
+        trx,
       );
+      await trx.commit();
       return ResponseHelper.withPagination(
         res,
         "Invoices fetched successfully",
@@ -31,6 +35,7 @@ class InvoicesController {
         },
       );
     } catch (error) {
+      await trx.rollback();
       logger.error("An error occurred while fetching invoices", { error });
       return ResponseHelper.serverError(
         res,
@@ -40,10 +45,13 @@ class InvoicesController {
   }
 
   async getInvoiceById(req, res) {
+    const trx = await knex.transaction();
     try {
       const { id } = req.params;
-      const invoice = await Invoice.getInvoiceById(id);
+      await Invoice.checkAndCancelExpiredInvoices(trx);
+      const invoice = await Invoice.getInvoiceById(id, trx);
       if (!invoice) {
+        await trx.rollback();
         return ResponseHelper.error(res, "Invoice not found", 404);
       }
 
@@ -53,15 +61,18 @@ class InvoicesController {
         invoice.detail_pengajuan?.id_pemilik === req.user.id;
 
       if (!isAdmin && !isOwner) {
+        await trx.rollback();
         return ResponseHelper.forbidden(res, "Access forbidden");
       }
 
+      await trx.commit();
       return ResponseHelper.success(
         res,
         "Invoice fetched successfully",
         invoice,
       );
     } catch (error) {
+      await trx.rollback();
       logger.error("An error occurred while fetching the invoice", { error });
       return ResponseHelper.serverError(
         res,
@@ -71,9 +82,11 @@ class InvoicesController {
   }
 
   async getInvoicesByInvestors(req, res) {
+    const trx = await knex.transaction();
     try {
       const { id: investor_id } = req.user;
       const { page = 1, limit = 10, startDate, endDate, status } = req.query;
+      await Invoice.checkAndCancelExpiredInvoices(trx);
       const invoices = await Invoice.getInvoicesByInvestor(
         investor_id,
         page,
@@ -81,7 +94,9 @@ class InvoicesController {
         status,
         startDate,
         endDate,
+        trx,
       );
+      await trx.commit();
       return ResponseHelper.withPagination(
         res,
         "Invoices fetched successfully",
@@ -96,6 +111,7 @@ class InvoicesController {
         },
       );
     } catch (error) {
+      await trx.rollback();
       logger.error("An error occurred while fetching invoices", { error });
       return ResponseHelper.serverError(
         res,
@@ -107,6 +123,7 @@ class InvoicesController {
   async payInvoice(req, res) {
     const trx = await knex.transaction();
     try {
+      await Invoice.checkAndCancelExpiredInvoices(trx);
       const { id: kode_pembayaran } = req.params;
       await trx("invoices")
         .where({ kode_pembayaran })
@@ -161,7 +178,7 @@ class InvoicesController {
         Number(pengajuan.total_pendanaan) + Number(invoice.nominal_tagihan);
 
       let statusBaru = pengajuan.status;
-      if (totalDanaBaru >= pengajuan.target_pendanaan) {
+      if (pengajuan.status === "waiting_payment" || totalDanaBaru >= pengajuan.target_pendanaan) {
         statusBaru = "funded";
       }
 

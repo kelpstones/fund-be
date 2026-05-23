@@ -420,10 +420,10 @@ class NegotiationController {
       await Negosiasis.updateNegosiasi(negosiasi_id, "deal", user_id, trx);
 
       await trx("pengajuans").where({ id: negosiasi.pengajuan.id }).update({
-        status: "funded",
+        status: "waiting_payment",
         locked_by_investor_id: null,
         locked_at: null,
-        per_anual_return: lastLog.penawaran_return, // sesuaikan nama kolom dengan DB
+        per_anual_return: lastLog.penawaran_return,
       });
 
       // Buat invoice — kalkulasi PPN + biaya admin ada di dalam createInvoice

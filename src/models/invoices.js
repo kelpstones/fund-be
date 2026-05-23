@@ -185,6 +185,42 @@ class Invoices extends BaseModel {
       throw error;
     }
   }
+
+  async checkAndCancelExpiredInvoices(trx = this.knex) {
+    try {
+      const expiredInvoices = await trx(this.tableName)
+        .where("status", "pending")
+        .andWhere("tenggat_waktu", "<", trx.fn.now())
+        .forUpdate();
+
+      for (const invoice of expiredInvoices) {
+        await trx(this.tableName)
+          .where({ id: invoice.id })
+          .update({
+            status: "cancelled",
+            updated_at: trx.fn.now(),
+          });
+
+        await trx("pengajuans")
+          .where({ id: invoice.pengajuan_id })
+          .update({
+            status: "published",
+            locked_by_investor_id: null,
+            locked_at: null,
+            updated_at: trx.fn.now(),
+          });
+
+        await trx("negosiasis")
+          .where({ id: invoice.negosiasi_id })
+          .update({
+            status: "canceled",
+            updated_at: trx.fn.now(),
+          });
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = new Invoices();

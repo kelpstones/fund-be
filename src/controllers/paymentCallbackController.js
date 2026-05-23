@@ -12,6 +12,7 @@ class PaymentCallbackController {
   async xenditCallback(req, res) {
     const trx = await knex.transaction();
     try {
+      await Invoice.checkAndCancelExpiredInvoices(trx);
       const callbackToken = req.headers["x-callback-token"];
       const expectedToken = process.env.XENDIT_CALLBACK_TOKEN;
 
@@ -136,7 +137,7 @@ class PaymentCallbackController {
           Number(pengajuan.total_pendanaan) + Number(invoice.nominal_tagihan);
 
         let statusBaru = pengajuan.status;
-        if (totalDanaBaru >= pengajuan.target_pendanaan) {
+        if (pengajuan.status === "waiting_payment" || totalDanaBaru >= pengajuan.target_pendanaan) {
           statusBaru = "funded";
         }
 

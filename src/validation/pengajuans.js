@@ -8,7 +8,9 @@ exports.pengajuanValidation = (data) => {
     const schema = Joi.object({
       bisnis_id: Joi.number().integer().required(),
       target_pendanaan: Joi.number().integer().required(),
-      per_anual_return: Joi.number().integer().required(),
+      per_anual_return: Joi.number().integer().max(50).required().messages({
+        "number.max": "Porsi bagi hasil tidak boleh melebihi 50%",
+      }),
       deskripsi_peluang: Joi.string().optional(),
       rencana_penggunaan_dana: Joi.array()
         .items(
@@ -67,10 +69,12 @@ exports.updatePengajuanValidation = (data) => {
   try {
     const schema = Joi.object({
       target_pendanaan: Joi.number().integer().optional(),
-      per_anual_return: Joi.number().integer().optional(),
+      per_anual_return: Joi.number().integer().max(50).optional().messages({
+        "number.max": "Porsi bagi hasil tidak boleh melebihi 50%",
+      }),
       total_pendanaan: Joi.number().integer().optional(),
       status: Joi.string()
-        .valid("draft", "published", "negotiating", "funded", "rejected")
+        .valid("draft", "published", "negotiating", "waiting_payment", "funded", "rejected")
         .optional(),
       deskripsi_peluang: Joi.string().optional(),
       rencana_penggunaan_dana: Joi.array()

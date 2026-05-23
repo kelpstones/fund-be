@@ -190,6 +190,7 @@ class WalletController {
   async payInvoiceViaWallet(req, res) {
     const trx = await knex.transaction();
     try {
+      await Invoice.checkAndCancelExpiredInvoices(trx);
       const { invoice_id } = req.params;
       const { id: user_id } = req.user;
 
@@ -283,7 +284,7 @@ class WalletController {
         Number(pengajuan.total_pendanaan) + Number(invoice.nominal_tagihan);
 
       let statusBaru = pengajuan.status;
-      if (totalDanaBaru >= pengajuan.target_pendanaan) {
+      if (pengajuan.status === "waiting_payment" || totalDanaBaru >= pengajuan.target_pendanaan) {
         statusBaru = "funded";
       }
 
