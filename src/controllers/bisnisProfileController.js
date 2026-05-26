@@ -3,7 +3,11 @@ const BisnisProfiles = require("../models/bisnis_profiles");
 const Bisnis = require("../models/bisnis");
 const { BisnisProfileValidator } = require("../validation");
 const logger = require("../utils/index").logger;
+const redisClient = require("../utils/index").RedisClient;
 const axios = require("axios");
+const CACHE_KEY_ALL_PROFILES = "bisnis_profiles:all";
+const CACHE_TTL = 60 * 5;
+
 class BisnisProfileController {
   async upsertProfile(req, res) {
     try {
@@ -41,11 +45,11 @@ class BisnisProfileController {
       }
 
       // Cek ownership
-      if (
-        req.user.role_name === "umkm" &&
-        bisnis.pemilik.id !== req.user.id
-      ) {
-        return responseHelper.forbidden(res, "You don't have permission to update this bisnis profile");
+      if (req.user.role_name === "umkm" && bisnis.pemilik.id !== req.user.id) {
+        return responseHelper.forbidden(
+          res,
+          "You don't have permission to update this bisnis profile",
+        );
       }
 
       const profileData = {
@@ -60,6 +64,8 @@ class BisnisProfileController {
       };
 
       await BisnisProfiles.upsertProfile(bisnis_id, profileData);
+      await redisClient.del(CACHE_KEY_ALL_PROFILES);
+      logger.info("Redis cache invalidated for bisnis_profiles:all");
 
       let finalProfile;
       try {
@@ -104,6 +110,30 @@ class BisnisProfileController {
 
   async getAllProfilesForML(req, res) {
     try {
+      let cached = null;
+
+      try {
+        cached = await redisClient.get(CACHE_KEY_ALL_PROFILES);
+        if (cached) {
+          logger.info("Cache hit for bisnis profiles", {
+            cacheKey: CACHE_KEY_ALL_PROFILES,
+          });
+          return responseHelper.success(
+            res,
+            "Bisnis profiles fetched successfully (from cache)",
+            JSON.parse(cached),
+          );
+        } else {
+          logger.info("Cache miss for bisnis profiles", {
+            cacheKey: CACHE_KEY_ALL_PROFILES,
+          });
+        }
+      } catch (error) {
+        logger.error("Error accessing Redis cache for bisnis profiles", {
+          error,
+        });
+      }
+
       const profiles = await BisnisProfiles.getAll();
       logger.info("Fetched bisnis profiles for ML", { count: profiles.length });
       return responseHelper.success(
@@ -146,8 +176,6 @@ class BisnisProfileController {
       );
     }
   }
-
-  
 }
 
 module.exports = BisnisProfileController;

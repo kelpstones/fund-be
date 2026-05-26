@@ -7,6 +7,7 @@ const Loader = require("./loadTemplate");
 const HelpersUtils = require("./helpers");
 const logger = require("./logger");
 const CloudinaryUtils = require("./cloudinary");
+const RedisClient = require("./redis");
 
 module.exports = {
   BcryptUtils,
@@ -18,4 +19,5 @@ module.exports = {
   HelpersUtils,
   logger,
   CloudinaryUtils,
+  RedisClient,
 };
