@@ -39,7 +39,7 @@ services:
       - fund_network
 
 
-  redis:                            # ← tambah semua ini
+  redis:                          
     image: redis:7-alpine
     container_name: fund_redis
     restart: always
