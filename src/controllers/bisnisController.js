@@ -25,6 +25,27 @@ class BisnisController {
     }
   }
 
+  async getBisnisPreview(req, res) {
+    try {
+      const { page } = req.query;
+      const data = await Bisnis.getAllBisnis(page, 6, null, true);
+      return responseHelper.withPagination(
+        res,
+        "Bisnis preview data fetched successfully",
+        data,
+        { page, limit, totalItems: data.length },
+      );
+    } catch (error) {
+      logger.error("An error occurred while fetching bisnis preview data", {
+        error,
+      });
+      return responseHelper.serverError(
+        res,
+        "An error occurred while fetching bisnis preview data",
+      );
+    }
+  }
+
   async getBisnisForInvestor(req, res) {
     try {
       const { page, limit, search } = req.query;
@@ -108,7 +129,10 @@ class BisnisController {
   async getBisnisById(req, res) {
     try {
       const { id } = req.params;
-      const role = req.user?.role_name !== undefined ? req.user.nama_role : req.admin.level;
+      const role =
+        req.user?.role_name !== undefined
+          ? req.user.nama_role
+          : req.admin.level;
       const bisnisList = await Bisnis.getBisnisById(id, role);
       if (!bisnisList) {
         return responseHelper.error(res, "Bisnis not found", 404);
