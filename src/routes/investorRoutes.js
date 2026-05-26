@@ -13,6 +13,9 @@ class InvestorRoutes {
   }
 
   routes() {
+    this.router.get("/compare", (req, res) => {
+      this.compareOpportunitiesController.compare(req, res);
+    });
     this.router.use(Auth.verifyAnyToken);
     this.router.post("/preferences", Role.authorize("investor"), (req, res) => {
       this.preferensiInvestorController.submitPreferensi(req, res);
@@ -39,9 +42,6 @@ class InvestorRoutes {
     );
 
     // compare
-    this.router.get("/compare", Role.authorize("investor"), (req, res) => {
-      this.compareOpportunitiesController.compare(req, res);
-    });
 
     // bookmark routes
     this.router.post("/bookmarks", Role.authorize("investor"), (req, res) => {

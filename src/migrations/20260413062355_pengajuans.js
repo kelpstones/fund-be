@@ -19,7 +19,7 @@ exports.up = function (knex) {
       .foreign("locked_by_investor_id")
       .references("users.id")
       .onDelete("SET NULL");
-    table.text("deskrispsi_peluang").nullable();
+    table.text("deskripsi_peluang").nullable();
     table.jsonb("rencana_penggunaan_dana").nullable(); // array of { kategori: string, jumlah: decimal }
     table.timestamp("locked_at").nullable();
     table.timestamps(true, true);

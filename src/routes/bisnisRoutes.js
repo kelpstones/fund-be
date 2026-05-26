@@ -20,6 +20,11 @@ class BisnisRoutes {
       this.bisnisProfileController.getAllProfilesForML(req, res);
     });
 
+    // bisnis preview for landing page
+    this.router.get("/preview", (req, res) => {
+      this.bisnisController.getBisnisPreview(req, res);
+    });
+
     this.router.use(Auth.verifyAnyToken);
 
     this.router.get(
