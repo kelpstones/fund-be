@@ -136,6 +136,20 @@ class BisnisProfileController {
 
       const profiles = await BisnisProfiles.getAll();
       logger.info("Fetched bisnis profiles for ML", { count: profiles.length });
+
+      try {
+        await redisClient.setEx(
+          CACHE_KEY_ALL_PROFILES,
+          CACHE_TTL,
+          JSON.stringify(profiles),
+        );
+        logger.info("Bisnis profiles saved to Redis cache", { ttl: CACHE_TTL });
+      } catch (cacheErr) {
+        logger.warn("Failed to save bisnis profiles to Redis cache", {
+          error: cacheErr,
+        });
+      }
+
       return responseHelper.success(
         res,
         "Bisnis profiles fetched successfully",
