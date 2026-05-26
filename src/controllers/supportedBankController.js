@@ -2,12 +2,52 @@ const SupportedBank = require("../models/supported_banks");
 const responseHelper = require("../utils/response");
 const { supportedBankValidation, supportedBankUpdateValidation } = require("../validation/supportedBanks");
 const logger = require("../utils/index").logger;
+const redisClient = require("../utils/index").RedisClient;
 const knex = require("../config/db");
-
+const CACHE_KEY_ALL_BANKS = "supported_banks:all";
+const CACHE_TTL = 120 * 60;
 class SupportedBankController {
   async getActiveBanks(req, res) {
     try {
+      let cachedBanks = null;
+
+      try {
+        cachedBanks = await redisClient.get(CACHE_KEY_ALL_BANKS);
+        if (cachedBanks) {
+          logger.info("Cache hit for supported banks", {
+            cacheKey: CACHE_KEY_ALL_BANKS,
+          });
+          return responseHelper.success(
+            res,
+            "Daftar bank dan e-wallet berhasil diambil (from cache)",
+            JSON.parse(cachedBanks),
+          );
+        } else {
+          logger.info("Cache miss for supported banks", {
+            cacheKey: CACHE_KEY_ALL_BANKS,
+          });
+        }
+      } catch (error) {
+        logger.error("Error accessing Redis cache for supported banks", {
+          error,
+        });
+      }
       const banks = await SupportedBank.getAllActive();
+      try {
+        await redisClient.setEx(
+          CACHE_KEY_ALL_BANKS,
+          CACHE_TTL,
+          JSON.stringify(banks),
+        );
+        logger.info("Supported banks saved to Redis cache", {
+          cacheKey: CACHE_KEY_ALL_BANKS,
+          ttl: CACHE_TTL,
+        });
+      } catch (error) {
+        logger.error("Error accessing Redis cache for supported banks", {
+          error,
+        });
+      }
       return responseHelper.success(res, "Daftar bank dan e-wallet berhasil diambil", banks);
     } catch (error) {
       logger.error("Error in getActiveBanks", { error });
@@ -54,7 +94,7 @@ class SupportedBankController {
 
       const bank = await SupportedBank.create(req.body, trx);
       await trx.commit();
-
+      await redisClient.del(CACHE_KEY_ALL_BANKS);
       return responseHelper.created(res, "Bank/e-wallet baru berhasil ditambahkan", bank);
     } catch (error) {
       await trx.rollback();
@@ -90,7 +130,7 @@ class SupportedBankController {
 
       const updated = await SupportedBank.update(id, req.body, trx);
       await trx.commit();
-
+      await redisClient.del(CACHE_KEY_ALL_BANKS);
       return responseHelper.success(res, "Bank/e-wallet berhasil diperbarui", updated);
     } catch (error) {
       await trx.rollback();
@@ -126,6 +166,7 @@ class SupportedBankController {
         return responseHelper.error(res, "Gagal menghapus bank/e-wallet", 500);
       }
 
+      await redisClient.del(CACHE_KEY_ALL_BANKS);
       await trx.commit();
       return responseHelper.success(res, "Bank/e-wallet berhasil dihapus");
     } catch (error) {
