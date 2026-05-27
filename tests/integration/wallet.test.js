@@ -67,8 +67,6 @@ describe("Wallet & Xendit Callback Integration Tests", () => {
       "TRUNCATE TABLE users, bisnis, pengajuans, invoices, transaksis, investasis, supported_banks, user_bank_accounts RESTART IDENTITY CASCADE"
     );
 
-    console.log("PENGAJUANS_COLUMNS:", await knex("pengajuans").columnInfo());
-
    
     const existingRoles = await knex("roles").count("id as count").first();
     if (parseInt(existingRoles.count) === 0) {
