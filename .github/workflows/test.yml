@@ -9,6 +9,15 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: fund_test
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      API_KEY: ${{ secrets.API_KEY }}
 
     services:
       postgres:
@@ -38,7 +47,7 @@ jobs:
         run: npm run test:unit
 
       - name: Run DB migrations
-        run: npx dotenvx run --env-file=.env.test -- npx knex migrate:latest --env test
+        run: npx knex migrate:latest --env test
 
       - name: Run integration tests
         run: npm run test:integration
