@@ -34,7 +34,7 @@ class BisnisController {
         res,
         "Bisnis preview data fetched successfully",
         data,
-        { page, limit, totalItems: data.length },
+        { page, limit: 6, totalItems: data.length },
       );
     } catch (error) {
       logger.error("An error occurred while fetching bisnis preview data", {
