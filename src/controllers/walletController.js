@@ -64,7 +64,9 @@ class WalletController {
           externalId: external_id,
           tanggal: trx.created_at || new Date(),
         }).catch((emailErr) => {
-          logger.error("Failed to send top up pending email", { error: emailErr });
+          logger.error("Failed to send top up pending email", {
+            error: emailErr,
+          });
         });
       }
 
@@ -100,29 +102,38 @@ class WalletController {
       let bankAccount;
       if (user_bank_account_id) {
         bankAccount = await trx("user_bank_accounts")
-          .select(
-            "user_bank_accounts.*",
-            "supported_banks.name as bank_name"
+          .select("user_bank_accounts.*", "supported_banks.name as bank_name")
+          .leftJoin(
+            "supported_banks",
+            "user_bank_accounts.bank_id",
+            "supported_banks.id",
           )
-          .leftJoin("supported_banks", "user_bank_accounts.bank_id", "supported_banks.id")
-          .where({ "user_bank_accounts.id": user_bank_account_id, "user_bank_accounts.user_id": user_id })
+          .where({
+            "user_bank_accounts.id": user_bank_account_id,
+            "user_bank_accounts.user_id": user_id,
+          })
           .first();
       } else {
         bankAccount = await trx("user_bank_accounts")
-          .select(
-            "user_bank_accounts.*",
-            "supported_banks.name as bank_name"
+          .select("user_bank_accounts.*", "supported_banks.name as bank_name")
+          .leftJoin(
+            "supported_banks",
+            "user_bank_accounts.bank_id",
+            "supported_banks.id",
           )
-          .leftJoin("supported_banks", "user_bank_accounts.bank_id", "supported_banks.id")
-          .where({ "user_bank_accounts.user_id": user_id, "user_bank_accounts.is_primary": true })
+          .where({
+            "user_bank_accounts.user_id": user_id,
+            "user_bank_accounts.is_primary": true,
+          })
           .first();
         if (!bankAccount) {
           bankAccount = await trx("user_bank_accounts")
-            .select(
-              "user_bank_accounts.*",
-              "supported_banks.name as bank_name"
+            .select("user_bank_accounts.*", "supported_banks.name as bank_name")
+            .leftJoin(
+              "supported_banks",
+              "user_bank_accounts.bank_id",
+              "supported_banks.id",
             )
-            .leftJoin("supported_banks", "user_bank_accounts.bank_id", "supported_banks.id")
             .where({ "user_bank_accounts.user_id": user_id })
             .first();
         }
@@ -137,7 +148,10 @@ class WalletController {
         );
       }
 
-      const user = await trx("users").where({ id: user_id }).forUpdate().first();
+      const user = await trx("users")
+        .where({ id: user_id })
+        .forUpdate()
+        .first();
       if (!user) {
         await trx.rollback();
         return ResponseHelper.error(res, "User not found", 404);
@@ -153,7 +167,9 @@ class WalletController {
       }
 
       const updatedSaldo = parseFloat(user.saldo) - parseFloat(jumlah);
-      await trx("users").where({ id: user_id }).update({ saldo: updatedSaldo, updated_at: trx.fn.now() });
+      await trx("users")
+        .where({ id: user_id })
+        .update({ saldo: updatedSaldo, updated_at: trx.fn.now() });
 
       const external_id = `withdraw-${Date.now()}-${user_id}`;
 
@@ -180,7 +196,9 @@ class WalletController {
           externalId: external_id,
           tanggal: txn.created_at || new Date(),
         }).catch((emailErr) => {
-          logger.error("Failed to send withdrawal pending email", { error: emailErr });
+          logger.error("Failed to send withdrawal pending email", {
+            error: emailErr,
+          });
         });
       }
 
@@ -249,7 +267,10 @@ class WalletController {
         );
       }
 
-      const user = await trx("users").where({ id: user_id }).forUpdate().first();
+      const user = await trx("users")
+        .where({ id: user_id })
+        .forUpdate()
+        .first();
       if (!user) {
         await trx.rollback();
         return ResponseHelper.error(res, "User tidak ditemukan", 404);
@@ -266,7 +287,9 @@ class WalletController {
 
       const updatedSaldo =
         parseFloat(user.saldo) - parseFloat(invoice.total_nominal);
-      await trx("users").where({ id: user_id }).update({ saldo: updatedSaldo, updated_at: trx.fn.now() });
+      await trx("users")
+        .where({ id: user_id })
+        .update({ saldo: updatedSaldo, updated_at: trx.fn.now() });
 
       const updatedInvoice = await Invoice.updateStatus(
         invoice.id,
@@ -299,7 +322,10 @@ class WalletController {
         Number(pengajuan.total_pendanaan) + Number(invoice.nominal_tagihan);
 
       let statusBaru = pengajuan.status;
-      if (pengajuan.status === "waiting_payment" || totalDanaBaru >= pengajuan.target_pendanaan) {
+      if (
+        pengajuan.status === "waiting_payment" ||
+        totalDanaBaru >= pengajuan.target_pendanaan
+      ) {
         statusBaru = "funded";
       }
 
@@ -352,6 +378,12 @@ class WalletController {
     } catch (err) {
       await trx.rollback();
       logger.error("Error in payInvoiceViaWallet", { error: err });
+      console.error(
+        "ACTUAL ERROR payInvoiceViaWallet:",
+        err.message,
+        "\nSTACK:",
+        err.stack,
+      );
       return ResponseHelper.serverError(
         res,
         "An error occurred while paying invoice via wallet",
@@ -495,7 +527,10 @@ class WalletController {
 
       const { status } = req.body;
 
-      const transaction = await trx("transaksis").where({ id }).forUpdate().first();
+      const transaction = await trx("transaksis")
+        .where({ id })
+        .forUpdate()
+        .first();
       if (!transaction) {
         await trx.rollback();
         return ResponseHelper.error(res, "Transaksi tidak ditemukan", 404);
@@ -519,7 +554,10 @@ class WalletController {
         );
       }
 
-      const user = await trx("users").where({ id: transaction.user_id }).forUpdate().first();
+      const user = await trx("users")
+        .where({ id: transaction.user_id })
+        .forUpdate()
+        .first();
       if (!user) {
         await trx.rollback();
         return ResponseHelper.error(
@@ -533,7 +571,9 @@ class WalletController {
       if (status === "failed") {
         const refundedSaldo =
           parseFloat(user.saldo) + parseFloat(transaction.jumlah);
-        await trx("users").where({ id: transaction.user_id }).update({ saldo: refundedSaldo, updated_at: trx.fn.now() });
+        await trx("users")
+          .where({ id: transaction.user_id })
+          .update({ saldo: refundedSaldo, updated_at: trx.fn.now() });
 
         updatedTransaction = await Transaksi.updateStatus(id, "failed", trx);
       } else {
@@ -549,7 +589,9 @@ class WalletController {
             externalId: transaction.external_id,
             tanggal: updatedTransaction.updated_at || new Date(),
           }).catch((emailErr) => {
-            logger.error("Failed to send withdrawal success email", { error: emailErr });
+            logger.error("Failed to send withdrawal success email", {
+              error: emailErr,
+            });
           });
         } else if (status === "failed") {
           const refundedSaldo =
@@ -561,7 +603,9 @@ class WalletController {
             tanggal: updatedTransaction.updated_at || new Date(),
             alasan: req.body.alasan || "Ditolak oleh Admin",
           }).catch((emailErr) => {
-            logger.error("Failed to send withdrawal failed email", { error: emailErr });
+            logger.error("Failed to send withdrawal failed email", {
+              error: emailErr,
+            });
           });
         }
       }

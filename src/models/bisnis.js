@@ -194,7 +194,7 @@ class Bisnis extends BaseModel {
     }
   }
 
-  async getBisnisById(id, role = null) {
+  async getBisnisById(id, role = null, trx = this.knex) {
     try {
       const row = await this.#baseQuery(role).where("bisnis.id", id).first();
       return this.#formatResponse(row);
@@ -282,6 +282,24 @@ class Bisnis extends BaseModel {
         updated_at: this.knex.fn.now(),
       });
       return await this.getBisnisById(id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async canDelete(id, trx = this.knex) {
+    try {
+      const activeFunding = await trx("pengajuans")
+        .where("bisnis_id", id)
+        .whereIn("status", ["negotiating", "waiting_payment", "funded"])
+        .first();
+
+      const hasInvestments = await trx("investasis")
+        .join("pengajuans", "investasis.pengajuans_id", "pengajuans.id")
+        .where("pengajuans.bisnis_id", id)
+        .first();
+
+      return !activeFunding && !hasInvestments;
     } catch (error) {
       throw error;
     }
