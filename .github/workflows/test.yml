@@ -32,16 +32,13 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Create .env.test from secret
-        run: echo "${{ secrets.ENV_TEST }}" > .env.test
-
       - run: npm install
 
       - name: Run unit tests
         run: npm run test:unit
 
       - name: Run DB migrations
-        run: npx knex migrate:latest
+        run: npx knex migrate:latest --env test
 
       - name: Run integration tests
         run: npm run test:integration
