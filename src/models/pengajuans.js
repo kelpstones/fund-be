@@ -12,7 +12,7 @@ class Pengajuan extends BaseModel {
       target_pendanaan: row.target_pendanaan,
       total_pendanaan: row.total_pendanaan,
       per_anual_return: row.per_anual_return,
-      deskripsi_peluang: row.deskripsi_peluang || row.deskrispsi_peluang,
+      deskripsi_peluang: row.deskripsi_peluang,
       rencana_penggunaan_dana: row.rencana_penggunaan_dana,
       status: row.status,
       bisnis_id: row.bisnis_id,

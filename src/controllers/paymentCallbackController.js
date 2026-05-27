@@ -214,12 +214,6 @@ class PaymentCallbackController {
     } catch (err) {
       await trx.rollback();
       logger.error("Error in Xendit callback handler", { error: err });
-      console.error(
-        "ACTUAL ERROR xenditCallback:",
-        err.message,
-        "\nSTACK:",
-        err.stack,
-      );
       return ResponseHelper.serverError(
         res,
         "An error occurred while processing callback",
