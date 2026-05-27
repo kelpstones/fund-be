@@ -145,6 +145,7 @@ class PenjualansController {
     try {
       const { page = 1, limit = 10 } = req.query;
       const { pengajuans_id } = req.params;
+      logger.info("Fetching penjualan data for pengajuan_id", { pengajuans_id });
       const data = await Penjualans.getPenjualanByPengajuanId(pengajuans_id);
       if (!data || data.length === 0) {
         return ResponseHelper.error(
