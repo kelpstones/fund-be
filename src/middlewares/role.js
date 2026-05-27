@@ -16,7 +16,7 @@ exports.authorize = (...allowedRoles) => {
     }
 
     const userRole = account.role_name || account.level;
-    console.log("User Role:", userRole);
+    // console.log("User Role:", userRole);
     // console.log("Allowed Roles:", allowedRoles);
     if (!allowedRoles.includes(userRole)) {
       logger.warn("Unauthorized access attempt", {
