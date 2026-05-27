@@ -29,7 +29,7 @@ class BisnisController {
   async getBisnisPreview(req, res) {
     try {
       const { page } = req.query;
-      const data = await Bisnis.getAllBisnis(page, 6, "");
+      const data = await Bisnis.getAllBisnis();
       return responseHelper.withPagination(
         res,
         "Bisnis preview data fetched successfully",
