@@ -33,6 +33,7 @@ class HealthController {
 
     return res.status(allHealthy ? 200 : 503).json({
       status: allHealthy ? "healthy" : "degraded",
+      statusCode: allHealthy ? 200 : 503,
       timestamp: new Date().toISOString(),
       uptime: Math.floor(process.uptime()),
       services: {
