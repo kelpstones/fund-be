@@ -9,14 +9,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      NODE_ENV: test
-      DB_HOST: localhost
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: fund_test
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      API_KEY: ${{ secrets.API_KEY }}
 
     services:
       postgres:
@@ -39,6 +31,9 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
+
+      - name: Create .env.test from secret
+        run: echo "${{ secrets.ENV_TEST }}" > .env.test
 
       - run: npm install
 
