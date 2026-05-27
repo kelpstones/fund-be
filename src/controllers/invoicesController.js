@@ -55,10 +55,16 @@ class InvoicesController {
         return ResponseHelper.error(res, "Invoice not found", 404);
       }
 
-      const isAdmin = ["admin", "superadmin"].includes(req.user.role_name);
+      const currentUser = req.user || req.admin;
+      if (!currentUser) {
+        await trx.rollback();
+        return ResponseHelper.unauthorized(res, "Unauthorized");
+      }
+
+      const isAdmin = ["admin", "superadmin"].includes(currentUser.level || currentUser.role_name);
       const isOwner =
-        invoice.investor?.id === req.user.id ||
-        invoice.detail_pengajuan?.id_pemilik === req.user.id;
+        invoice.investor?.id === currentUser.id ||
+        invoice.detail_pengajuan?.id_pemilik === currentUser.id;
 
       if (!isAdmin && !isOwner) {
         await trx.rollback();
@@ -125,10 +131,7 @@ class InvoicesController {
     try {
       await Invoice.checkAndCancelExpiredInvoices(trx);
       const { id: kode_pembayaran } = req.params;
-      await trx("invoices")
-        .where({ kode_pembayaran })
-        .forUpdate()
-        .first();
+      await trx("invoices").where({ kode_pembayaran }).forUpdate().first();
 
       const invoice = await Invoice.getInvoiceByKodePembayaran(
         kode_pembayaran,
@@ -178,7 +181,10 @@ class InvoicesController {
         Number(pengajuan.total_pendanaan) + Number(invoice.nominal_tagihan);
 
       let statusBaru = pengajuan.status;
-      if (pengajuan.status === "waiting_payment" || totalDanaBaru >= pengajuan.target_pendanaan) {
+      if (
+        pengajuan.status === "waiting_payment" ||
+        totalDanaBaru >= pengajuan.target_pendanaan
+      ) {
         statusBaru = "funded";
       }
 
