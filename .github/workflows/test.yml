@@ -38,7 +38,7 @@ jobs:
         run: npm run test:unit
 
       - name: Run DB migrations
-        run: npx knex migrate:latest --env test
+        run: npx dotenvx run --env-file=.env.test -- npx knex migrate:latest --env test
 
       - name: Run integration tests
         run: npm run test:integration
