@@ -2,7 +2,8 @@ const responseHelper = require("../utils/index").ResponseHelper;
 const logger = require("../utils/index").logger;
 exports.validateApiKey = (req, res, next) => {
   const isXenditCallback =
-    req.method === "POST" && req.path === "/wallet/xendit-callback";
+    req.method === "POST" &&
+    req.originalUrl.startsWith("/api/v1/wallet/xendit-callback");
 
   if (isXenditCallback) {
     return next();
