@@ -213,6 +213,7 @@ class PaymentCallbackController {
       return ResponseHelper.error(res, "Unknown external_id format", 400);
     } catch (err) {
       await trx.rollback();
+      console.error("Error in Xendit callback handler:", err);
       logger.error("Error in Xendit callback handler", { error: err });
       return ResponseHelper.serverError(
         res,

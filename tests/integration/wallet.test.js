@@ -380,7 +380,6 @@ describe("Wallet & Xendit Callback Integration Tests", () => {
     it("harus ditolak jika callback token tidak valid", async () => {
       const res = await request(app)
         .post("/api/v1/wallet/xendit-callback")
-        .set("x-api-key", API_KEY)
         .set("x-callback-token", "salah-token")
         .send({ external_id: "topup-123", status: "PAID", amount: 100000 });
 
@@ -405,7 +404,6 @@ describe("Wallet & Xendit Callback Integration Tests", () => {
       // Fire webhook callback
       const res = await request(app)
         .post("/api/v1/wallet/xendit-callback")
-        .set("x-api-key", API_KEY)
         .set("x-callback-token", CALLBACK_TOKEN)
         .send({
           external_id,
@@ -449,7 +447,6 @@ describe("Wallet & Xendit Callback Integration Tests", () => {
       // Fire webhook callback
       const res = await request(app)
         .post("/api/v1/wallet/xendit-callback")
-        .set("x-api-key", API_KEY)
         .set("x-callback-token", CALLBACK_TOKEN)
         .send({
           external_id,

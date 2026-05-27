@@ -10,7 +10,7 @@ if (process.env.NODE_ENV === "test") {
 const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
-const { Key, RateLimiter } = require("./middlewares");
+const { Key, RateLimiter, AntiScanner } = require("./middlewares");
 const morgan = require("morgan");
 const Routes = require("./routes/index");
 const response = require("./utils/index").ResponseHelper;
@@ -55,6 +55,7 @@ app.use(
 );
 
 app.use(cors(corsOptions));
+app.use(AntiScanner.blockScanners);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(Key.validateApiKey);
