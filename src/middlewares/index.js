@@ -5,6 +5,7 @@ const BisnisProfile = require("./requireBisnisProfile");
 const RateLimiter = require("./rateLimiter");
 const checkPengajuanLocked = require('./checkPengajuanLocked');
 const checkNegosiasiAktif  = require('./checkNegosiasiAktif');
+const AntiScanner = require("./antiScanner");
 module.exports = {
   Auth,
   Key,
@@ -13,4 +14,5 @@ module.exports = {
   RateLimiter,
   checkPengajuanLocked,
   checkNegosiasiAktif,
+  AntiScanner,
 };
