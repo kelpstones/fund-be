@@ -13,6 +13,7 @@ const BisnisCoverRoutes = require("./bisnisCoverRoutes");
 const BisnisDokumenRoutes = require("./bisnisDokumenRoutes");
 const WalletRoutes = require("./walletRoutes");
 const SupportedBankController = require("../controllers/supportedBankController");
+const HealthController = require("../controllers/healthController");
 class Routes {
   constructor() {
     this.router = router;
@@ -28,6 +29,7 @@ class Routes {
     this.bisnisDokumenRoutes = new BisnisDokumenRoutes();
     this.walletRoutes = new WalletRoutes();
     this.supportedBankController = new SupportedBankController();
+    this.healthController = new HealthController();
   }
 
   routes() {
@@ -51,7 +53,11 @@ class Routes {
     });
 
     this.router.get("/health", (req, res) => {
-      response.success(res, "API is healthy");
+      this.healthController.checkAll(req, res);
+    });
+
+    this.router.get("/health/ping", (req, res) => {
+      this.healthController.ping(req, res);
     });
 
     this.router.get("/", (req, res) => {

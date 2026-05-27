@@ -12,6 +12,7 @@ jobs:
     env:
       NODE_ENV: test
       DB_HOST: localhost
+      DB_PORT: 5432
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: fund_test
@@ -46,7 +47,7 @@ jobs:
         run: npm run test:unit
 
       - name: Run DB migrations
-        run: npx knex migrate:latest
+        run: npx knex migrate:latest --env test
 
       - name: Run integration tests
         run: npm run test:integration

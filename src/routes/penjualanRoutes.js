@@ -21,7 +21,7 @@ class PenjualanRoutes {
     });
 
     this.router.get(
-      "/pengajuan",
+      "/sales-by-pengajuan/:pengajuans_id",
       Role.authorize("umkm", "investor", "superadmin", "admin"),
       (req, res) => {
         this.penjualansController.getPenjualanByPengajuanId(req, res);

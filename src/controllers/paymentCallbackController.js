@@ -25,16 +25,27 @@ class PaymentCallbackController {
       }
 
       const { external_id, status, amount } = req.body || {};
-      logger.info("Received Xendit callback notification", { external_id, status, amount });
+      logger.info("Received Xendit callback notification", {
+        external_id,
+        status,
+        amount,
+      });
 
       if (!external_id || typeof external_id !== "string") {
         await trx.rollback();
-        return ResponseHelper.error(res, "external_id is required and must be a string", 400);
+        return ResponseHelper.error(
+          res,
+          "external_id is required and must be a string",
+          400,
+        );
       }
 
       if (status !== "PAID") {
         await trx.rollback();
-        return ResponseHelper.success(res, "Callback received but status is not PAID");
+        return ResponseHelper.success(
+          res,
+          "Callback received but status is not PAID",
+        );
       }
 
       if (external_id.startsWith("topup-")) {
@@ -43,14 +54,19 @@ class PaymentCallbackController {
           .forUpdate()
           .first();
         if (!transaksi) {
-          logger.warn("Transaction not found for top-up callback", { external_id });
+          logger.warn("Transaction not found for top-up callback", {
+            external_id,
+          });
           await trx.rollback();
           return ResponseHelper.error(res, "Transaction not found", 404);
         }
 
         if (transaksi.status === "completed") {
           await trx.rollback();
-          return ResponseHelper.success(res, "Transaction is already completed");
+          return ResponseHelper.success(
+            res,
+            "Transaction is already completed",
+          );
         }
 
         await Transaksi.updateStatus(transaksi.id, "completed", trx);
@@ -60,11 +76,14 @@ class PaymentCallbackController {
           .forUpdate()
           .first();
         if (!user) {
-          logger.warn("User not found for top-up callback", { userId: transaksi.user_id });
+          logger.warn("User not found for top-up callback", {
+            userId: transaksi.user_id,
+          });
           await trx.rollback();
           return ResponseHelper.error(res, "User not found", 404);
         }
-        const updatedSaldo = parseFloat(user.saldo) + parseFloat(transaksi.jumlah);
+        const updatedSaldo =
+          parseFloat(user.saldo) + parseFloat(transaksi.jumlah);
         await trx("users")
           .where({ id: transaksi.user_id })
           .update({ saldo: updatedSaldo, updated_at: trx.fn.now() });
@@ -83,22 +102,30 @@ class PaymentCallbackController {
             externalId: external_id,
             tanggal: new Date(),
           }).catch((emailErr) => {
-            logger.error("Failed to send top up success email", { error: emailErr });
+            logger.error("Failed to send top up success email", {
+              error: emailErr,
+            });
           });
         }
 
-        return ResponseHelper.success(res, "Callback processed successfully (Top-up completed)");
+        return ResponseHelper.success(
+          res,
+          "Callback processed successfully (Top-up completed)",
+        );
       }
 
       if (external_id.startsWith("invoice-")) {
         const kodePembayaran = external_id.replace("invoice-", "");
-        
+
         await trx("invoices")
           .where({ kode_pembayaran: kodePembayaran })
           .forUpdate()
           .first();
 
-        const invoice = await Invoice.getInvoiceByKodePembayaran(kodePembayaran, trx);
+        const invoice = await Invoice.getInvoiceByKodePembayaran(
+          kodePembayaran,
+          trx,
+        );
         if (!invoice) {
           logger.warn("Invoice not found for callback", { external_id });
           await trx.rollback();
@@ -110,7 +137,11 @@ class PaymentCallbackController {
           return ResponseHelper.success(res, "Invoice is already processed");
         }
 
-        const updatedInvoice = await Invoice.updateStatus(invoice.id, "paid", trx);
+        const updatedInvoice = await Invoice.updateStatus(
+          invoice.id,
+          "paid",
+          trx,
+        );
 
         await investasi.createInvestasi(
           {
@@ -120,7 +151,7 @@ class PaymentCallbackController {
             nominal_investasi: invoice.nominal_tagihan,
             return_investasi: invoice.detail_pengajuan.per_annual,
           },
-          trx
+          trx,
         );
 
         await trx("pengajuans")
@@ -130,14 +161,17 @@ class PaymentCallbackController {
 
         const pengajuan = await pengajuans.getPengajuanById(
           invoice.detail_pengajuan.id,
-          trx
+          trx,
         );
 
         const totalDanaBaru =
           Number(pengajuan.total_pendanaan) + Number(invoice.nominal_tagihan);
 
         let statusBaru = pengajuan.status;
-        if (pengajuan.status === "waiting_payment" || totalDanaBaru >= pengajuan.target_pendanaan) {
+        if (
+          pengajuan.status === "waiting_payment" ||
+          totalDanaBaru >= pengajuan.target_pendanaan
+        ) {
           statusBaru = "funded";
         }
 
@@ -149,7 +183,7 @@ class PaymentCallbackController {
           statusBaru,
           pengajuan.deskripsi_peluang,
           pengajuan.rencana_penggunaan_dana,
-          trx
+          trx,
         );
 
         await Transaksi.createTransaksi(
@@ -161,7 +195,7 @@ class PaymentCallbackController {
             status: "completed",
             deskripsi: `Direct Payment Investasi via Xendit untuk bisnis: ${invoice.detail_pengajuan.nama_bisnis}`,
           },
-          trx
+          trx,
         );
 
         await trx.commit();
@@ -169,7 +203,10 @@ class PaymentCallbackController {
           external_id,
           invoiceId: invoice.id,
         });
-        return ResponseHelper.success(res, "Callback processed successfully (Direct payment completed)");
+        return ResponseHelper.success(
+          res,
+          "Callback processed successfully (Direct payment completed)",
+        );
       }
 
       await trx.rollback();
@@ -177,7 +214,10 @@ class PaymentCallbackController {
     } catch (err) {
       await trx.rollback();
       logger.error("Error in Xendit callback handler", { error: err });
-      return ResponseHelper.serverError(res, "An error occurred while processing callback");
+      return ResponseHelper.serverError(
+        res,
+        "An error occurred while processing callback",
+      );
     }
   }
 }

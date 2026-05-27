@@ -4,6 +4,7 @@ const { BisnisValidator, PengajuanValidator } = require("../validation");
 const pengajuans = require("../models/pengajuans");
 const logger = require("../utils/index").logger;
 const { cloudinary } = require("../config/cloudinary");
+const knex = require("../config/db");
 
 class BisnisController {
   async getBisnis(req, res) {
@@ -263,23 +264,39 @@ class BisnisController {
   }
 
   async deleteBisnis(req, res) {
+    const trx = await knex.transaction();
     try {
       const { id } = req.params;
       const user = req.user;
-      const existingBisnis = await Bisnis.getBisnisById(id);
+      const existingBisnis = await Bisnis.getBisnisById(id, null, trx);
       if (!existingBisnis) {
+        await trx.rollback();
         return responseHelper.error(res, "Bisnis not found", 404);
       }
       if (existingBisnis.pemilik.id !== user.id) {
+        await trx.rollback();
         return responseHelper.error(
           res,
           "Unauthorized to delete this bisnis",
           403,
         );
       }
-      const result = await Bisnis.deleteBisnis(id);
+
+      const canDelete = await Bisnis.canDelete(id, trx);
+      if (!canDelete) {
+        await trx.rollback();
+        return responseHelper.error(
+          res,
+          "Tidak dapat menghapus bisnis karena memiliki investasi atau proses pendanaan yang sedang aktif/berjalan",
+          400,
+        );
+      }
+
+      const result = await Bisnis.deleteBisnis(id, trx);
+      await trx.commit();
       return responseHelper.success(res, "Bisnis deleted successfully", result);
     } catch (error) {
+      await trx.rollback();
       logger.error("An error occurred while deleting bisnis data", { error });
       return responseHelper.serverError(
         res,
