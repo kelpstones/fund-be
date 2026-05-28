@@ -5,6 +5,13 @@ Backend API untuk aplikasi pendanaan (FundRaise) berbasis Node.js, Express, dan 
 > [!NOTE]
 > Proyek ini merupakan Capstone Project untuk program Coding Camp 2026 yang diselenggarakan dan didukung penuh oleh DBS Foundation x Dicoding.
 
+## Repositori Terkait
+
+Proyek backend ini merupakan bagian dari ekosistem aplikasi FundRaise. Berikut adalah repositori terkait lainnya:
+- **Frontend Application (fund-fe)**: [github.com/kelpstones/fund-fe](https://github.com/kelpstones/fund-fe)
+- **AI Service (fund-ai)**: [github.com/kelpstones/fund-ai](https://github.com/kelpstones/fund-ai)
+- **Data Science (fund-ds)**: [github.com/kelpstones/fund-ds](https://github.com/kelpstones/fund-ds)
+
 ---
 
 ## Fitur Utama
@@ -70,64 +77,6 @@ Aplikasi backend ini dilengkapi dengan fitur-fitur tingkat lanjut berikut:
 ├── knexfile.js                   # Konfigurasi lingkungan Knex (dev, test, prod)
 └── package.json                  # Konfigurasi proyek, skrip, dan dependensi npm
 ```
-
----
-
-## Panduan Memulai Pengembangan
-
-Layanan ini dapat dijalankan menggunakan Docker atau secara manual pada mesin lokal.
-
-### Persyaratan Sistem
-- Node.js (versi 18 ke atas) atau Docker Desktop
-- PostgreSQL (jika dijalankan tanpa Docker)
-- Redis (jika dijalankan tanpa Docker)
-
----
-
-### Metode 1: Menggunakan Docker Compose (Direkomendasikan)
-
-Docker Compose akan secara otomatis mengonfigurasi dan menjalankan container Express API, PostgreSQL, dan Redis tanpa memerlukan instalasi database lokal.
-
-1. Pastikan file `.env` sudah dikonfigurasi (silakan salin dari `.env.example`).
-2. Jalankan perintah berikut pada direktori utama proyek:
-   ```bash
-   docker-compose up -d --build
-   ```
-3. Docker Compose akan memvalidasi kesiapan database PostgreSQL, menjalankan migrasi database, memuat data seeder secara otomatis, lalu memulai server Node.js pada port yang telah ditentukan (Default: `5000`).
-4. Untuk menghentikan layanan container:
-   ```bash
-   docker-compose down
-   ```
-
----
-
-### Metode 2: Instalasi Manual
-
-Jika Anda ingin menjalankan layanan secara lokal tanpa Docker:
-
-1. Unduh repositori ini dan masuk ke direktori proyek.
-2. Instal dependensi npm:
-   ```bash
-   npm install
-   ```
-3. Konfigurasi Environment:
-   Salin `.env.example` menjadi `.env` dan sesuaikan nilainya dengan konfigurasi PostgreSQL, Redis, dan SMTP lokal Anda:
-   ```bash
-   cp .env.example .env
-   ```
-4. Jalankan Migrasi dan Seeding Database:
-   ```bash
-   # Menjalankan migrasi skema database
-   npx knex migrate:latest
-
-   # Memuat data awal (seed) ke database
-   npx knex seed:run
-   ```
-5. Jalankan Aplikasi dalam Mode Pengembangan:
-   ```bash
-   npm run dev
-   ```
-   Server akan berjalan melalui Nodemon pada alamat: `http://localhost:5000`
 
 ---
 
@@ -410,6 +359,19 @@ npm run test:coverage
 
 ---
 
+## Tim Pengembang
+
+Berikut adalah daftar anggota tim pengembangan proyek ini:
+- **CFCC009D6Y2535 - Muhamad Danendra Prawiraamijoyo** — *Full-Stack Web Developer*
+- **CFCC009D6Y0777 - Azra Hudaya** — *Full-Stack Web Developer*
+- **CACC009D6Y0708 - Aldi Kurnia Fadillah** — *AI Engineer*
+- **CDCC676D6Y2392 - Andika Ardiansyah** — *Data Scientist*
+- **CDCC009D6Y0748 - Adam Kevin** — *Data Scientist*
+- **CACC009D6Y0718 - Yazid Hilmi Allamsyah** — *AI Engineer*
+
+---
+
 ## Lisensi
 
 Aplikasi ini dilisensikan di bawah lisensi **ISC**. Hak cipta dilindungi undang-undang.
+
