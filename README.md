@@ -80,9 +80,16 @@ Aplikasi backend ini dilengkapi dengan fitur-fitur tingkat lanjut berikut:
 
 ---
 
-## Konfigurasi Environment (`.env`)
+## Petunjuk Setup Environment
 
-Berikut adalah beberapa variabel lingkungan penting yang perlu dikonfigurasi di dalam file `.env`:
+Untuk menjalankan proyek backend ini, Anda perlu menyiapkan konfigurasi lingkungan kerja (environment setup) dengan langkah-langkah berikut:
+
+1. Buat file `.env` di root direktori proyek dengan menyalin template `.env.example`:
+   ```bash
+   cp .env.example .env
+   ```
+2. Sesuaikan konfigurasi variabel lingkungan di bawah ini:
+
 
 | Variabel | Deskripsi | Nilai Default / Contoh |
 | :--- | :--- | :--- |
@@ -278,9 +285,27 @@ Semua request yang dikirimkan ke server API wajib menyertakan header berikut:
 | **PUT** | `/admin/:id` | `x-api-key`, `Authorization` | Path: `id` | `fullname`, `email` | `superadmin` |
 | **DELETE**| `/admin/:id` | `x-api-key`, `Authorization` | Path: `id` | - | `superadmin` |
 
+
 ---
 
-## Panduan Memulai Pengembangan
+## Tautan Model Machine Learning
+
+Sistem rekomendasi pada platform FundRaise ditenagai oleh model Machine Learning yang memproses preferensi investasi investor untuk mencocokkan peluang investasi UMKM yang relevan.
+
+- **Tautan Repositori Model ML**: Anda dapat mengakses repositori Data Science dan Machine Learning di [github.com/kelpstones/fund-ds](https://github.com/kelpstones/fund-ds).
+- **Prosedur Mengunduh (Download) Model**:
+  1. Kunjungi rilis repositori atau direktori penyimpanan model di [fund-ds](https://github.com/kelpstones/fund-ds).
+  2. Unduh file model serialisasi (misalnya file biner model `.pkl`).
+- **Prosedur Memuat (Load) dan Menjalankan Service Model**:
+  1. Unduh proyek server API untuk AI di [github.com/kelpstones/fund-ai](https://github.com/kelpstones/fund-ai).
+  2. Ikuti instruksi setup environment Python dan jalankan pemasangan dependensi melalui `pip install -r requirements.txt`.
+  3. Letakkan file model yang telah diunduh pada folder penyimpanan model di server AI tersebut.
+  4. Jalankan server FastAPI menggunakan Uvicorn (secara default berjalan pada `http://localhost:8000`).
+  5. Konfigurasikan variabel `ML_MODEL_URL` di dalam file `.env` proyek backend ini ke alamat `http://localhost:8000` agar backend dapat terintegrasi untuk memuat rekomendasi secara realtime.
+
+---
+
+## Cara Menjalankan Aplikasi
 
 Layanan ini dapat dijalankan menggunakan Docker atau secara manual pada mesin lokal.
 
