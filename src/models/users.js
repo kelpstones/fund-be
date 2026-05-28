@@ -194,7 +194,7 @@ class User extends BaseModel {
       const row = await this.#baseQuery(false, trx)
         .where("users.id", id)
         .first();
-      return this.#formatResponse(row);
+      return this.#formatResponse(row, { includeTelp: true });
     } catch (error) {
       throw error;
     }
@@ -244,7 +244,7 @@ class User extends BaseModel {
         0,
       );
 
-      const result = this.#formatResponse(row);
+      const result = this.#formatResponse(row, { includeTelp: true });
       result.investasi = investasis;
       result.total_investasi = total_investasi;
       return result;
@@ -261,6 +261,7 @@ class User extends BaseModel {
       return this.#formatResponse(row, {
         includePassword: true,
         includeNik: true,
+        includeTelp: true,
       });
     } catch (error) {
       throw error;

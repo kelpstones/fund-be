@@ -85,6 +85,13 @@ class PreferensiInvestorController {
       );
     } catch (error) {
       logger.error("Error submitPreferensi", { error });
+      if (error?.code === "22003") {
+        return responseHelper.error(
+          res,
+          "Nilai year_revenue terlalu besar untuk diproses",
+          400,
+        );
+      }
       return responseHelper.serverError(res, error);
     }
   }

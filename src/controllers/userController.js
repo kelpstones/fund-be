@@ -70,9 +70,9 @@ class UserController {
 
       //   validate no_telp uniqueness
       if (no_telp && no_telp !== user.no_telp) {
-        await trx.rollback();
         const checkNoTelp = await User.getUserByNoTelp(no_telp);
         if (checkNoTelp) {
+          await trx.rollback();
           return responseHelper.error(res, "Phone number already exists", 400);
         }
       }
@@ -97,6 +97,7 @@ class UserController {
         { nama, email, no_telp },
         trx,
       );
+      await trx.commit();
       return responseHelper.success(
         res,
         "User profile updated successfully",
@@ -110,8 +111,6 @@ class UserController {
         "An error occurred while updating user profile",
         500,
       );
-    } finally {
-      await trx.commit();
     }
   }
 
