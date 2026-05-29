@@ -17,6 +17,7 @@ class Personalisasi extends BaseModel {
         nama_bisnis: row.bisnis_nama,
         alamat: row.bisnis_alamat,
         deskripsi: row.bisnis_deskripsi,
+        tipe_usaha: row.bisnis_tipe_usaha,
         kelas: {
           id: row.kelas_id,
           nama_kelas: row.kelas_nama,
@@ -38,6 +39,7 @@ class Personalisasi extends BaseModel {
         "bisnis.nama_bisnis as bisnis_nama",
         "bisnis.alamat as bisnis_alamat",
         "bisnis.deskripsi as bisnis_deskripsi",
+        "bisnis.tipe_usaha as bisnis_tipe_usaha",
         "kelas.id as kelas_id",
         "kelas.nama_kelas as kelas_nama",
       )
@@ -45,16 +47,25 @@ class Personalisasi extends BaseModel {
       .leftJoin("kelas", "kelas.id", "bisnis.kelas_id");
   }
 
- 
-  async upsertBatch(id_user, results = []) {
+  async upsertBatch(id_user, results = [], sectors = []) {
     try {
-     
       await this.knex(this.tableName).where({ investor_id: id_user }).del();
 
       if (results.length === 0) return [];
 
+      // Filter results to only include valid business IDs that exist in the database
+      const businessIds = results.map((r) => r.id_bisnis);
+      const validBusinesses = await this.knex("bisnis")
+        .whereIn("id", businessIds)
+        .select("id");
+      
+      const validBusinessIds = new Set(validBusinesses.map((b) => b.id));
+      const filteredResults = results.filter((r) => validBusinessIds.has(r.id_bisnis));
+
+      if (filteredResults.length === 0) return [];
+
       await this.knex(this.tableName).insert(
-        results.map((r) => ({
+        filteredResults.map((r) => ({
           investor_id: id_user,
           bisnis_id: r.id_bisnis,
           skor_kecocokan: r.skor_kecocokan,
@@ -63,17 +74,22 @@ class Personalisasi extends BaseModel {
         }))
       );
 
-      return await this.getByUserId(id_user);
+      return await this.getByUserId(id_user, 10, sectors);
     } catch (error) {
       throw error;
     }
   }
 
-  
-  async getByUserId(id_user, limit = 10) {
+  async getByUserId(id_user, limit = 10, sectors = []) {
     try {
-      const rows = await this.#baseQuery()
-        .where("personalisasi.investor_id", id_user)
+      let query = this.#baseQuery()
+        .where("personalisasi.investor_id", id_user);
+
+      if (sectors && sectors.length > 0) {
+        query = query.whereIn("bisnis.tipe_usaha", sectors);
+      }
+
+      const rows = await query
         .orderBy("personalisasi.skor_kecocokan", "desc")
         .limit(limit);
 
