@@ -12,7 +12,7 @@ class PenjualanRoutes {
   routes() {
     this.router.use(Auth.verifyAnyToken);
 
-    this.router.get("/", Role.authorize("superadmin", "admin"), (req, res) => {
+    this.router.get("/", Role.authorize("superadmin", "admin", "umkm"), (req, res) => {
       this.penjualansController.getAllPenjualan(req, res);
     });
 
