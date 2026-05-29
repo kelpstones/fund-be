@@ -6,7 +6,7 @@ const logger = require("../utils/index").logger;
 const redisClient = require("../utils/index").RedisClient;
 const axios = require("axios");
 const CACHE_KEY_ALL_PROFILES = "bisnis_profiles:all";
-const CACHE_TTL = 60 * 5;
+const CACHE_TTL = 60 * 60; // 1 jam
 
 class BisnisProfileController {
   async upsertProfile(req, res) {
