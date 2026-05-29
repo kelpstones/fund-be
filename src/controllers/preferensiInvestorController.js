@@ -5,17 +5,31 @@ const User = require("../models/users");
 const axios = require("axios");
 const logger = require("../utils/index").logger;
 const { PreferensiInvestorValidator } = require("../validation/index");
+const { mapQuestionnaireToMetrics, mapSektorToTipeUsaha } = require("../utils/preferenceMapper");
 class PreferensiInvestorController {
   async submitPreferensi(req, res) {
     try {
       const investor_id = req.user.id;
-      const {
+      
+      const hasQuestionnaire = ['tujuan_investasi', 'risk_tolerance', 'tipe_umkm', 'cara_memilih']
+        .some(key => req.body[key] !== undefined && req.body[key] !== null);
+
+      let {
         kepuasan_pelanggan,
         digital_adoption_score,
         net_profit_margin,
         year_revenue,
         business_tenure_years,
       } = req.body;
+
+      if (hasQuestionnaire) {
+        const mapped = mapQuestionnaireToMetrics(req.body);
+        kepuasan_pelanggan = kepuasan_pelanggan ?? mapped.kepuasan_pelanggan;
+        digital_adoption_score = digital_adoption_score ?? mapped.digital_adoption_score;
+        net_profit_margin = net_profit_margin ?? mapped.net_profit_margin;
+        year_revenue = year_revenue ?? mapped.year_revenue;
+        business_tenure_years = business_tenure_years ?? mapped.business_tenure_years;
+      }
 
       // Validasi field wajib
       const { error } =
@@ -55,10 +69,11 @@ class PreferensiInvestorController {
           year_revenue,
           business_tenure_years,
         });
-
+        
         logger.info("ML model response received", {
           investor_id,
           status: modelResponse.status,
+          data: modelResponse.data,
         });
         const results = modelResponse.data.results ?? [];
         logger.info("ML model returned results", {
@@ -123,7 +138,8 @@ class PreferensiInvestorController {
         );
       }
 
-      const data = await personalisasi.getByUserId(investor_id);
+      const sectors = mapSektorToTipeUsaha(req.query.sektor);
+      const data = await personalisasi.getByUserId(investor_id, 10, sectors);
 
       if (data.length === 0) {
         return responseHelper.success(
@@ -237,7 +253,8 @@ class PreferensiInvestorController {
       }
 
       const results = modelResponse.data.results ?? [];
-      const saved = await personalisasi.upsertBatch(investor_id, results);
+      const sectors = mapSektorToTipeUsaha(req.query.sektor);
+      const saved = await personalisasi.upsertBatch(investor_id, results, sectors);
 
       return responseHelper.success(
         res,
