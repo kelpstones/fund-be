@@ -86,7 +86,7 @@ const sendInvoiceEmail = async (to, nama, invoice, negosiasi = {}) => {
     const html = Loader.loadTemplate("invoice", {
       nama,
       invoiceNumber: invNumber,
-      invoiceUrl: `${process.env.FRONTEND_URL}/investor/invoice/${invoice.id}`,
+      invoiceUrl: `${process.env.FRONTEND_URL}/dashboard/investor/invoice`,
       tanggalInvoice: formatDate(invoice.created_at),
       jatuhTempo: formatDate(invoice.tenggat_waktu),
       companyName: process.env.SMTP_FROM_NAME || "Kelpstones",
@@ -124,7 +124,7 @@ const sendNegotiationStartEmail = async (
   { bisnis_nama, penawaran_nominal, penawaran_return, catatan, negosiasi_id },
 ) => {
   try {
-    const negosiasi_url = `${process.env.FRONTEND_URL}/umkm/negosiasi/${negosiasi_id}`;
+    const negosiasi_url = `${process.env.FRONTEND_URL}/dashboard/umkm/negosiasi`;
     const html = Loader.loadTemplate("negosiasiStart", {
       nama,
       bisnis_nama,
@@ -163,7 +163,7 @@ const sendNegotiationReplyEmail = async (
   try {
     const pengirim = diajukan_oleh === "investor" ? "Investor" : "UMKM";
     const recipientPath = diajukan_oleh === "investor" ? "umkm" : "investor";
-    const negosiasi_url = `${process.env.FRONTEND_URL}/${recipientPath}/negosiasi/${negosiasi_id}`;
+    const negosiasi_url = `${process.env.FRONTEND_URL}/dashboard/${recipientPath}/negosiasi`;
     const html = Loader.loadTemplate("negosiasiReply", {
       nama,
       bisnis_nama,
@@ -194,7 +194,8 @@ const sendNegotiationDealEmail = async (
   { bisnis_nama, penawaran_nominal, penawaran_return, negosiasi_id },
 ) => {
   try {
-    const negosiasi_url = `${process.env.FRONTEND_URL}/umkm/negosiasi/${negosiasi_id}`;
+    const recipientPath = "umkm"; 
+    const negosiasi_url = `${process.env.FRONTEND_URL}/dashboard/${recipientPath}/negosiasi`;
     const html = Loader.loadTemplate("negosiasiDeal", {
       nama,
       bisnis_nama,
@@ -223,12 +224,13 @@ const sendNegotiationRejectedEmail = async (
   { bisnis_nama, catatan, negosiasi_id },
 ) => {
   try {
-    const dashboard_url = `${process.env.FRONTEND_URL}/dashboard`;
+    const recipientPath = "umkm";
+    const negosiasi_url = `${process.env.FRONTEND_URL}/dashboard/${recipientPath}/negosiasi`;
     const html = Loader.loadTemplate("negosiasiRejected", {
       nama,
       bisnis_nama,
       catatan: catatan || "Tidak ada keterangan.",
-      dashboard_url,
+      negosiasi_url,
       companyName: process.env.SMTP_FROM_NAME || "Kelpstones",
     });
     const info = await transporter.sendMail({
