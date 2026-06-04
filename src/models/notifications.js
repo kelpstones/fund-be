@@ -72,6 +72,21 @@ class Notifications extends BaseModel {
     }
   }
 
+  async markAllAsRead(user_id, admin_id, trx = this.knex) {
+    try {
+      const query = trx(this.tableName).where("is_read", false);
+      if (admin_id) {
+        query.where("admin_id", admin_id);
+      } else {
+        query.where("user_id", user_id);
+      }
+      return await query.update({ is_read: true }).returning("*");
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      throw error;
+    }
+  }
+
   async deleteNotification(notification_id, trx = this.knex) {
     try {
       return await trx(this.tableName)

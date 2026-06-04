@@ -79,6 +79,26 @@ class NotificationsController {
       );
     }
   }
+
+  async markAllAsRead(req, res) {
+    try {
+      const userId = req.user ? req.user.id : null;
+      const adminId = req.admin ? req.admin.id : null;
+
+      const results = await Notifications.markAllAsRead(userId, adminId);
+      return responseHelper.success(
+        res,
+        "All notifications marked as read successfully",
+        results,
+      );
+    } catch (error) {
+      logger.error("An error occurred while marking all notifications as read", { error });
+      return responseHelper.serverError(
+        res,
+        "An error occurred while marking all notifications as read",
+      );
+    }
+  }
 }
 
 module.exports = NotificationsController;
