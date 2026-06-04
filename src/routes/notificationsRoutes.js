@@ -22,6 +22,14 @@ class NotificationsRoutes {
     );
 
     this.router.put(
+      "/mark-all-read",
+      Role.authorize("umkm", "investor", "superadmin", "admin"),
+      (req, res) => {
+        this.notificationsController.markAllAsRead(req, res);
+      },
+    );
+
+    this.router.put(
       "/:id",
       Role.authorize("umkm", "investor", "superadmin", "admin"),
       (req, res) => {
