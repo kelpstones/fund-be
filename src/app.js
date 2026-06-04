@@ -4,7 +4,8 @@ require("dotenv").config({
 
 if (process.env.NODE_ENV === "test") {
   if (!process.env.JWT_SECRET) process.env.JWT_SECRET = "test-jwt-secret";
-  if (!process.env.JWT_SECRET_ADMIN) process.env.JWT_SECRET_ADMIN = "test-jwt-secret-admin";
+  if (!process.env.JWT_SECRET_ADMIN)
+    process.env.JWT_SECRET_ADMIN = "test-jwt-secret-admin";
   if (!process.env.API_KEY) process.env.API_KEY = "test-api-key";
 }
 const express = require("express");
@@ -24,6 +25,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
   : [process.env.FRONTEND_URL || "http://localhost:3000"];
 
+console.log("Allowed Origins:", allowedOrigins);
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
