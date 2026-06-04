@@ -25,6 +25,14 @@ class NegotiationRoutes {
     });
 
     this.router.get(
+      "/detail/:id",
+      Role.authorize("umkm", "investor", "superadmin", "admin"),
+      (req, res) => {
+        this.negotiationController.getNegotiationById(req, res);
+      },
+    );
+
+    this.router.get(
       "/:id",
       Role.authorize("umkm", "investor", "superadmin", "admin"),
       (req, res) => {

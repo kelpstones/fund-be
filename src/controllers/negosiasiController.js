@@ -213,6 +213,8 @@ class NegotiationController {
       if (!negosiasi) {
         return responseHelper.error(res, "Negosiasi not found", 404);
       }
+      const logs = await LogNegosiasis.getLogNegosiasiByNegosiasiId(id);
+      negosiasi.logs = logs;
       return responseHelper.success(
         res,
         "Negosiasi data fetched successfully",
