@@ -191,6 +191,33 @@ class PengajuanController {
       if (!existingPengajuan) {
         return responseHelper.error(res, "Pengajuan not found", 404);
       }
+
+      // Block update if status is published, deal, completed, or approval is approved
+      const isApproved = existingPengajuan.status === "published" || 
+                         existingPengajuan.status === "deal" || 
+                         existingPengajuan.status === "completed" || 
+                         (existingPengajuan.approval && existingPengajuan.approval.status === "approved");
+      
+      if (isApproved) {
+        return responseHelper.error(
+          res,
+          "Pengajuan yang sudah disetujui atau dipublikasikan tidak dapat diubah",
+          400
+        );
+      }
+
+      // If approval status was rejected, reset it back to pending
+      if (existingPengajuan.approval && existingPengajuan.approval.status === "rejected") {
+        await Approvals.updateApproval(existingPengajuan.approval.id, {
+          status: "pending",
+          catatan: null,
+          approver_id: null
+        });
+        
+        // Reset proposal status to draft
+        await Pengajuan.updatePengajuanStatus(id, "draft");
+      }
+
       const validate = PengajuanValidator.updatePengajuanValidation(req.body);
       if (validate.error) {
         return responseHelper.error(
